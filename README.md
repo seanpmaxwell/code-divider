@@ -1,8 +1,8 @@
-# seps-cli
+# code-divider
 
-[![CI](https://github.com/seanpmaxwell/seps-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/seanpmaxwell/seps-cli/actions/workflows/ci.yml)
+[![CI](https://github.com/seanpmaxwell/code-divider/actions/workflows/ci.yml/badge.svg)](https://github.com/seanpmaxwell/code-divider/actions/workflows/ci.yml)
 
-Command-line tool to insert separator/header comments in your source files so labels are centered and each line fills up to a character limit.
+Command-line tool to insert divider/header comments in your source files so labels are centered and each line fills up to a character limit.
 
 ## Preview
 
@@ -23,7 +23,7 @@ becomes:
 ## Usage
 
 ```bash
-npx seps-cli [options] [paths...]
+npx code-divider [options] [paths...]
 ```
 
 If no paths are given, the current directory is walked recursively (skipping `node_modules` and dotfiles).
@@ -38,7 +38,7 @@ If no paths are given, the current directory is walked recursively (skipping `no
 
 ## Markers
 
-Write a marker on its own line and `seps-cli` rewrites it in place:
+Write a marker on its own line and `code-divider` rewrites it in place:
 
 | Marker          | Result                                       |
 | --------------- | -------------------------------------------- |
@@ -47,9 +47,24 @@ Write a marker on its own line and `seps-cli` rewrites it in place:
 
 Supported files: JavaScript/TypeScript, Java, CSS/SCSS, C, C++, Go, Rust, PHP, Ruby, and SQL — and any others you add via configuration.
 
+## Auto-Run on save
+
+This is how I use code-divider and what saved me tons of time. Using your IDE of choice, open up the run on save options and have code-divider execute for your directory automatically. Below is an example using VSCode (requires the `https://github.com/emeraldwalk/vscode-runonsave`)
+
+```json
+"emeraldwalk.runonsave": {
+  "commands": [
+    {
+      "match": "\\.(css|js|jsx|ts|tsx)$",
+      "cmd": "npx code-divider"
+    }
+  ]
+}
+```
+
 ## Terminology
 
-Given the source line `// @sec My Section`, seps-cli produces:
+Given the source line `// @sec My Section`, code-divider produces:
 
 ```
 // ============== My Section ============== //
@@ -59,17 +74,17 @@ The parts of that output are named as follows:
 
 | Term             | Refers to                                                                                 |
 | ---------------- | ----------------------------------------------------------------------------------------- |
-| Marker           | The token you write to request a separator: `@reg` (region) or `@sec` (section).          |
+| Marker           | The token you write to request a divider: `@reg` (region) or `@sec` (section).          |
 | Comment          | What starts a comment for the marker — `//` here; the syntax the marker is written in.    |
-| Label            | The text after the marker (`My Section`), centered as the title of the separator.         |
+| Label            | The text after the marker (`My Section`), centered as the title of the divider.         |
 | Filler character | The repeated character that pads the line out to the limit (`=` above).                   |
 | Bookends         | The strings wrapping each generated line — here `// ` on the left and ` //` on the right. |
 
 ## Configuration
 
-`seps-cli` works out of the box — you only need a config file if you want to override the default settings.
+`code-divider` works out of the box — you only need a config file if you want to override the default settings.
 
-To do so, add a `seps-config.json`. `seps` looks for it in the target path's directory first, then falls back to the directory it is run from (nearest wins — the two are not merged). Any values in it override the corresponding defaults; everything else keeps its default.
+To do so, add a `code-divider.config.json`. `code-divider` looks for it in the target path's directory first, then falls back to the directory it is run from (nearest wins — the two are not merged). Any values in it override the corresponding defaults; everything else keeps its default.
 
 The `All` key holds settings shared by every language. Every other top-level key is a language — unknown keys define new languages.
 
@@ -81,7 +96,7 @@ The `All` key holds settings shared by every language. Every other top-level key
 
 > By default each word in a label is capitalized (first letter upper, the rest lower) — so `// @reg my cool region` becomes a **My Cool Region** header. Words that start or end with a non-alphanumeric character are left as written (e.g. `@decorator`, `foo()`), and setting `DisableCapitalization` to `true` leaves labels exactly as typed.
 
-Each language can be configured individually via the `seps-config.json` file:
+Each language can be configured individually via the `code-divider.config.json` file:
 
 | Language field          | Meaning                                                                         |
 | ----------------------- | ------------------------------------------------------------------------------- |
@@ -130,17 +145,17 @@ Built-in languages and their defaults:
 Rather than writing the file from scratch, you can generate one pre-filled with all the default settings and edit from there:
 
 ```bash
-npx seps-cli init
+npx code-divider init
 ```
 
-This writes a `seps-config.json` to the current directory (it refuses to overwrite an existing one).
+This writes a `code-divider.config.json` to the current directory (it refuses to overwrite an existing one).
 
 ## Programmatic use
 
 ```js
-import insertSeparators from 'seps-cli';
+import insertdividers from 'code-divider';
 
-insertSeparators('src');
+insertdividers('src');
 ```
 
 ## License

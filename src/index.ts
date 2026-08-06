@@ -1,11 +1,11 @@
-import insertSeparators from './insertSeparators';
+import insertCodeDividers from './insertCodeDividers';
 import initializeDirectory from './initializeDirectory';
 import loadJsonFile from './common/utils/loadJsonFile';
 import fileUtils from './common/utils/fileUtils';
 import logger from './common/utils/logger';
 
 export {
-  insertSeparators,
+  insertCodeDividers,
   initializeDirectory,
   loadJsonFile,
   fileUtils,
@@ -13,4 +13,4 @@ export {
 };
 
 export type * from './common/types';
-export default insertSeparators;
+export default insertCodeDividers;

@@ -6,7 +6,7 @@ import type {
   LangConfig,
   RawConfigFile,
   RawLanguageEntry,
-  SepsConfig,
+  CodeDividerConfig,
   SharedSettings,
 } from './common/types';
 import logger from './common/utils/logger';
@@ -41,7 +41,7 @@ const ErrorMessages = {
   },
   MissingLabel(filePath: string, line: number) {
     return (
-      `Warning: ${filePath}:${line}: separator marker has no ` +
+      `Warning: ${filePath}:${line}: code-divider marker has no ` +
       'label, skipping'
     );
   },
@@ -55,7 +55,7 @@ const ErrorMessages = {
  * Process a path (file or directory). Directories are walked recursively.
  * Returns the list of file paths that were updated.
  */
-function insertSeparators(targetPath: string): string[] {
+function insertCodeDividers(targetPath: string): string[] {
   const dirPath = configDirFor(targetPath);
   const { All, ...languages } = loadConfig(dirPath);
   const languagesEntries = Object.entries(languages);
@@ -71,10 +71,10 @@ function insertSeparators(targetPath: string): string[] {
  * @private
  *
  * Resolve the effective config: DefaultConfig, overridden per-language by any
- * seps-config.json found in the config directory. Unknown language keys in the
+ * code-divider.config.json found in the config directory. Unknown language keys in the
  * JSON define new languages.
  */
-function loadConfig(cwd: string): SepsConfig {
+function loadConfig(cwd: string): CodeDividerConfig {
   const configPath = path.join(cwd, CONFIG_FILE_NAME);
   if (!fileUtils.exists(configPath)) {
     return DefaultConfig;
@@ -92,13 +92,13 @@ function loadConfig(cwd: string): SepsConfig {
   // FillerCharacter); per-language values still win over them. Every other
   // key is a language.
   const { All: allOverrides, ...langOverrides } = overrides;
-  const config: SepsConfig = { All: { ...DefaultConfig.All, ...allOverrides } };
+  const config: CodeDividerConfig = { All: { ...DefaultConfig.All, ...allOverrides } };
   const defaultLangs = Object.keys(DefaultConfig).filter(key => key !== 'All');
   const set = new Set([...defaultLangs, ...Object.keys(langOverrides)]);
   for (const lang of set) {
-    const defaults = (DefaultConfig as SepsConfig)[lang] as object | undefined;
+    const defaults = (DefaultConfig as CodeDividerConfig)[lang] as object | undefined;
     const override = langOverrides[lang] as object | undefined;
-    config[lang] = { ...defaults, ...override } as SepsConfig[string];
+    config[lang] = { ...defaults, ...override } as CodeDividerConfig[string];
   }
   logger.info(`Using config overrides from: ${configPath}`);
   // Return
@@ -108,8 +108,8 @@ function loadConfig(cwd: string): SepsConfig {
 /**
  * @private
  *
- * Directory whose seps-config.json applies to a target path: the target's own
- * directory if it has one, otherwise the directory seps is being run from.
+ * Directory whose code-divider.config.json applies to a target path: the target's own
+ * directory if it has one, otherwise the directory code-divider is being run from.
  */
 function configDirFor(targetPath: string): string {
   const isTargetDir = fileUtils.isDir(targetPath);
@@ -389,4 +389,4 @@ function formatRegion(
 //                                     Export                                //
 // ========================================================================= //
 
-export default insertSeparators;
+export default insertCodeDividers;

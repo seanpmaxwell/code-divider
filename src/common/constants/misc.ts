@@ -2,4 +2,4 @@
 //                                  Constants                                //
 // ========================================================================= //
 
-export const CONFIG_FILE_NAME = 'seps-config.json';
+export const CONFIG_FILE_NAME = 'code-divider.config.json';

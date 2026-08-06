@@ -1,11 +1,11 @@
-seps-cli - format separator / header comment markers
+code-divider - format separator / header comment markers
 
 Usage:
-  seps-cli [options] [paths...]
-  seps-cli init
+  code-divider [options] [paths...]
+  code-divider init
 
 Commands:
-  init             Generate a seps-config.json in the current directory
+  init             Generate a code-divider.config.json in the current directory
                    containing all the default settings.
 
 Arguments:
@@ -23,4 +23,4 @@ Markers (rewritten in place, centered and padded to the character limit):
   // @sec Label    Section -> a single centered header line.
 
 Supported files: JavaScript, Java, CSS, C, C++, Go, Rust, PHP, Ruby, SQL
-(and any others added via seps-config.json).
+(and any others added via code-divider.config.json).

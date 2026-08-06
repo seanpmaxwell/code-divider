@@ -5,7 +5,7 @@
 /**
  * The shared "All" block plus one entry per language.
  */
-export interface SepsConfig {
+export interface CodeDividerConfig {
   All: SharedSettings;
   [language: string]: SharedSettings | LanguageEntry;
 }
@@ -18,6 +18,8 @@ export interface SharedSettings {
   CharacterLimit: number;
   DisableCapitalization: boolean;
   FillerCharacter: string;
+  exclude?: string[];
+  include?: string[];
 }
 
 /**
@@ -34,7 +36,7 @@ export interface LanguageEntry {
 }
 
 /**
- * A config exactly as read from a seps-config.json file. Nothing is trusted
+ * A config exactly as read from a code-divider.config.json file. Nothing is trusted
  * here: every language entry is validated by `configureLangEntry` before use.
  */
 export interface RawConfigFile {

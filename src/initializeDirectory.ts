@@ -16,8 +16,8 @@ const CONFIG_FILE_ALREADY_EXISTS_ERROR = `${CONFIG_FILE_NAME} already exists her
 // ========================================================================= //
 
 /**
- * Generate a seps-config.json in the given directory (default: the directory
- * seps is being run from) containing all the default settings. Refuses to
+ * Generate a code-divider.config.json in the given directory (default: the directory
+ * code-divider is being run from) containing all the default settings. Refuses to
  * overwrite an existing config. Returns the path of the written file.
  */
 function initializeDirectory(dir: string = process.cwd()): string {

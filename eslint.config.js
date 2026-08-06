@@ -5,7 +5,7 @@ import prettier from 'eslint-config-prettier';
 
 export default [
   {
-    // Playground files are formatting fixtures for seps itself
+    // Playground files are formatting fixtures for code-divider itself
     ignores: ['test/playground/', 'lib/', 'node_modules/'],
   },
   js.configs.recommended,

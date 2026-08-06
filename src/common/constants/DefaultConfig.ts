@@ -1,4 +1,4 @@
-import type { SepsConfig } from '../types';
+import type { CodeDividerConfig } from '../types';
 
 // ========================================================================= //
 //                                  Constants                                //
@@ -13,6 +13,19 @@ const DefaultConfig = {
     CharacterLimit: 79,
     DisableCapitalization: false,
     FillerCharacter: '=',
+    exclude: [
+      'bin',
+      'lib',
+      'dist',
+      'node_modules',
+      '*.log',
+      '.env',
+      '.env.*',
+      '.vscode',
+      '.idea',
+      '.claude'
+    ],
+    include: [],
   },
   JavaScript: {
     Extensions: ['ts', 'tsx', 'js', 'jsx', 'mjs', 'cjs'],
@@ -74,7 +87,7 @@ const DefaultConfig = {
     Comment: ['# ', ''],
     Bookends: ['# ', ' #'],
   },
-} satisfies SepsConfig;
+} satisfies CodeDividerConfig;
 
 // ========================================================================= //
 //                                     Export                                //

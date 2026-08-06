@@ -1,17 +1,17 @@
 {
-  "name": "seps-cli",
+  "name": "code-divider",
   "version": "1.0.0",
   "description": "Format separator/header comment markers so labels are centered and each line fills up to a character limit.",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/seanpmaxwell/seps-cli.git"
+    "url": "git+https://github.com/seanpmaxwell/code-divider.git"
   },
-  "homepage": "https://github.com/seanpmaxwell/seps-cli#readme",
-  "bugs": "https://github.com/seanpmaxwell/seps-cli/issues",
+  "homepage": "https://github.com/seanpmaxwell/code-divider#readme",
+  "bugs": "https://github.com/seanpmaxwell/code-divider/issues",
   "author": "Sean Maxwell",
   "bin": {
-    "seps-cli": "bin/cli.js"
+    "code-divider": "bin/cli.js"
   },
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -53,6 +53,10 @@
     "cli",
     "formatter",
     "comments",
+    "divider",
+    "dividers",
+    "code-divider",
+    "code-dividers",
     "separators",
     "separator",
     "headers",

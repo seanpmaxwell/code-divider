@@ -43,9 +43,9 @@ function main() {
   if (args[0] === 'init') {
     try {
       const filePath = initializeDirectory();
-      process.stdout.write(`seps-cli: created ${filePath}\n`);
+      process.stdout.write(`code-divider: created ${filePath}\n`);
     } catch (err) {
-      process.stderr.write(`seps-cli: ${err.message}\n`);
+      process.stderr.write(`code-divider: ${err.message}\n`);
       process.exitCode = 1;
     }
     return;
@@ -68,13 +68,13 @@ function main() {
       const filesChanged = insertSeparators(p);
       total += filesChanged.length;
     } catch (err) {
-      process.stderr.write(`seps-cli: ${p}: ${err.message}\n`);
+      process.stderr.write(`code-divider: ${p}: ${err.message}\n`);
       process.exitCode = 1;
     }
   }
   // Print finished message
   const verb = isDryRun ? 'would be updated' : 'updated';
-  const message = `seps-cli: ${total} file${total === 1 ? '' : 's'} ${verb}.\n`;
+  const message = `code-divider: ${total} file${total === 1 ? '' : 's'} ${verb}.\n`;
   process.stdout.write(message);
 }
 
@@ -109,7 +109,7 @@ function processCommandLineArgs(args) {
         break;
       default:
         if (arg.startsWith('-')) {
-          process.stderr.write(`seps-cli: unknown option '${arg}'\n`);
+          process.stderr.write(`code-divider: unknown option '${arg}'\n`);
           process.exitCode = 1;
           return null;
         }

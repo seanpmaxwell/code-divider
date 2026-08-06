@@ -4,7 +4,7 @@ import os from 'os';
 import path from 'path';
 
 import {
-  insertSeparators,
+  insertCodeDividers,
   initializeDirectory,
   loadJsonFile,
   logger,
@@ -15,8 +15,8 @@ import {
 //                                      Run                                  //
 // ========================================================================= //
 
-// A fresh temp directory per test keeps each case isolated. seps falls back to
-// process.cwd() for config, and the project root has no seps-config.json, so a
+// A fresh temp directory per test keeps each case isolated. code-divider falls back to
+// process.cwd() for config, and the project root has no code-divider.config.json, so a
 // temp dir without one exercises the built-in defaults.
 let dir: string;
 
@@ -27,7 +27,7 @@ let warn: ReturnType<typeof vi.spyOn>;
 let info: ReturnType<typeof vi.spyOn>;
 
 beforeEach(() => {
-  dir = fs.mkdtempSync(path.join(os.tmpdir(), 'seps-test-'));
+  dir = fs.mkdtempSync(path.join(os.tmpdir(), 'code-divider-test-'));
   warn = vi.spyOn(logger, 'warn').mockImplementation(() => {});
   info = vi.spyOn(logger, 'info').mockImplementation(() => {});
 });
@@ -51,7 +51,7 @@ function write(rel: string, content: string): string {
 
 function writeConfig(obj: object | string): void {
   fs.writeFileSync(
-    path.join(dir, 'seps-config.json'),
+    path.join(dir, 'code-divider.config.json'),
     typeof obj === 'string' ? obj : JSON.stringify(obj),
     'utf8',
   );
@@ -62,7 +62,7 @@ function read(rel: string): string {
 }
 
 function run(target: string = dir) {
-  return insertSeparators(target);
+  return insertCodeDividers(target);
 }
 
 // Assert a generated separator line is well-formed.
@@ -284,7 +284,7 @@ describe('configuration overrides', () => {
     write('a.js', '// @sec x\n');
     run();
     expect(info).toHaveBeenCalledWith(
-      `Using config overrides from: ${path.join(dir, 'seps-config.json')}`,
+      `Using config overrides from: ${path.join(dir, 'code-divider.config.json')}`,
     );
   });
 
@@ -303,12 +303,12 @@ describe('configuration overrides', () => {
 describe('configuration validation', () => {
   const expectThrows = (re: RegExp): void => {
     write('a.js', '// @sec x\n');
-    expect(() => insertSeparators(dir)).toThrow(re);
+    expect(() => insertCodeDividers(dir)).toThrow(re);
   };
 
   it('rejects malformed JSON', () => {
     writeConfig('{ not valid json');
-    expectThrows(/invalid seps-config\.json/);
+    expectThrows(/invalid code-divider.config\.json/);
   });
 
   it('rejects a language with no Extensions', () => {
@@ -479,7 +479,7 @@ describe('initializeDirectory', () => {
 
   it('writes a parseable config with defaults and returns its path', () => {
     const p = initializeDirectory(dir);
-    expect(p).toBe(path.join(dir, 'seps-config.json'));
+    expect(p).toBe(path.join(dir, 'code-divider.config.json'));
     const parsed = loadJsonFile<ParsedConfig>(p);
     expect(parsed.All).toMatchObject({
       CharacterLimit: 79,
@@ -490,14 +490,14 @@ describe('initializeDirectory', () => {
 
   it('keeps arrays on a single line', () => {
     initializeDirectory(dir);
-    const content = read('seps-config.json');
+    const content = read('code-divider.config.json');
     expect(content).toContain('"Extensions": ["ts", "tsx"');
     expect(content).not.toMatch(/"ts",\n/);
   });
 
   it('ends with a trailing newline', () => {
     initializeDirectory(dir);
-    expect(read('seps-config.json').endsWith('\n')).toBe(true);
+    expect(read('code-divider.config.json').endsWith('\n')).toBe(true);
   });
 
   it('refuses to overwrite an existing config', () => {
@@ -505,7 +505,7 @@ describe('initializeDirectory', () => {
     expect(() => initializeDirectory(dir)).toThrow(/already exists/);
   });
 
-  it('produces a config that seps then accepts', () => {
+  it('produces a config that code-divider then accepts', () => {
     initializeDirectory(dir);
     write('a.js', '// @sec hello\n');
     run();
