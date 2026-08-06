@@ -1,0 +1,82 @@
+{
+  "name": "seps-cli",
+  "version": "1.0.0",
+  "description": "Format separator/header comment markers so labels are centered and each line fills up to a character limit.",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seanpmaxwell/seps-cli.git"
+  },
+  "homepage": "https://github.com/seanpmaxwell/seps-cli#readme",
+  "bugs": "https://github.com/seanpmaxwell/seps-cli/issues",
+  "author": "Sean Maxwell",
+  "bin": {
+    "seps-cli": "bin/cli.js"
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    }
+  },
+  "files": [
+    "bin",
+    "lib",
+    "README.md"
+  ],
+  "scripts": {
+    "start": "npm run build && node bin/cli.js",
+    "build": "node scripts/build.js",
+    "clean-install": "bash ./scripts/clean-install.sh",
+    "git:commit": "bash ./scripts/git-utils/commit.sh",
+    "git:squash-history": "bash ./scripts/git-utils/squash-commit-history.sh",
+    "git:update-branch": "bash ./scripts/git-utils/update-branch.sh",
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "readme:swap": "bash ./scripts/readme.sh swap",
+    "readme:restore": "bash ./scripts/readme.sh restore",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run readme:swap",
+    "postpack": "npm run readme:restore",
+    "test": "vitest run",
+    "test:assistant": "bash ./scripts/test-assistant/main.sh",
+    "typecheck": "tsc"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "cli",
+    "formatter",
+    "comments",
+    "separators",
+    "separator",
+    "headers",
+    "header",
+    "comment-headers",
+    "code-comments",
+    "region",
+    "section",
+    "banner",
+    "divider",
+    "code-formatting",
+    "source-code"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.1.1",
+    "esbuild": "^0.28.1",
+    "eslint": "^10.7.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.7.0",
+    "prettier": "^3.9.5",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.65.0",
+    "vitest": "^4.1.10"
+  }
+}
