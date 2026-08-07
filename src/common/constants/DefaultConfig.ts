@@ -13,6 +13,7 @@ const DefaultConfig = {
     CharacterLimit: 79,
     DisableCapitalization: false,
     FillerCharacter: '=',
+    include: [],
     exclude: [
       'bin',
       'lib',
@@ -25,7 +26,6 @@ const DefaultConfig = {
       '.idea',
       '.claude'
     ],
-    include: [],
   },
   JavaScript: {
     Extensions: ['ts', 'tsx', 'js', 'jsx', 'mjs', 'cjs'],

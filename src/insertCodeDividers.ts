@@ -247,12 +247,12 @@ function walkDirectoryRecursively(
   const langConfig =
     langConfigArr.find(type => type.FILE_EXT.test(targetPath)) ?? null;
   if (!langConfig) return updated;
-  // Write the separator comment (unless doing a dryRun)
+  // Write the divider comment (unless doing a dryRun)
   const content = fileUtils.read(targetPath);
   const next = content
     .split('\n')
     .map((line, i) =>
-      checkForMarkerAndAddSeparator(line, i, langConfig, targetPath),
+      checkForMarkerAndAddDivider(line, i, langConfig, targetPath),
     )
     .join('\n');
   if (next !== content) {
@@ -270,7 +270,7 @@ function walkDirectoryRecursively(
  *
  * Determine whether to format a "section" or a "region".
  */
-function checkForMarkerAndAddSeparator(
+function checkForMarkerAndAddDivider(
   line: string,
   index: number,
   langConfig: LangConfig,
@@ -278,14 +278,14 @@ function checkForMarkerAndAddSeparator(
 ): string {
   const indent = line.match(/^(\s*)/)?.[1] ?? '';
   const sectionMatch = line.match(langConfig.SECTION_MARKER);
-  // Insert "section" separator
+  // Insert "section" divider
   if (sectionMatch) {
     const label = sectionMatch[1]?.trim() ?? '';
     if (!label) return printMissingLabelWarning(filePath, index, line);
     const labelFinal = capitalizeLabel(label, langConfig);
     return formatSection(labelFinal, langConfig, indent);
   }
-  // Insert "region" separator
+  // Insert "region" divider
   const regionMatch = line.match(langConfig.REGION_MARKER);
   if (regionMatch) {
     const label = regionMatch[1]?.trim() ?? '';

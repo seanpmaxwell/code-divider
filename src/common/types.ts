@@ -20,6 +20,7 @@ export interface SharedSettings {
   FillerCharacter: string;
   exclude?: string[];
   include?: string[];
+  nodePre22Exclude?: string[]; 
 }
 
 /**

@@ -65,7 +65,7 @@ function run(target: string = dir) {
   return insertCodeDividers(target);
 }
 
-// Assert a generated separator line is well-formed.
+// Assert a generated divider line is well-formed.
 function expectLine(
   line: string,
   over: { len?: number; open?: string; close?: string } = {},
@@ -205,7 +205,7 @@ describe('markers with no label', () => {
     expect(read('a.js')).toBe('x\n// @reg\ny\n');
     expect(updated).toHaveLength(0);
     expect(warn).toHaveBeenCalledWith(
-      `Warning: ${p}:2: separator marker has no label, skipping`,
+      `Warning: ${p}:2: divider marker has no label, skipping`,
     );
   });
 

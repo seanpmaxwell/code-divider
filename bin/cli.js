@@ -3,7 +3,7 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
 import {
-  insertSeparators,
+  insertCodeDividers,
   initializeDirectory,
   loadJsonFile,
   fileUtils,
@@ -38,7 +38,7 @@ main();
  */
 function main() {
   // `init` option generates a default config file instead of
-  // "inserting separators"
+  // "inserting code-dividers"
   const args = process.argv.slice(2);
   if (args[0] === 'init') {
     try {
@@ -61,11 +61,11 @@ function main() {
   if (isDryRun) {
     fileUtils.setIsDryRun(true);
   }
-  // Run insertSeparators()
+  // Run insert function
   let total = 0;
   for (const p of paths) {
     try {
-      const filesChanged = insertSeparators(p);
+      const filesChanged = insertCodeDividers(p);
       total += filesChanged.length;
     } catch (err) {
       process.stderr.write(`code-divider: ${p}: ${err.message}\n`);
@@ -79,7 +79,7 @@ function main() {
 }
 
 /**
- * Process the command-line arguments. If running insertSeparators, return an
+ * Process the command-line arguments. If running insertCodeDividers, return an
  * object with an array of paths (strings) and whether to do a dry-run, if not
  * return `null`.
  *

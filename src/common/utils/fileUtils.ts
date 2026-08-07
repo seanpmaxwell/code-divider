@@ -1,4 +1,5 @@
 import fs, { Dirent } from 'fs';
+import { SharedSettings } from '../types';
 
 // ========================================================================= //
 //                                  Classes                                  //
@@ -54,6 +55,16 @@ class FileUtils {
    */
   public exists(target: string): boolean {
     return fs.existsSync(target);
+  }
+
+  /**
+   * Get a string array of all the files in a directory. By default uses
+   * a glob pattern but for nodejs versions < v22 will just use the `preNode22:`
+   * flag.
+   */
+  public getDirFiles(settings: SharedSettings) {
+    // pick up here
+    fs.glob()
   }
 }
 
