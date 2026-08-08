@@ -3,7 +3,7 @@ import path from 'path';
 import DefaultConfig from './common/constants/DefaultConfig';
 import { CONFIG_FILE_NAME } from './common/constants/misc';
 import customStringifyObject from './common/utils/customStringifyObject';
-import saveJsonFile from './common/utils/saveJsonFile';
+import fileUtils from './common/utils/fileUtils';
 
 // ========================================================================= //
 //                                  Constants                                //
@@ -27,7 +27,7 @@ function initializeDirectory(dir: string = process.cwd()): string {
     throw new Error(CONFIG_FILE_ALREADY_EXISTS_ERROR);
   }
   // Save file content to JSON file
-  saveJsonFile(configPath, DefaultConfig, customStringifyObject);
+  fileUtils.saveJsonFile(configPath, DefaultConfig, customStringifyObject);
   // Return filepath
   return configPath;
 }

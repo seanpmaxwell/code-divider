@@ -40,3 +40,5 @@ scripts/claude-runner/tmp/*
 # Transient README backup created during publishing
 README-tmp
 scripts/
+my-dep-tools/
+my-dev-tools/

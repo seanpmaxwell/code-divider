@@ -1,7 +1,6 @@
 import path from 'path';
 import DefaultConfig from './common/constants/DefaultConfig';
 import { CONFIG_FILE_NAME } from './common/constants/misc';
-import loadJsonFile from './common/utils/loadJsonFile';
 import type {
   LangConfig,
   RawConfigFile,
@@ -82,7 +81,7 @@ function loadConfig(cwd: string): CodeDividerConfig {
   // Load overrides from config file
   let overrides: RawConfigFile;
   try {
-    overrides = loadJsonFile<RawConfigFile>(configPath);
+    overrides = fileUtils.loadJsonFile<RawConfigFile>(configPath);
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
     const message = `invalid ${CONFIG_FILE_NAME}: ${reason}`;

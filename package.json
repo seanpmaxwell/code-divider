@@ -28,7 +28,7 @@
   ],
   "scripts": {
     "start": "npm run build && node bin/cli.js",
-    "build": "node scripts/build.js",
+    "build": "tsx scripts/build.js",
     "clean-install": "bash ./scripts/clean-install.sh",
     "git:commit": "bash ./scripts/git-utils/commit.sh",
     "git:squash-history": "bash ./scripts/git-utils/squash-commit-history.sh",
@@ -79,6 +79,7 @@
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.7.0",
     "prettier": "^3.9.5",
+    "tsx": "^4.23.11",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.65.0",
     "vitest": "^4.1.10"

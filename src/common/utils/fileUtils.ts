@@ -2,6 +2,13 @@ import fs, { Dirent } from 'fs';
 import { SharedSettings } from '../types';
 
 // ========================================================================= //
+//                                   Types                                   //
+// ========================================================================= //
+
+type Stringify = (value: unknown) => string;
+
+
+// ========================================================================= //
 //                                  Classes                                  //
 // ========================================================================= //
 // During a dry-run, we want to skip modifying files. To create consistency,
@@ -65,6 +72,53 @@ class FileUtils {
   public getDirFiles(settings: SharedSettings) {
     // pick up here
     fs.glob()
+  }
+
+  /**
+   * Convert json file to an object.
+   */
+  public loadJsonFile<T = Record<string, unknown>>(filePath: string): T {
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    // Parse it
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(fileContent);
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : String(err);
+      throw new Error(`invalid JSON in "${filePath}": ${reason}`, { cause: err });
+    }
+    // Make sure it's an object
+    if (parsed === null || typeof parsed !== 'object') {
+      throw new Error(`expected "${filePath}" to contain a JSON object or array`);
+    }
+    // Return
+    return parsed as T;
+  }
+
+  /**
+   * Save an object (or array) to a JSON file. Appends ".json" to the path unless
+   * it already ends with it. Pass `stringify` to control serialization (defaults
+   * to JSON.stringify with 2-space indentation). Returns the path written to.
+   */
+  public saveJsonFile(
+    filePath: string,
+    value: unknown,
+    stringify: Stringify = this.defaultStringify,
+  ): string {
+    const doesEndWithJson = filePath.toLowerCase().endsWith('.json');
+    const fullPath = doesEndWithJson ? filePath : `${filePath}.json`;
+    const fileContent = stringify(value);
+    fs.writeFileSync(fullPath, `${fileContent}\n`, 'utf8');
+    return fullPath;
+  }
+
+  /**
+   * @private
+   *
+   * Default serializer: pretty JSON with 2-space indentation.
+   */
+  public defaultStringify(value: unknown): string {
+    return JSON.stringify(value, null, 2);
   }
 }
 

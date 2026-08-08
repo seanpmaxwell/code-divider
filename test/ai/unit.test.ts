@@ -6,7 +6,6 @@ import path from 'path';
 import {
   insertCodeDividers,
   initializeDirectory,
-  loadJsonFile,
   logger,
   fileUtils,
 } from '../../src';
@@ -480,7 +479,7 @@ describe('initializeDirectory', () => {
   it('writes a parseable config with defaults and returns its path', () => {
     const p = initializeDirectory(dir);
     expect(p).toBe(path.join(dir, 'code-divider.config.json'));
-    const parsed = loadJsonFile<ParsedConfig>(p);
+    const parsed = fileUtils.loadJsonFile<ParsedConfig>(p);
     expect(parsed.All).toMatchObject({
       CharacterLimit: 79,
       FillerCharacter: '=',
