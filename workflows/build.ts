@@ -1,21 +1,23 @@
 import { build } from 'esbuild';
-import { $ } from 'execa';
+import { $, runWorkflow } from './common';
 
 // ========================================================================= //
 //                                      Run                                  //
 // ========================================================================= //
-// Build step: compile src/ with TypeScript first, then bundle and minify it
-// from its single entry point into one self-contained lib/index.js, which is
-// what the published package points at. src/ stays the readable dev source;
-// lib/ is generated and git-ignored.
-//
-// TypeScript has to run first because esbuild only strips types, it never
-// checks them. Compiling up front means a type error aborts the build before
-// any bundle is written, rather than leaving a broken lib/ behind.
-await $`rm -rf lib`;
-await $`mkdir lib`;
 
-try {
+/**
+ * Build step: compile src/ with TypeScript first, then bundle and minify it
+ * from its single entry point into one self-contained lib/index.js, which is
+ * what the published package points at. src/ stays the readable dev source;
+ * lib/ is generated and git-ignored.
+ *
+ * TypeScript has to run first because esbuild only strips types, it never
+ * checks them. Compiling up front means a type error aborts the build before
+ * any bundle is written, rather than leaving a broken lib/ behind.
+ */
+runWorkflow(async () => {
+  await $`rm -rf lib`;
+  await $`mkdir lib`;
   // Typecheck src/ and emit the .d.ts files consumers use. tsc prints its own
   // errors, so on failure just exit with its status rather than dumping a Node
   // stack trace on top of them.
@@ -31,10 +33,6 @@ try {
   });
   // Print finished.
   await $`echo Finished Building. Output send to "lib/"`;
-} catch (err) {
-  // eslint-disable-next-line no-console
-  console.error(err);
+}, async () => {
   await $`rm -rf lib`;
-  process.exit(1);
-}
-
+});
