@@ -1,6 +1,15 @@
 import { $ as $$ } from 'execa';
 
-export const $ = $$({ verbose: 'full' });
+
+/**
+ * Print execa commands
+ */
+export const $ = $$({
+  verbose: (verboseLine: string) => {
+    // eslint-disable-next-line no-console
+    console.info(verboseLine, '\n');
+  },
+});
 
 /**
  * Run workflow
