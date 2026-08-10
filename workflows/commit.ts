@@ -1,4 +1,5 @@
-import { $, runWorkflow } from './common';
+import $ from './common/exec.ts';
+import runWorkflow from './common/runWorkflow.ts';
 
 
 const COMMIT_MESSAGE = 'Normal development commit';

@@ -1,5 +1,6 @@
 import { build } from 'esbuild';
-import { $, runWorkflow } from './common';
+import $ from './common/exec.ts';
+import runWorkflow from './common/runWorkflow.ts';
 
 // ========================================================================= //
 //                                      Run                                  //

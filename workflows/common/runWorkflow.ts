@@ -1,20 +1,7 @@
-import { $ as $$ } from 'execa';
-
-
-/**
- * Print execa commands
- */
-export const $ = $$({
-  verbose: (verboseLine: string) => {
-    // eslint-disable-next-line no-console
-    console.info(verboseLine, '\n');
-  },
-});
-
 /**
  * Run workflow
  */
-export async function runWorkflow(
+async function runWorkflow(
   cb: () => Promise<void>,
   onError?: (err?: unknown) => Promise<void>,
 ): Promise<void> {
@@ -27,3 +14,5 @@ export async function runWorkflow(
     process.exit(1);
   }
 }
+
+export default runWorkflow;
