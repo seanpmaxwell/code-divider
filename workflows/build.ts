@@ -1,8 +1,5 @@
 import { build } from 'esbuild';
-import { execFileSync } from 'child_process';
-import { mkdirSync, rmSync } from 'fs';
-
-import logger from '../src/common/utils/logger';
+import { $ } from 'execa';
 
 // ========================================================================= //
 //                                      Run                                  //
@@ -15,31 +12,29 @@ import logger from '../src/common/utils/logger';
 // TypeScript has to run first because esbuild only strips types, it never
 // checks them. Compiling up front means a type error aborts the build before
 // any bundle is written, rather than leaving a broken lib/ behind.
+await $`rm -rf lib`;
+await $`mkdir lib`;
 
-rmSync('lib', { recursive: true, force: true });
-mkdirSync('lib', { recursive: true });
-
-// Typecheck src/ and emit the .d.ts files consumers use. tsc prints its own
-// errors, so on failure just exit with its status rather than dumping a Node
-// stack trace on top of them.
 try {
-  execFileSync(
-    process.execPath,
-    ['node_modules/typescript/bin/tsc', '-p', 'tsconfig.build.json'],
-    { stdio: 'inherit' },
-  );
-} catch {
-  rmSync('lib', { recursive: true, force: true });
+  // Typecheck src/ and emit the .d.ts files consumers use. tsc prints its own
+  // errors, so on failure just exit with its status rather than dumping a Node
+  // stack trace on top of them.
+  await $`tsc -p tsconfig.build.json`;
+  // Run the build
+  await build({
+    entryPoints: ['src/index.ts'],
+    outfile: 'lib/index.js',
+    bundle: true,
+    minify: true,
+    format: 'esm',
+    platform: 'node',
+  });
+  // Print finished.
+  await $`echo Finished Building. Output send to "lib/"`;
+} catch (err) {
+  // eslint-disable-next-line no-console
+  console.error(err);
+  await $`rm -rf lib`;
   process.exit(1);
 }
 
-await build({
-  entryPoints: ['src/index.ts'],
-  outfile: 'lib/index.js',
-  bundle: true,
-  minify: true,
-  format: 'esm',
-  platform: 'node',
-});
-
-logger.info('Built lib/');

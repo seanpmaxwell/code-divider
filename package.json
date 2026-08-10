@@ -78,6 +78,7 @@
     "esbuild": "^0.28.1",
     "eslint": "^10.7.0",
     "eslint-config-prettier": "^10.1.8",
+    "execa": "^10.0.1",
     "globals": "^17.7.0",
     "prettier": "^3.9.5",
     "tsx": "^4.23.11",
