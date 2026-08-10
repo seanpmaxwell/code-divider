@@ -20,7 +20,7 @@ import fileUtils from './common/utils/fileUtils';
 const Markers = {
   REGION: '@reg',
   SECTION: '@sec',
-};
+} as const;
 
 const ErrorMessages = {
   Extensions(lang: string) {
@@ -44,7 +44,7 @@ const ErrorMessages = {
       'label, skipping'
     );
   },
-};
+} as const;
 
 // ========================================================================= //
 //                                  Functions                                //
@@ -91,11 +91,15 @@ function loadConfig(cwd: string): CodeDividerConfig {
   // FillerCharacter); per-language values still win over them. Every other
   // key is a language.
   const { All: allOverrides, ...langOverrides } = overrides;
-  const config: CodeDividerConfig = { All: { ...DefaultConfig.All, ...allOverrides } };
+  const config: CodeDividerConfig = {
+    ...DefaultConfig,
+    All: { ...DefaultConfig.All, ...allOverrides },
+  };
   const defaultLangs = Object.keys(DefaultConfig).filter(key => key !== 'All');
   const set = new Set([...defaultLangs, ...Object.keys(langOverrides)]);
   for (const lang of set) {
-    const defaults = (DefaultConfig as CodeDividerConfig)[lang] as object | undefined;
+    const defaults = (DefaultConfig as CodeDividerConfig)[lang] as
+      object | undefined;
     const override = langOverrides[lang] as object | undefined;
     config[lang] = { ...defaults, ...override } as CodeDividerConfig[string];
   }
@@ -192,6 +196,7 @@ function configureLangEntry(
 
 /**
  * @private
+ *
  * Check a value is an integer of at least 1.
  */
 function isPositiveInt(value: unknown): value is number {
@@ -199,7 +204,7 @@ function isPositiveInt(value: unknown): value is number {
 }
 
 /**
- *
+ * @private
  */
 function getExtensionRegex(extensions: string[]): RegExp {
   const cleanExtensions = extensions.map((ext: string) => {
@@ -223,20 +228,24 @@ function escapeRegex(str: string): string {
  *
  * Recursively walk a path, rewriting markers in every supported file.
  */
-function walkDirectoryRecursively(
+function walkDirectoryRecursivelyx(
   targetPath: string,
   langConfigArr: LangConfig[],
 ): string[] {
+  // pick up here, maybe this can be replaced with something which just lists
+  // all the files + full path using a glob match
+  console.log();
+
   const updated: string[] = [];
   const isDirectory = fileUtils.isDir(targetPath);
   // Go recursive if directory
   if (isDirectory) {
-    const entries = fileUtils.fetchDirFiles(targetPath);
-    for (const entry of entries) {
-      if (entry.name === 'node_modules' || entry.name.startsWith('.')) {
+    const items = fileUtils.listDirItems(targetPath);
+    for (const item of items) {
+      if (item === 'node_modules' || item.startsWith('.')) {
         continue;
       }
-      const fileFullPath = path.join(targetPath, entry.name);
+      const fileFullPath = path.join(targetPath, item);
       const result = walkDirectoryRecursively(fileFullPath, langConfigArr);
       updated.push(...result);
     }

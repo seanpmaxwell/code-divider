@@ -74,9 +74,9 @@ The parts of that output are named as follows:
 
 | Term             | Refers to                                                                                 |
 | ---------------- | ----------------------------------------------------------------------------------------- |
-| Marker           | The token you write to request a divider: `@reg` (region) or `@sec` (section).          |
+| Marker           | The token you write to request a divider: `@reg` (region) or `@sec` (section).            |
 | Comment          | What starts a comment for the marker — `//` here; the syntax the marker is written in.    |
-| Label            | The text after the marker (`My Section`), centered as the title of the divider.         |
+| Label            | The text after the marker (`My Section`), centered as the title of the divider.           |
 | Filler character | The repeated character that pads the line out to the limit (`=` above).                   |
 | Bookends         | The strings wrapping each generated line — here `// ` on the left and ` //` on the right. |
 

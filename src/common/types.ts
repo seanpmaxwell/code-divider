@@ -6,8 +6,13 @@
  * The shared "All" block plus one entry per language.
  */
 export interface CodeDividerConfig {
+  files: {
+    include: string[];
+    exclude: string[];
+  };
   All: SharedSettings;
-  [language: string]: SharedSettings | LanguageEntry;
+  [language: string]:
+    SharedSettings | LanguageEntry | CodeDividerConfig['files'];
 }
 
 /**
@@ -18,9 +23,7 @@ export interface SharedSettings {
   CharacterLimit: number;
   DisableCapitalization: boolean;
   FillerCharacter: string;
-  exclude?: string[];
-  include?: string[];
-  nodePre22Exclude?: string[]; 
+  nodePre22Exclude?: string[];
 }
 
 /**

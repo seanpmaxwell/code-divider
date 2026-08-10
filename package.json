@@ -28,7 +28,7 @@
   ],
   "scripts": {
     "start": "npm run build && node bin/cli.js",
-    "build": "tsx scripts/build.js",
+    "build": "tsx workflows/build.js",
     "clean-install": "bash ./scripts/clean-install.sh",
     "git:commit": "bash ./scripts/git-utils/commit.sh",
     "git:squash-history": "bash ./scripts/git-utils/squash-commit-history.sh",
@@ -43,6 +43,7 @@
     "prepublishOnly": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run readme:swap",
     "postpack": "npm run readme:restore",
     "test": "vitest run",
+    "test:unit": "vitest run test/unit",
     "test:assistant": "bash ./scripts/test-assistant/main.sh",
     "typecheck": "tsc"
   },

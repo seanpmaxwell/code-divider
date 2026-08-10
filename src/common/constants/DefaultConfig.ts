@@ -9,10 +9,7 @@ import type { CodeDividerConfig } from '../types';
 // used for the generated header lines (defaults to the comment syntax). The
 // marker regexes are built from these — no regexes in config files.
 const DefaultConfig = {
-  All: {
-    CharacterLimit: 79,
-    DisableCapitalization: false,
-    FillerCharacter: '=',
+  files: {
     include: [],
     exclude: [
       'bin',
@@ -24,8 +21,13 @@ const DefaultConfig = {
       '.env.*',
       '.vscode',
       '.idea',
-      '.claude'
+      '.claude',
     ],
+  },
+  All: {
+    CharacterLimit: 79,
+    DisableCapitalization: false,
+    FillerCharacter: '=',
   },
   JavaScript: {
     Extensions: ['ts', 'tsx', 'js', 'jsx', 'mjs', 'cjs'],
