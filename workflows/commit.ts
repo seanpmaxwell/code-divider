@@ -4,11 +4,11 @@ const COMMIT_MESSAGE = 'Normal development commit';
 
 try {
   await $`git add -A`;
-  await $`git commit -m "${COMMIT_MESSAGE}"`;
-  const { stdout } = await $`git push`;
-  console.info(stdout);
+  const { stdout: msg1 } = await $`git commit -m "${COMMIT_MESSAGE}"`;
+  console.info(msg1);
+  const { stdout: msg2 } = await $`git push`;
+  console.info(msg2);
 } catch (err) {
-  // eslint-disable-next-line no-console
   console.error(err);
   process.exit(1);
 }
