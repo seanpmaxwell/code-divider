@@ -2,7 +2,7 @@
 import { $ as $$ } from 'execa';
 
 const COMMIT_MESSAGE = 'Normal development commit';
-const $ = $$({ verbose: 'short' });
+const $ = $$({ verbose: 'full' });
 
 try {
   await $`git add -A`;
