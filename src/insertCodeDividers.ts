@@ -5,9 +5,9 @@ import type {
   ConfigSettings,
   LangSettings,
   LangSettingsRaw,
-} from './common/types';
-import logger from './common/utils/Logger';
-import FileUtils from './common/utils/FileUtils';
+} from './common/types/ConfigSettings';
+import logger from './common/utils/logger';
+import fileUtils from './common/utils/fileUtils';
 
 // ========================================================================= //
 //                                  Constants                                //
@@ -40,9 +40,9 @@ const ErrorMessages = {
  * Process a path (file or directory). Directories are walked recursively.
  * Returns the list of file paths that were updated.
  */
-function insertCodeDividers(targetPath: string): string[] {
-  const dirPath = configDirFor(targetPath);
-  const langSettingsObj = loadConfig(dirPath);
+async function insertCodeDividers(targetPath: string): Promise<string[]> {
+  const dirPath = await configDirFor(targetPath);
+  const langSettingsObj = await loadConfig(dirPath);
   const settingsArrAllLang = Object.keys(langSettingsObj).map(langKey => {
     console.log(); // pick up here, pass the full object each time
     return configureLangEntry(langKey, langSettingsObj);
@@ -58,7 +58,7 @@ function insertCodeDividers(targetPath: string): string[] {
  * Check if a configuration file exists. If it does, override settings from the
  * configuration file into the default file.
  */
-function loadConfig(cwd: string): ConfigSettings {
+async function loadConfig(cwd: string): Promise<ConfigSettings> {
   const fileConfigPath = path.join(cwd, CONFIG_FILE_NAME);
   // Check Configuration File exists, otherwise use defaults
   if (!fileUtils.exists(fileConfigPath)) {
@@ -67,7 +67,7 @@ function loadConfig(cwd: string): ConfigSettings {
   // Load overrides from config file
   let fileConfig: ConfigSettings;
   try {
-    fileConfig = fileUtils.loadJsonFile<ConfigSettings>(fileConfigPath);
+    fileConfig = await fileUtils.loadJsonFile<ConfigSettings>(fileConfigPath);
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
     const message = `invalid ${CONFIG_FILE_NAME}: ${reason}`;
@@ -98,11 +98,12 @@ function loadConfig(cwd: string): ConfigSettings {
  * Directory whose code-divider.config.json applies to a target path: the target's own
  * directory if it has one, otherwise the directory code-divider is being run from.
  */
-function configDirFor(targetPath: string): string {
-  const isTargetDir = FileUtils.isDir(targetPath);
+async function configDirFor(targetPath: string): Promise<string> {
+  const isTargetDir = await fileUtils.isDir(targetPath);
   const targetPathFull = isTargetDir ? targetPath : path.dirname(targetPath);
   const configFilePath = path.join(targetPathFull, CONFIG_FILE_NAME);
-  return FileUtils.exists(configFilePath) ? targetPathFull : process.cwd();
+  const exists = await fileUtils.exists(configFilePath);
+  return exists ? targetPathFull : process.cwd();
 }
 
 /**
@@ -174,7 +175,7 @@ function configureLangEntry(
     REGION_MARKER: marker(Markers.REGION),
     SECTION_MARKER: marker(Markers.SECTION),
     BOOKENDS: bookends,
-    CHAR_LIMIT: charLimit,
+    CHAR_LIMIT: CharacterLimit,
     FILLER: fillerChar,
     DISABLE_CAP: disableCap,
   };
@@ -223,10 +224,10 @@ function walkDirectoryRecursivelyx(
   console.log();
 
   const updated: string[] = [];
-  const isDirectory = FileUtils.isDir(targetPath);
+  const isDirectory = fileUtils.isDir(targetPath);
   // Go recursive if directory
   if (isDirectory) {
-    const items = FileUtils.listDirItems(targetPath);
+    const items = fileUtils.listDirItems(targetPath);
     for (const item of items) {
       if (item === 'node_modules' || item.startsWith('.')) {
         continue;
@@ -242,7 +243,7 @@ function walkDirectoryRecursivelyx(
     langConfigArr.find(type => type.FILE_EXT.test(targetPath)) ?? null;
   if (!langConfig) return updated;
   // Write the divider comment (unless doing a dryRun)
-  const content = FileUtils.read(targetPath);
+  const content = fileUtils.read(targetPath);
   const next = content
     .split('\n')
     .map((line, i) =>
@@ -250,8 +251,8 @@ function walkDirectoryRecursivelyx(
     )
     .join('\n');
   if (next !== content) {
-    FileUtils.write(targetPath, next);
-    const logMsgStart = FileUtils.getIsDryRun() ? 'Would update' : 'Updated';
+    fileUtils.write(targetPath, next);
+    const logMsgStart = fileUtils.getIsDryRun() ? 'Would update' : 'Updated';
     logger.info(logMsgStart + ': ' + targetPath);
     updated.push(targetPath);
   }

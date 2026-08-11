@@ -31,9 +31,9 @@ const DIRECTORY_ITEMS_TO_TEST = [
 /**
  * To test directory and glob pattern functions
  */
-function makeDirItemsToTest() {
+async function makeDirItemsToTest(): Promise<void> {
   for (const item of DIRECTORY_ITEMS_TO_TEST) {
-    fileUtils.createItem(item, TEMP_DIRECTORY);
+    await fileUtils.createItem(item, TEMP_DIRECTORY);
   }
 }
 
@@ -42,19 +42,20 @@ function makeDirItemsToTest() {
 // ========================================================================= //
 
 describe.only('fileUtils', () => {
-  beforeAll(() => {
-    fileUtils.rmItem(TEMP_DIRECTORY);
-    makeDirItemsToTest();
+  beforeAll(async () => {
+    await fileUtils.rmItem(TEMP_DIRECTORY);
+    await makeDirItemsToTest();
   });
 
-  afterAll(() => {
-    fileUtils.rmItem(TEMP_DIRECTORY);
+  afterAll(async () => {
+    await fileUtils.rmItem(TEMP_DIRECTORY);
   });
 
   // Test: `.filterDirItemsGlob`
   describe('.filterDirItemsGlob', () => {
-    it('should work as expected', () => {
-      const result = fileUtils.filterDirItemsGlob(
+    // Normal
+    it('should work as expected', async () => {
+      const result = await fileUtils.filterDirItemsGlob(
         ['**/someLib/*'],
         ['**/bad*'],
         TEMP_DIRECTORY,
@@ -69,8 +70,9 @@ describe.only('fileUtils', () => {
 
   // Test: `filterDirItemsShallow`
   describe('.filterDirItems`', () => {
-    it('should work as expected', () => {
-      const result = fileUtils.filterDirItems(
+    // Normal
+    it('should work as expected', async () => {
+      const result = await fileUtils.filterDirItems(
         [],
         ['node_modules', 'dist/bad.text'],
         TEMP_DIRECTORY,

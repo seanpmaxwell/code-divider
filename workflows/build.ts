@@ -1,6 +1,7 @@
 import { build } from 'esbuild';
-import { $ } from './common/shell.js';
-import runWorkflow from './common/runWorkflow.ts';
+
+import { $ } from './common/shell';
+import runWorkflow from './common/runWorkflow';
 
 // ========================================================================= //
 //                                      Run                                  //
@@ -17,7 +18,7 @@ import runWorkflow from './common/runWorkflow.ts';
  * any bundle is written, rather than leaving a broken lib/ behind.
  */
 runWorkflow(
-  'build',
+  import.meta.filename,
   async () => {
     await $`rm -rf lib`;
     await $`mkdir lib`;

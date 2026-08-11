@@ -1,4 +1,4 @@
-import type { ConfigSettings } from '../types';
+import type { ConfigSettings } from '../types/ConfigSettings';
 
 // ========================================================================= //
 //                                  Constants                                //

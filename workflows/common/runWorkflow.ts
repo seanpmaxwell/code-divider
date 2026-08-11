@@ -9,7 +9,6 @@ async function runWorkflow(
   onError?: (err?: unknown) => Promise<void>,
 ): Promise<void> {
   try {
-    
     await cb();
   } catch (err) {
     onError?.(err);

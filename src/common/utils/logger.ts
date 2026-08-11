@@ -1,5 +1,13 @@
-/* eslint-disable no-console */
+import { UNIT_TEST_ENV } from '../constants/misc';
+import { CallableKeys } from '../types/utility-types';
 
+// ========================================================================= //
+//                                    Types                                  //
+// ========================================================================= //
+
+type Console = typeof console;
+type ConsoleFnKeys = CallableKeys<Console>;
+type ConsoleFn<Fn extends ConsoleFnKeys> = Console[Fn];
 
 // ========================================================================= //
 //                                  Functions                                //
@@ -13,18 +21,39 @@
 /**
  * Print information
  */
-function info(...data: Parameters<typeof console.info>): void {
-  return console.info(data);
+function info(...data: Parameters<Console['info']>): string {
+  return logAction('info', data);
 }
 
 /**
  * Print warning.
  */
-function warn(...data: Parameters<typeof console.info>): void {
-  if (typeof data[0] === 'string' && !data[0].startsWith('Warning')) {
-    data[0] = 'Warning: ' + data[0];
-  }
+function warn(...data: Parameters<Console['warn']>): void {
   return console.warn(data);
+}
+
+/**
+ * @private
+ *
+ * Return the string if in a unit-testing environment.
+ */
+function logAction<T extends ConsoleFnKeys>(
+  action: T,
+  ...data: Parameters<ConsoleFn<T>>
+): string {
+  const isTesting = (process.env.NODE_ENV = UNIT_TEST_ENV);
+  if (isTesting) {
+    let dataFinal: string;
+    if (Array.isArray(data)) {
+      dataFinal = data.map(item => String(item)).join(' ');
+    } else {
+      dataFinal = String(data);
+    }
+    return dataFinal;
+  } else {
+    console[action](...data);
+    return '';
+  }
 }
 
 // ========================================================================= //
