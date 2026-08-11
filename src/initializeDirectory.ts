@@ -3,7 +3,7 @@ import path from 'path';
 import DefaultConfig from './common/constants/DefaultConfig';
 import { CONFIG_FILE_NAME } from './common/constants/misc';
 import customStringifyObject from './common/utils/customStringifyObject';
-import fileUtils from './common/utils/fileUtils';
+import fileUtils from './common/utils/FileUtils';
 
 // ========================================================================= //
 //                                  Constants                                //

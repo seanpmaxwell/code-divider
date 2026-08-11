@@ -16,6 +16,6 @@
 
     "noEmit": true
   },
-  "include": ["src", "test"],
+  "include": ["src", "test", "workflows"],
   "exclude": ["node_modules", "lib", "test/playground"]
 }

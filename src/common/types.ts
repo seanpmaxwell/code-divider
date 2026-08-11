@@ -5,32 +5,36 @@
 /**
  * The shared "All" block plus one entry per language.
  */
-export interface CodeDividerConfig {
-  files: {
-    include: string[];
-    exclude: string[];
-  };
+export interface ConfigSettings {
+  filter: FilterSettings;
   All: SharedSettings;
-  [language: string]:
-    SharedSettings | LanguageEntry | CodeDividerConfig['files'];
+  [language: string]: LangSettingsRaw | SharedSettings | FilterSettings;
+}
+
+/**
+ * Files to include/exclude. NodeJS pre v22 does not support glob patterns.
+ */
+interface FilterSettings {
+  include: string[];
+  exclude: string[];
+  nodePre22Exclude?: string[];
 }
 
 /**
  * Settings shared by every language, held under the "All" key. A language may
  * override any of these individually.
  */
-export interface SharedSettings {
+interface SharedSettings {
   CharacterLimit: number;
   DisableCapitalization: boolean;
   FillerCharacter: string;
-  nodePre22Exclude?: string[];
 }
 
 /**
  * A single language entry: which files it matches, the comment syntax markers
  * are written in, and any overrides of the shared settings.
  */
-export interface LanguageEntry {
+export interface LangSettingsRaw {
   Extensions: string[];
   Comment: [string, string];
   Bookends?: [string, string];
@@ -40,31 +44,10 @@ export interface LanguageEntry {
 }
 
 /**
- * A config exactly as read from a code-divider.config.json file. Nothing is trusted
- * here: every language entry is validated by `configureLangEntry` before use.
- */
-export interface RawConfigFile {
-  All?: Partial<SharedSettings>;
-  [language: string]: unknown;
-}
-
-/**
- * A language entry straight from a config file, before validation.
- */
-export interface RawLanguageEntry {
-  Extensions?: unknown;
-  Comment?: unknown;
-  Bookends?: unknown;
-  CharacterLimit?: unknown;
-  FillerCharacter?: unknown;
-  DisableCapitalization?: unknown;
-}
-
-/**
  * A language entry compiled into the matchers and settings used while walking
  * files. This is the validated, ready-to-use form of a `LanguageEntry`.
  */
-export interface LangConfig {
+export interface LangSettings {
   FILE_EXT: RegExp;
   REGION_MARKER: RegExp;
   SECTION_MARKER: RegExp;

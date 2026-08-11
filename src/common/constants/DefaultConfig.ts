@@ -1,4 +1,4 @@
-import type { CodeDividerConfig } from '../types';
+import type { ConfigSettings } from '../types';
 
 // ========================================================================= //
 //                                  Constants                                //
@@ -9,6 +9,10 @@ import type { CodeDividerConfig } from '../types';
 // used for the generated header lines (defaults to the comment syntax). The
 // marker regexes are built from these — no regexes in config files.
 const DefaultConfig = {
+  filter: {
+    include: [],
+    exclude: [],
+  },
   files: {
     include: [],
     exclude: [
@@ -89,7 +93,7 @@ const DefaultConfig = {
     Comment: ['# ', ''],
     Bookends: ['# ', ' #'],
   },
-} satisfies CodeDividerConfig;
+} satisfies ConfigSettings;
 
 // ========================================================================= //
 //                                     Export                                //

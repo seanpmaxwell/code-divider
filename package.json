@@ -15,6 +15,10 @@
   },
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "imports": {
+    "#src/*": "./src/*",
+    "#workflows/*": "./workflows/*"
+  },
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
@@ -74,7 +78,7 @@
   "license": "MIT",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/node": "^26.1.1",
+    "@types/node": "^26.2.0",
     "esbuild": "^0.28.1",
     "eslint": "^10.7.0",
     "eslint-config-prettier": "^10.1.8",

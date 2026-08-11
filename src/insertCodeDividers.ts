@@ -2,14 +2,12 @@ import path from 'path';
 import DefaultConfig from './common/constants/DefaultConfig';
 import { CONFIG_FILE_NAME } from './common/constants/misc';
 import type {
-  LangConfig,
-  RawConfigFile,
-  RawLanguageEntry,
-  CodeDividerConfig,
-  SharedSettings,
+  ConfigSettings,
+  LangSettings,
+  LangSettingsRaw,
 } from './common/types';
-import logger from './common/utils/logger';
-import fileUtils from './common/utils/fileUtils';
+import logger from './common/utils/Logger';
+import FileUtils from './common/utils/FileUtils';
 
 // ========================================================================= //
 //                                  Constants                                //
@@ -23,20 +21,8 @@ const Markers = {
 } as const;
 
 const ErrorMessages = {
-  Extensions(lang: string) {
-    return `invalid ${CONFIG_FILE_NAME}: "${lang}" needs an Extensions array`;
-  },
-  CommentPair(lang: string) {
-    return `invalid ${CONFIG_FILE_NAME}: "${lang}" needs a Comment pair, e.g. ["# ", ""]`;
-  },
-  CharacterLimit(lang: string) {
-    return `invalid ${CONFIG_FILE_NAME}: "${lang}" CharacterLimit must be a positive integer, e.g. 79`;
-  },
-  FillerCharacter(lang: string) {
-    return `invalid ${CONFIG_FILE_NAME}: "${lang}" FillerCharacter must be a single character, e.g. "="`;
-  },
   DisableCapitalization(lang: string) {
-    return `invalid ${CONFIG_FILE_NAME}: "${lang}" DisableCapitalization must be true or false`;
+    return;
   },
   MissingLabel(filePath: string, line: number) {
     return (
@@ -56,11 +42,11 @@ const ErrorMessages = {
  */
 function insertCodeDividers(targetPath: string): string[] {
   const dirPath = configDirFor(targetPath);
-  const { All, ...languages } = loadConfig(dirPath);
-  const languagesEntries = Object.entries(languages);
-  const configuredLanguagesArr = languagesEntries.map(([langKey, entry]) =>
-    configureLangEntry(langKey, entry, All),
-  );
+  const langSettingsObj = loadConfig(dirPath);
+  const settingsArrAllLang = Object.keys(langSettingsObj).map(langKey => {
+    console.log(); // pick up here, pass the full object each time
+    return configureLangEntry(langKey, langSettingsObj);
+  });
   return walkDirectoryRecursively(targetPath, configuredLanguagesArr);
 }
 
@@ -69,43 +55,41 @@ function insertCodeDividers(targetPath: string): string[] {
 /**
  * @private
  *
- * Resolve the effective config: DefaultConfig, overridden per-language by any
- * code-divider.config.json found in the config directory. Unknown language keys in the
- * JSON define new languages.
+ * Check if a configuration file exists. If it does, override settings from the
+ * configuration file into the default file.
  */
-function loadConfig(cwd: string): CodeDividerConfig {
-  const configPath = path.join(cwd, CONFIG_FILE_NAME);
-  if (!fileUtils.exists(configPath)) {
+function loadConfig(cwd: string): ConfigSettings {
+  const fileConfigPath = path.join(cwd, CONFIG_FILE_NAME);
+  // Check Configuration File exists, otherwise use defaults
+  if (!fileUtils.exists(fileConfigPath)) {
     return DefaultConfig;
   }
   // Load overrides from config file
-  let overrides: RawConfigFile;
+  let fileConfig: ConfigSettings;
   try {
-    overrides = fileUtils.loadJsonFile<RawConfigFile>(configPath);
+    fileConfig = fileUtils.loadJsonFile<ConfigSettings>(fileConfigPath);
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
     const message = `invalid ${CONFIG_FILE_NAME}: ${reason}`;
     throw new Error(message, { cause: err });
   }
-  // "All" holds settings shared by every language (CharacterLimit,
-  // FillerCharacter); per-language values still win over them. Every other
-  // key is a language.
-  const { All: allOverrides, ...langOverrides } = overrides;
-  const config: CodeDividerConfig = {
+  // Initialize "All", which holds settings shared by every language.
+  const retVal: ConfigSettings = {
     ...DefaultConfig,
-    All: { ...DefaultConfig.All, ...allOverrides },
+    All: { ...DefaultConfig.All, ...fileConfig.All },
   };
-  const defaultLangs = Object.keys(DefaultConfig).filter(key => key !== 'All');
-  const set = new Set([...defaultLangs, ...Object.keys(langOverrides)]);
-  for (const lang of set) {
-    const defaults = (DefaultConfig as CodeDividerConfig)[lang] as
-      object | undefined;
-    const override = langOverrides[lang] as object | undefined;
-    config[lang] = { ...defaults, ...override } as CodeDividerConfig[string];
-  }
-  logger.info(`Using config overrides from: ${configPath}`);
+  // Combine default settings with file settings.
+  Object.entries(fileConfig).forEach(fileConfigEntry => {
+    const [key, settings] = fileConfigEntry;
+    retVal[key] = {
+      ...retVal.All,
+      ...retVal[key],
+      ...(settings as LangSettingsRaw),
+    };
+  });
   // Return
-  return config;
+  logger.info(`Using config overrides from: ${fileConfigPath}`);
+  return retVal;
 }
 
 /**
@@ -115,10 +99,10 @@ function loadConfig(cwd: string): CodeDividerConfig {
  * directory if it has one, otherwise the directory code-divider is being run from.
  */
 function configDirFor(targetPath: string): string {
-  const isTargetDir = fileUtils.isDir(targetPath);
+  const isTargetDir = FileUtils.isDir(targetPath);
   const targetPathFull = isTargetDir ? targetPath : path.dirname(targetPath);
   const configFilePath = path.join(targetPathFull, CONFIG_FILE_NAME);
-  return fileUtils.exists(configFilePath) ? targetPathFull : process.cwd();
+  return FileUtils.exists(configFilePath) ? targetPathFull : process.cwd();
 }
 
 /**
@@ -131,9 +115,8 @@ function configDirFor(targetPath: string): string {
  */
 function configureLangEntry(
   lang: string,
-  entry: unknown,
-  all: SharedSettings,
-): LangConfig {
+  settings: LangSettingsRaw,
+): LangSettings {
   const {
     Extensions,
     Comment,
@@ -141,32 +124,35 @@ function configureLangEntry(
     FillerCharacter,
     DisableCapitalization,
     Bookends,
-  } = (entry ?? {}) as RawLanguageEntry;
+  } = settings;
   // Check the configuration for errors
   if (!Array.isArray(Extensions) || Extensions.length === 0) {
-    const message = ErrorMessages.Extensions(lang);
-    throw new Error(message);
+    throw new Error(
+      `invalid ${CONFIG_FILE_NAME}: "${lang}" needs an Extensions array`,
+    );
   }
   const [open, close] = Array.isArray(Comment) ? Comment : [];
   if (typeof open !== 'string' || typeof close !== 'string') {
-    const message = ErrorMessages.CommentPair(lang);
-    throw new Error(message);
+    throw new Error(
+      `invalid ${CONFIG_FILE_NAME}: "${lang}" needs a Comment pair, e.g. ["# ", ""]`,
+    );
   }
-  const charLimit = CharacterLimit ?? all.CharacterLimit;
-  if (!isPositiveInt(charLimit)) {
-    const message = ErrorMessages.CharacterLimit(lang);
-    throw new Error(message);
+  if (!isPositiveInt(CharacterLimit)) {
+    throw new Error(
+      `invalid ${CONFIG_FILE_NAME}: "${lang}" CharacterLimit must be a positive integer, e.g. 79`,
+    );
   }
-  const fillerChar = FillerCharacter ?? all.FillerCharacter;
+  const fillerChar = FillerCharacter;
   if (typeof fillerChar !== 'string' || fillerChar.length !== 1) {
-    const message = ErrorMessages.FillerCharacter(lang);
-    throw new Error(message);
+    throw new Error(
+      `invalid ${CONFIG_FILE_NAME}: "${lang}" FillerCharacter must be a single character, e.g. "="`,
+    );
   }
-  const disableCap =
-    DisableCapitalization ?? all.DisableCapitalization ?? false;
+  const disableCap = DisableCapitalization ?? false;
   if (typeof disableCap !== 'boolean') {
-    const message = ErrorMessages.DisableCapitalization(lang);
-    throw new Error(message);
+    throw new Error(
+      `invalid ${CONFIG_FILE_NAME}: "${lang}" DisableCapitalization must be true or false`,
+    );
   }
   // Bookends default to the comment syntax when the language doesn't set them.
   let bookends: [string, string];
@@ -230,17 +216,17 @@ function escapeRegex(str: string): string {
  */
 function walkDirectoryRecursivelyx(
   targetPath: string,
-  langConfigArr: LangConfig[],
+  langConfigArr: LangSettings[],
 ): string[] {
   // pick up here, maybe this can be replaced with something which just lists
   // all the files + full path using a glob match
   console.log();
 
   const updated: string[] = [];
-  const isDirectory = fileUtils.isDir(targetPath);
+  const isDirectory = FileUtils.isDir(targetPath);
   // Go recursive if directory
   if (isDirectory) {
-    const items = fileUtils.listDirItems(targetPath);
+    const items = FileUtils.listDirItems(targetPath);
     for (const item of items) {
       if (item === 'node_modules' || item.startsWith('.')) {
         continue;
@@ -256,7 +242,7 @@ function walkDirectoryRecursivelyx(
     langConfigArr.find(type => type.FILE_EXT.test(targetPath)) ?? null;
   if (!langConfig) return updated;
   // Write the divider comment (unless doing a dryRun)
-  const content = fileUtils.read(targetPath);
+  const content = FileUtils.read(targetPath);
   const next = content
     .split('\n')
     .map((line, i) =>
@@ -264,8 +250,8 @@ function walkDirectoryRecursivelyx(
     )
     .join('\n');
   if (next !== content) {
-    fileUtils.write(targetPath, next);
-    const logMsgStart = fileUtils.getIsDryRun() ? 'Would update' : 'Updated';
+    FileUtils.write(targetPath, next);
+    const logMsgStart = FileUtils.getIsDryRun() ? 'Would update' : 'Updated';
     logger.info(logMsgStart + ': ' + targetPath);
     updated.push(targetPath);
   }
@@ -281,7 +267,7 @@ function walkDirectoryRecursivelyx(
 function checkForMarkerAndAddDivider(
   line: string,
   index: number,
-  langConfig: LangConfig,
+  langConfig: LangSettings,
   filePath: string,
 ): string {
   const indent = line.match(/^(\s*)/)?.[1] ?? '';
@@ -328,7 +314,7 @@ function printMissingLabelWarning(
  * language has DisableCapitalization set. Words that start or end with a
  * non-alphanumeric character are left untouched (e.g. "@decorator", "foo()").
  */
-function capitalizeLabel(label: string, langConfig: LangConfig): string {
+function capitalizeLabel(label: string, langConfig: LangSettings): string {
   if (langConfig.DISABLE_CAP) return label;
   return label
     .split(/\s+/)
@@ -359,7 +345,7 @@ function getIsAlphaNum(value: string): boolean {
  */
 function formatSection(
   label: string,
-  langConfig: LangConfig,
+  langConfig: LangSettings,
   indent: string,
 ): string {
   const [open, close] = langConfig.BOOKENDS;
@@ -379,7 +365,7 @@ function formatSection(
  */
 function formatRegion(
   label: string,
-  paddingType: LangConfig,
+  paddingType: LangSettings,
   indent: string,
 ): string {
   const [open, close] = paddingType.BOOKENDS;

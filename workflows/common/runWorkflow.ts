@@ -1,11 +1,15 @@
+
+
 /**
  * Run workflow
  */
 async function runWorkflow(
+  workflowName: string,
   cb: () => Promise<void>,
   onError?: (err?: unknown) => Promise<void>,
 ): Promise<void> {
   try {
+    
     await cb();
   } catch (err) {
     onError?.(err);
