@@ -20,18 +20,6 @@ const Markers = {
   SECTION: '@sec',
 } as const;
 
-const ErrorMessages = {
-  DisableCapitalization(lang: string) {
-    return;
-  },
-  MissingLabel(filePath: string, line: number) {
-    return (
-      `Warning: ${filePath}:${line}: code-divider marker has no ` +
-      'label, skipping'
-    );
-  },
-} as const;
-
 // ========================================================================= //
 //                                  Functions                                //
 // ========================================================================= //
@@ -42,12 +30,18 @@ const ErrorMessages = {
  */
 async function insertCodeDividers(targetPath: string): Promise<string[]> {
   const dirPath = await configDirFor(targetPath);
-  const langSettingsObj = await loadConfig(dirPath);
-  const settingsArrAllLang = Object.keys(langSettingsObj).map(langKey => {
-    console.log(); // pick up here, pass the full object each time
-    return configureLangEntry(langKey, langSettingsObj);
-  });
-  return walkDirectoryRecursively(targetPath, configuredLanguagesArr);
+  const { filter, All, ...other } = await loadConfig(dirPath);
+  const { include, exclude } = filter;
+  const files = await fileUtils.filterDirItemsGlob(include, exclude, targetPath);
+
+  console.trace(files);
+  return ['test']
+  // Configure the settings per language
+  // const settingsArrAllLang = Object.keys(other).map((lang) => 
+  //   configureLangEntry(lang, other[lang] as LangSettingsRaw)
+  // );
+
+  // return walkDirectoryRecursively(targetPath, configuredLanguagesArr);
 }
 
 // =========================== Private Helpers ============================= //
@@ -79,7 +73,7 @@ async function loadConfig(cwd: string): Promise<ConfigSettings> {
     All: { ...DefaultConfig.All, ...fileConfig.All },
   };
   // Combine default settings with file settings.
-  Object.entries(fileConfig).forEach(fileConfigEntry => {
+  Object.entries(fileConfig).forEach((fileConfigEntry) => {
     const [key, settings] = fileConfigEntry;
     retVal[key] = {
       ...retVal.All,
@@ -240,7 +234,7 @@ function walkDirectoryRecursivelyx(
   }
   // Check the patting type
   const langConfig =
-    langConfigArr.find(type => type.FILE_EXT.test(targetPath)) ?? null;
+    langConfigArr.find((type) => type.FILE_EXT.test(targetPath)) ?? null;
   if (!langConfig) return updated;
   // Write the divider comment (unless doing a dryRun)
   const content = fileUtils.read(targetPath);
@@ -276,7 +270,10 @@ function checkForMarkerAndAddDivider(
   // Insert "section" divider
   if (sectionMatch) {
     const label = sectionMatch[1]?.trim() ?? '';
-    if (!label) return printMissingLabelWarning(filePath, index, line);
+    if (!label) {
+      printMissingLabelWarning(filePath, index);
+      return line;
+    };
     const labelFinal = capitalizeLabel(label, langConfig);
     return formatSection(labelFinal, langConfig, indent);
   }
@@ -284,7 +281,10 @@ function checkForMarkerAndAddDivider(
   const regionMatch = line.match(langConfig.REGION_MARKER);
   if (regionMatch) {
     const label = regionMatch[1]?.trim() ?? '';
-    if (!label) return printMissingLabelWarning(filePath, index, line);
+    if (!label) {
+      printMissingLabelWarning(filePath, index);
+      return line;
+    }
     const labelFinal = capitalizeLabel(label, langConfig);
     return formatRegion(labelFinal, langConfig, indent);
   }
@@ -301,11 +301,8 @@ function checkForMarkerAndAddDivider(
 function printMissingLabelWarning(
   filePath: string,
   index: number,
-  line: string,
-): string {
-  const message = ErrorMessages.MissingLabel(filePath, index + 1);
-  logger.warn(message);
-  return line;
+): void {
+  logger.warn(`Warning: ${filePath}:${index + 1}: code-divider marker has no label, skipping`);
 }
 
 /**
@@ -319,7 +316,7 @@ function capitalizeLabel(label: string, langConfig: LangSettings): string {
   if (langConfig.DISABLE_CAP) return label;
   return label
     .split(/\s+/)
-    .map(word => {
+    .map((word) => {
       if (!getIsAlphaNum(word[0]) || !getIsAlphaNum(word[word.length - 1])) {
         return word;
       }

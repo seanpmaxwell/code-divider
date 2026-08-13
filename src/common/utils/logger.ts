@@ -45,7 +45,7 @@ function logAction<T extends ConsoleFnKeys>(
   if (isTesting) {
     let dataFinal: string;
     if (Array.isArray(data)) {
-      dataFinal = data.map(item => String(item)).join(' ');
+      dataFinal = data.map((item) => String(item)).join(' ');
     } else {
       dataFinal = String(data);
     }

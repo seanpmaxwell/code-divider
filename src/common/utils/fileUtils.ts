@@ -120,7 +120,7 @@ async function rmItem(
  */
 async function listDirItemsShallow(targetPath: string): Promise<string[]> {
   const result = await fs.readdir(targetPath, { withFileTypes: true });
-  return result.map(result => result.name);
+  return result.map((result) => result.name);
 }
 
 /**
@@ -135,7 +135,7 @@ async function listDirItemsDeep(
     withFileTypes: true,
     recursive: true,
   });
-  return result.map(result => {
+  return result.map((result) => {
     const fullPath = path.join(result.parentPath, result.name);
     if (returnFullPaths) return fullPath;
     return path.relative(targetPath, fullPath);
@@ -152,10 +152,10 @@ async function filterDirItems(
 ): Promise<string[]> {
   let items = await listDirItemsDeep(targetPath);
   if (include.length > 0) {
-    items = items.filter(item => filterDirItemsHelper(item, include));
+    items = items.filter((item) => filterDirItemsHelper(item, include));
   }
   if (exclude.length > 0) {
-    items = items.filter(item => !filterDirItemsHelper(item, exclude));
+    items = items.filter((item) => !filterDirItemsHelper(item, exclude));
   }
   return items;
 }
@@ -165,7 +165,7 @@ async function filterDirItems(
  * @see {filterDirItems}
  */
 function filterDirItemsHelper(path: string, searchArr: string[]): boolean {
-  return searchArr.some(searchItem => path.startsWith(searchItem));
+  return searchArr.some((searchItem) => path.startsWith(searchItem));
 }
 
 /**
@@ -194,7 +194,7 @@ async function filterDirItemsGlob(
   // Run the glob search
   const toIncludeItr = await fs.glob(include, { cwd: targetPath });
   const toInclude = await asyncItrToArr(toIncludeItr);
-  return toInclude.filter(item => !excludedSet.has(item));
+  return toInclude.filter((item) => !excludedSet.has(item));
 }
 
 /**

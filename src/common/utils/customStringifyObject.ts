@@ -13,11 +13,11 @@ function customStringifyObject(value: unknown, indent = ''): string {
   // Stringify the array
   if (Array.isArray(value)) {
     if (value.every(isPrimitive)) {
-      const stringArr = value.map(item => JSON.stringify(item));
+      const stringArr = value.map((item) => JSON.stringify(item));
       return `[${stringArr.join(', ')}]`;
     }
     const inner = `${indent}  `;
-    const items = value.map(item => {
+    const items = value.map((item) => {
       const nestedObjStr = customStringifyObject(item, inner);
       return `${inner}${nestedObjStr}`;
     });

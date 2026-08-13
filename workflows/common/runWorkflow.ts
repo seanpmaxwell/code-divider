@@ -1,4 +1,8 @@
+import { logger } from "#src/index.js";
 
+// ========================================================================= //
+//                                    Functions                              //
+// ========================================================================= //
 
 /**
  * Run workflow
@@ -9,7 +13,9 @@ async function runWorkflow(
   onError?: (err?: unknown) => Promise<void>,
 ): Promise<void> {
   try {
+    logger.info('Running workflow ' + workflowName);
     await cb();
+    logger.info('Running workflow ' + workflowName);
   } catch (err) {
     onError?.(err);
     // eslint-disable-next-line no-console
@@ -17,5 +23,9 @@ async function runWorkflow(
     process.exit(1);
   }
 }
+
+// ========================================================================= //
+//                                    Export                                 //
+// ========================================================================= //
 
 export default runWorkflow;
