@@ -19,7 +19,7 @@ export async function commitChanges(message = 'fallback commit message') {
  */
 export async function isClean(): Promise<boolean> {
     const resp = await $$`git status --porcelain`;
-    return resp.length > 0;
+    return resp.length < 1;
 }
 
 /**
