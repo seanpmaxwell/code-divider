@@ -28,14 +28,13 @@ const Markers = {
  * Process a path (file or directory). Directories are walked recursively.
  * Returns the list of file paths that were updated.
  */
-async function insertCodeDividers(targetPath: string): Promise<string[]> {
+async function insertCodeDividers(targetPath = process.cwd()): Promise<string[]> {
   const dirPath = await configDirFor(targetPath);
   const { filter, All, ...other } = await loadConfig(dirPath);
   const { include, exclude } = filter;
   const files = await fileUtils.filterDirItemsGlob(include, exclude, targetPath);
 
-  console.trace(files);
-  return ['test']
+  return files
   // Configure the settings per language
   // const settingsArrAllLang = Object.keys(other).map((lang) => 
   //   configureLangEntry(lang, other[lang] as LangSettingsRaw)
@@ -53,11 +52,10 @@ async function insertCodeDividers(targetPath: string): Promise<string[]> {
  * configuration file into the default file.
  */
 async function loadConfig(cwd: string): Promise<ConfigSettings> {
-  const fileConfigPath = path.join(cwd, CONFIG_FILE_NAME);
   // Check Configuration File exists, otherwise use defaults
-  if (!fileUtils.exists(fileConfigPath)) {
-    return DefaultConfig;
-  }
+  const fileConfigPath = path.join(cwd, CONFIG_FILE_NAME);
+  const hasConfigFile = await fileUtils.exists(fileConfigPath);
+  if (!hasConfigFile) return DefaultConfig;
   // Load overrides from config file
   let fileConfig: ConfigSettings;
   try {
@@ -204,55 +202,55 @@ function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-/**
- * @private
- *
- * Recursively walk a path, rewriting markers in every supported file.
- */
-function walkDirectoryRecursivelyx(
-  targetPath: string,
-  langConfigArr: LangSettings[],
-): string[] {
-  // pick up here, maybe this can be replaced with something which just lists
-  // all the files + full path using a glob match
-  console.log();
+// /**
+//  * @private
+//  *
+//  * Recursively walk a path, rewriting markers in every supported file.
+//  */
+// function walkDirectoryRecursivelyx(
+//   targetPath: string,
+//   langConfigArr: LangSettings[],
+// ): string[] {
+//   // pick up here, maybe this can be replaced with something which just lists
+//   // all the files + full path using a glob match
+//   console.log();
 
-  const updated: string[] = [];
-  const isDirectory = fileUtils.isDir(targetPath);
-  // Go recursive if directory
-  if (isDirectory) {
-    const items = fileUtils.listDirItems(targetPath);
-    for (const item of items) {
-      if (item === 'node_modules' || item.startsWith('.')) {
-        continue;
-      }
-      const fileFullPath = path.join(targetPath, item);
-      const result = walkDirectoryRecursively(fileFullPath, langConfigArr);
-      updated.push(...result);
-    }
-    return updated;
-  }
-  // Check the patting type
-  const langConfig =
-    langConfigArr.find((type) => type.FILE_EXT.test(targetPath)) ?? null;
-  if (!langConfig) return updated;
-  // Write the divider comment (unless doing a dryRun)
-  const content = fileUtils.read(targetPath);
-  const next = content
-    .split('\n')
-    .map((line, i) =>
-      checkForMarkerAndAddDivider(line, i, langConfig, targetPath),
-    )
-    .join('\n');
-  if (next !== content) {
-    fileUtils.write(targetPath, next);
-    const logMsgStart = fileUtils.getIsDryRun() ? 'Would update' : 'Updated';
-    logger.info(logMsgStart + ': ' + targetPath);
-    updated.push(targetPath);
-  }
-  // Return
-  return updated;
-}
+//   const updated: string[] = [];
+//   const isDirectory = fileUtils.isDir(targetPath);
+//   // Go recursive if directory
+//   if (isDirectory) {
+//     const items = fileUtils.listDirItems(targetPath);
+//     for (const item of items) {
+//       if (item === 'node_modules' || item.startsWith('.')) {
+//         continue;
+//       }
+//       const fileFullPath = path.join(targetPath, item);
+//       const result = walkDirectoryRecursively(fileFullPath, langConfigArr);
+//       updated.push(...result);
+//     }
+//     return updated;
+//   }
+//   // Check the patting type
+//   const langConfig =
+//     langConfigArr.find((type) => type.FILE_EXT.test(targetPath)) ?? null;
+//   if (!langConfig) return updated;
+//   // Write the divider comment (unless doing a dryRun)
+//   const content = fileUtils.read(targetPath);
+//   const next = content
+//     .split('\n')
+//     .map((line, i) =>
+//       checkForMarkerAndAddDivider(line, i, langConfig, targetPath),
+//     )
+//     .join('\n');
+//   if (next !== content) {
+//     fileUtils.write(targetPath, next);
+//     const logMsgStart = fileUtils.getIsDryRun() ? 'Would update' : 'Updated';
+//     logger.info(logMsgStart + ': ' + targetPath);
+//     updated.push(targetPath);
+//   }
+//   // Return
+//   return updated;
+// }
 
 /**
  * @private

@@ -11,18 +11,13 @@ import type { ConfigSettings } from '../types/ConfigSettings';
 const DefaultConfig = {
   filter: {
     include: [],
-    exclude: [],
-  },
-  files: {
-    include: [],
     exclude: [
       'bin',
       'lib',
       'dist',
       'node_modules',
       '*.log',
-      '.env',
-      '.env.*',
+      '*.json',
       '.vscode',
       '.idea',
       '.claude',

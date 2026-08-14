@@ -17,7 +17,7 @@
   "types": "lib/index.d.ts",
   "imports": {
     "#src/*": "./src/*",
-    "#workflows/*": "./workflows/*"
+    "#scripts/*": "./scripts/*"
   },
   "exports": {
     ".": {
@@ -32,7 +32,7 @@
   ],
   "scripts": {
     "start": "npm run build && node bin/cli.js",
-    "build": "tsx workflows/build.js",
+    "build": "tsx scripts/build.js",
     "clean-install": "bash ./scripts/clean-install.sh",
     "git:commit": "bash ./scripts/git-utils/commit.sh",
     "git:squash-history": "bash ./scripts/git-utils/squash-commit-history.sh",
