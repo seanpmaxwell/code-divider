@@ -7,18 +7,18 @@ import { $ as $_lib, type TemplateExpression } from 'execa';
 /**
  * Print .stdout
  */
-export const $ = $_lib({ verbose: 'full' });
+export const $ = $_lib({ stdio: 'inherit' });
 
 /**
  * Return .stdout
  */
 export const $$ = (() => {
-  const _$$ = $_lib({ verbose: 'short' });
+  const $_local = $_lib({ verbose: 'short' });
   return async (
     templates: TemplateStringsArray,
     ...expressions: readonly TemplateExpression[]
   ): Promise<string> => {
-    const { stdout } = await _$$(templates, ...expressions);
-    return stdout.trim();
+    const { stdout } = await $_local(templates, ...expressions);
+    return String(stdout).trim();
   }
 })();
