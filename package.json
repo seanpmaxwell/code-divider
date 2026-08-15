@@ -34,8 +34,6 @@
     "start": "npm run build && node bin/cli.js",
     "build": "tsx scripts/build.js",
     "clean-install": "bash ./scripts/clean-install.sh",
-    "commit": "tsx --tsconfig ../my-dev-tools/tsconfig.json scripts/commit.ts",
-    "commit:push": "tsx --tsconfig ../my-dev-tools/tsconfig.json scripts/commit.ts -p",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
