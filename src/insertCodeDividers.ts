@@ -1,13 +1,13 @@
 import path from 'path';
-import DefaultConfig from './common/constants/DefaultConfig';
-import { CONFIG_FILE_NAME } from './common/constants/misc';
+import DefaultConfig from '@src/common/constants/DefaultConfig';
+import { CONFIG_FILE_NAME } from '@src/common/constants/misc';
 import type {
   ConfigSettings,
   LangSettings,
   LangSettingsRaw,
-} from './common/types/ConfigSettings';
-import logger from './common/utils/logger';
-import fileUtils from './common/utils/fileUtils';
+} from '@src/common/types/ConfigSettings';
+import logger from '@src/common/utils/logger';
+import fileUtils from '@src/common/utils/fileUtils';
 
 // ========================================================================= //
 //                                  Constants                                //
@@ -34,6 +34,7 @@ async function insertCodeDividers(targetPath = process.cwd()): Promise<string[]>
   const { include, exclude } = filter;
   const files = await fileUtils.filterDirItemsGlob(include, exclude, targetPath);
 
+  console.trace(files.length)
   return files
   // Configure the settings per language
   // const settingsArrAllLang = Object.keys(other).map((lang) => 
@@ -42,6 +43,10 @@ async function insertCodeDividers(targetPath = process.cwd()): Promise<string[]>
 
   // return walkDirectoryRecursively(targetPath, configuredLanguagesArr);
 }
+
+// pick up here, AFTER everything is done, make sure the build still works
+// with path aliases
+console.log()
 
 // =========================== Private Helpers ============================= //
 

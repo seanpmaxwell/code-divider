@@ -187,16 +187,25 @@ async function filterDirItemsGlob(
   // Setup the `excludedSet`
   let excludedSet = new Set();
   if (Array.isArray(exclude) && exclude.length >= 1) {
-      console.trace(exclude)
-    const excludedItemsItr = await fs.glob(exclude, { cwd: targetPath });
-    const excludedItems = await asyncItrToArr(excludedItemsItr);
+    const excludedItems = await runGlobFilter(exclude, targetPath);
     excludedSet = new Set(excludedItems);
   }
-  console.trace(excludedSet)
   // Run the glob search
-  const toIncludeItr = await fs.glob(include, { cwd: targetPath });
-  const toInclude = await asyncItrToArr(toIncludeItr);
+  const toInclude = await runGlobFilter(include, targetPath);
   return toInclude.filter((item) => !excludedSet.has(item));
+}
+
+/**
+ * @private
+ * 
+ * Run the glob filter and return a list of items. 
+ */
+async function runGlobFilter(
+  patterns: string[],
+  targetPath: string,
+): Promise<string[]> {
+  const iterable = await fs.glob(patterns, { cwd: targetPath });
+  return asyncItrToArr(iterable);
 }
 
 /**

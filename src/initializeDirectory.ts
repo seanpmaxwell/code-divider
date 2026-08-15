@@ -1,9 +1,10 @@
 import fs from 'fs';
 import path from 'path';
-import DefaultConfig from './common/constants/DefaultConfig';
-import { CONFIG_FILE_NAME } from './common/constants/misc';
-import customStringifyObject from './common/utils/customStringifyObject';
-import fileUtils from './common/utils/fileUtils';
+
+import DefaultConfig from '@src/common/constants/DefaultConfig';
+import { CONFIG_FILE_NAME } from '@src/common/constants/misc';
+import customStringifyObject from '@src/common/utils/customStringifyObject';
+import fileUtils from '@src/common/utils/fileUtils';
 
 // ========================================================================= //
 //                                  Constants                                //

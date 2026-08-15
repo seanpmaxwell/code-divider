@@ -33,7 +33,7 @@
   "scripts": {
     "start": "npm run build && node bin/cli.js",
     "build": "tsx scripts/build.js",
-    "clean-install": "bash ./scripts/clean-install.sh",
+    "install:clean": "bash ./scripts/clean-install.sh",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -81,6 +81,7 @@
     "eslint-config-prettier": "^10.1.8",
     "execa": "^10.0.1",
     "globals": "^17.7.0",
+    "jiti": "^2.7.0",
     "prettier": "^3.9.5",
     "tsx": "^4.23.11",
     "typescript": "^6.0.3",

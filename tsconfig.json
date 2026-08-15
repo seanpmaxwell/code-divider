@@ -14,8 +14,10 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
 
-    "noEmit": true
+    "noEmit": true,
+
+    "paths": { "@src/*": ["./src/*"] }
   },
-  "include": ["src", "test", "scripts"],
+  "include": ["src", "test", "eslint.config.ts"],
   "exclude": ["node_modules", "lib", "test/playground"]
 }

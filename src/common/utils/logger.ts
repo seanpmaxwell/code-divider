@@ -1,5 +1,5 @@
-import { UNIT_TEST_ENV } from '../constants/misc';
-import { CallableKeys } from '../types/utility-types';
+import { UNIT_TEST_ENV } from '@src/common/constants/misc';
+import { CallableKeys } from '@src/common/types/utility-types';
 
 // ========================================================================= //
 //                                    Types                                  //
@@ -28,8 +28,8 @@ function info(...data: Parameters<Console['info']>): string {
 /**
  * Print warning.
  */
-function warn(...data: Parameters<Console['warn']>): void {
-  return console.warn(data);
+function warn(...data: Parameters<Console['warn']>): string {
+  return logAction('warn', data);
 }
 
 /**
@@ -51,6 +51,7 @@ function logAction<T extends ConsoleFnKeys>(
     }
     return dataFinal;
   } else {
+    // eslint-disable-next-line no-console
     console[action](...data);
     return '';
   }
