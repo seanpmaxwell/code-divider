@@ -177,34 +177,19 @@ async function filterDirItemsGlob(
   exclude: string[] = [],
   targetPath: string,
 ): Promise<string[]> {
-  // Check node version
+  // Check node version first
   if (!isUsingNode22orAbove()) {
     logger.warn(
       'Warning: node >= v22 required to use glob patterns. Using exact match instead.',
     );
     return filterDirItems(include, exclude, targetPath);
   }
-  // Setup the `excludedSet`
-  let excludedSet = new Set();
-  if (Array.isArray(exclude) && exclude.length >= 1) {
-    const excludedItems = await runGlobFilter(exclude, targetPath);
-    excludedSet = new Set(excludedItems);
-  }
   // Run the glob search
-  const toInclude = await runGlobFilter(include, targetPath);
-  return toInclude.filter((item) => !excludedSet.has(item));
-}
-
-/**
- * @private
- * 
- * Run the glob filter and return a list of items. 
- */
-async function runGlobFilter(
-  patterns: string[],
-  targetPath: string,
-): Promise<string[]> {
-  const iterable = await fs.glob(patterns, { cwd: targetPath });
+  const iterable = await fs.glob(include, {
+    exclude,
+    cwd: targetPath,
+  });
+  // Convert the result to an array
   return asyncItrToArr(iterable);
 }
 
