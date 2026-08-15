@@ -9,6 +9,12 @@ import fileUtils from '@src/common/utils/fileUtils.js';
 import { FileEditResult } from '#src/common/types/misc.js';
 
 // ========================================================================= //
+//                                  Constants                                //
+// ========================================================================= //
+
+const RGX_ALPHA_NUM = /[a-z0-9]/i;
+
+// ========================================================================= //
 //                                  Functions                                //
 // ========================================================================= //
 
@@ -17,7 +23,7 @@ import { FileEditResult } from '#src/common/types/misc.js';
  */
 async function applySettingsToFiles(
   targetPath: string,
-  files: string[],
+  files: string[], // These need to be the relative paths
   extensionsMap: ExtensionsMap,
 ): Promise<FileEditResult[]> {
   // Iterate the list of files
@@ -26,7 +32,11 @@ async function applySettingsToFiles(
     const ext = path.extname(file);
     const settingsObj = extensionsMap.get(ext);
     if (settingsObj) {
-      const fileFullPath = path.join(targetPath, file);
+
+      console.log()
+      // create a new object that has filename, targetpath, fileFullPath, ext, relativePath
+            const fileFullPath = path.join(targetPath, file);
+
       const job = startFileEditJob(fileFullPath, settingsObj);
       editFileJobs.push(job);
     }
@@ -53,7 +63,9 @@ async function startFileEditJob(
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     // Check if inserting `section`
-    if (line.match(settingsObj.SECTION_MARKER)) {
+    const sectionMatch = line.match(settingsObj.SECTION_MARKER)
+    if (sectionMatch) {
+      const label = formatLabel(sectionMatch[1], settingsObj, targetPath, i);
       lines[i] = insertSection(line, settingsObj);
       insertions++;
       continue;
@@ -76,6 +88,42 @@ async function startFileEditJob(
   }
   // Return null if no insertions were done
   return null;
+}
+
+/**
+ * @private
+ *
+ * Capitalize each word in a label (first letter upper, rest lower), unless the
+ * language has DisableCapitalization set. Words that start or end with a
+ * non-alphanumeric character are left untouched (e.g. "@decorator", "foo()").
+ */
+function formatLabel(
+  labelRaw: string,
+  langConfig: ConfiguredLangSettings,
+  filePath: string,
+  index: number,
+): string {
+  // Make sure the label exists
+  const label = labelRaw?.trim() ?? '';
+  if (!label) {
+    logger.warn(
+      `Warning: ${filePath}:${index + 1}: code-divider marker has no label, skipping`,
+    );
+    return labelRaw;
+  }
+  // Skip if capitalization is disabled
+  if (langConfig.DISABLE_CAP) return label;
+  // Callback for .map
+  const capitalizeWord = (word: string) => {
+    const firstChar = word[0];
+    const lastChar = word[word.length - 1];
+    if (!RGX_ALPHA_NUM.test(firstChar) || !RGX_ALPHA_NUM.test(lastChar)) {
+      return word;
+    }
+    return word[0].toUpperCase() + word.slice(1).toLowerCase();
+  }
+  // Split -> capitalize -> rejoin -> return
+  return label.split(/\s+/).map(capitalizeWord).join(' ');
 }
 
 // /**
@@ -148,7 +196,7 @@ function checkForMarkerAndAddDivider(
       printMissingLabelWarning(filePath, index);
       return line;
     }
-    const labelFinal = capitalizeLabel(label, langConfig);
+    const labelFinal = formatLabel(label, langConfig);
     return formatSection(labelFinal, langConfig, indent);
   }
   // Insert "region" divider
@@ -159,55 +207,11 @@ function checkForMarkerAndAddDivider(
       printMissingLabelWarning(filePath, index);
       return line;
     }
-    const labelFinal = capitalizeLabel(label, langConfig);
+    const labelFinal = formatLabel(label, langConfig);
     return formatRegion(labelFinal, langConfig, indent);
   }
   // Return unedited line if no marker found
   return line;
-}
-
-/**
- * @private
- *
- * Warn that a marker on the given (0-based) line has no label, and return the
- * line unchanged so nothing is inserted.
- */
-function printMissingLabelWarning(filePath: string, index: number): void {
-  logger.warn(
-    `Warning: ${filePath}:${index + 1}: code-divider marker has no label, skipping`,
-  );
-}
-
-/**
- * @private
- *
- * Capitalize each word in a label (first letter upper, rest lower), unless the
- * language has DisableCapitalization set. Words that start or end with a
- * non-alphanumeric character are left untouched (e.g. "@decorator", "foo()").
- */
-function capitalizeLabel(
-  label: string,
-  langConfig: ConfiguredLangSettings,
-): string {
-  if (langConfig.DISABLE_CAP) return label;
-  return label
-    .split(/\s+/)
-    .map((word) => {
-      if (!getIsAlphaNum(word[0]) || !getIsAlphaNum(word[word.length - 1])) {
-        return word;
-      }
-      return word[0].toUpperCase() + word.slice(1).toLowerCase();
-    })
-    .join(' ');
-}
-
-/**
- * @private
- *
- * Check if a string is an alphanumeric string.
- */
-function getIsAlphaNum(value: string): boolean {
-  return /[a-z0-9]/i.test(value);
 }
 
 /**

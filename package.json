@@ -31,21 +31,21 @@
     "README.md"
   ],
   "scripts": {
+    "build": "tsx scripts/build.ts",
+    "commit": "tsx scripts/commit.ts",
+    "commit:push": "tsx scripts/commit.ts -p",
     "start": "npm run build && node bin/cli.js",
-    "build": "tsx scripts/build.js",
-    "install:clean": "bash ./scripts/clean-install.sh",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "readme:swap": "bash ./scripts/readme.sh swap",
-    "readme:restore": "bash ./scripts/readme.sh restore",
-    "prepare": "npm run build",
-    "prepublishOnly": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run readme:swap",
+    "readme:swap": "mv README.md README.tmp.md && mv README-npm.md README.md",
+    "readme:restore": "mv README.md README-npm.md && mv README.tmp.md README.md",
+    "prepare": "tsx scripts/esbuild.ts",
+    "prepublishOnly": "tsc && npm run lint && npm run format:check && npm test && npm run readme:swap",
     "postpack": "npm run readme:restore",
     "test": "vitest run",
     "test:unit": "vitest run test/unit",
-    "test:assistant": "bash ./scripts/test-assistant/main.sh",
     "typecheck": "tsc"
   },
   "engines": {
