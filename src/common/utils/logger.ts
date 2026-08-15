@@ -1,5 +1,5 @@
 import { UNIT_TEST_ENV } from '@src/common/constants/misc';
-import { CallableKeys } from '@src/common/types/utility-types';
+import { CallableKeys } from '#src/common/types/utilities.js';
 
 // ========================================================================= //
 //                                    Types                                  //

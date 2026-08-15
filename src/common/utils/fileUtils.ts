@@ -184,6 +184,10 @@ async function filterDirItemsGlob(
     );
     return filterDirItems(include, exclude, targetPath);
   }
+  // If include is empty, include everything that is not excluded
+  if (!include.length) {
+    include.push('**/*');
+  }
   // Run the glob search
   const iterable = await fs.glob(include, {
     exclude,

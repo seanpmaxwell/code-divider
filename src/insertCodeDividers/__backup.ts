@@ -2,10 +2,10 @@ import path from 'path';
 import DefaultConfig from '@src/common/constants/DefaultConfig';
 import { CONFIG_FILE_NAME } from '@src/common/constants/misc';
 import type {
-  ConfigSettings,
-  LangSettings,
-  LangSettingsRaw,
-} from '@src/common/types/ConfigSettings';
+  InitalSettings,
+  ConfiguredLangSettings,
+  InitialLangSettings,
+} from '#src/common/types/settings.js';
 import logger from '@src/common/utils/logger';
 import fileUtils from '@src/common/utils/fileUtils';
 
@@ -28,25 +28,29 @@ const Markers = {
  * Process a path (file or directory). Directories are walked recursively.
  * Returns the list of file paths that were updated.
  */
-async function insertCodeDividers(targetPath = process.cwd()): Promise<string[]> {
+async function insertCodeDividers(
+  targetPath = process.cwd(),
+): Promise<string[]> {
+  // Load settings
   const dirPath = await configDirFor(targetPath);
   const { filter, All, ...other } = await loadConfig(dirPath);
-  const { include, exclude } = filter;
-  const files = await fileUtils.filterDirItemsGlob(include, exclude, targetPath);
+  // Configure Settings
+  const configuredLangSettings = Object.keys(other).map((lang) =>
+    configureLangEntry(lang, other[lang] as InitialLangSettings),
+  );
+  // Configure the Extensions Map
+  const extensionsMap = setupExtensionsMap(configuredLangSettings);
+  // Setup list of files to inspect
+  const files = await fileUtils.filterDirItemsGlob(
+    filter.include,
+    filter.exclude,
+    targetPath,
+  );
+  // Insert code-dividers
+  
 
-  console.trace(files.length)
-  return files
-  // Configure the settings per language
-  // const settingsArrAllLang = Object.keys(other).map((lang) => 
-  //   configureLangEntry(lang, other[lang] as LangSettingsRaw)
-  // );
-
-  // return walkDirectoryRecursively(targetPath, configuredLanguagesArr);
+  return walkDirectoryRecursively(targetPath, configuredLanguagesArr);
 }
-
-// pick up here, AFTER everything is done, make sure the build still works
-// with path aliases
-console.log()
 
 // =========================== Private Helpers ============================= //
 
@@ -56,22 +60,22 @@ console.log()
  * Check if a configuration file exists. If it does, override settings from the
  * configuration file into the default file.
  */
-async function loadConfig(cwd: string): Promise<ConfigSettings> {
+async function loadConfig(cwd: string): Promise<InitalSettings> {
   // Check Configuration File exists, otherwise use defaults
   const fileConfigPath = path.join(cwd, CONFIG_FILE_NAME);
   const hasConfigFile = await fileUtils.exists(fileConfigPath);
   if (!hasConfigFile) return DefaultConfig;
   // Load overrides from config file
-  let fileConfig: ConfigSettings;
+  let fileConfig: InitalSettings;
   try {
-    fileConfig = await fileUtils.loadJsonFile<ConfigSettings>(fileConfigPath);
+    fileConfig = await fileUtils.loadJsonFile<InitalSettings>(fileConfigPath);
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
     const message = `invalid ${CONFIG_FILE_NAME}: ${reason}`;
     throw new Error(message, { cause: err });
   }
   // Initialize "All", which holds settings shared by every language.
-  const retVal: ConfigSettings = {
+  const retVal: InitalSettings = {
     ...DefaultConfig,
     All: { ...DefaultConfig.All, ...fileConfig.All },
   };
@@ -81,7 +85,7 @@ async function loadConfig(cwd: string): Promise<ConfigSettings> {
     retVal[key] = {
       ...retVal.All,
       ...retVal[key],
-      ...(settings as LangSettingsRaw),
+      ...(settings as InitialLangSettings),
     };
   });
   // Return
@@ -113,8 +117,8 @@ async function configDirFor(targetPath: string): Promise<string> {
  */
 function configureLangEntry(
   lang: string,
-  settings: LangSettingsRaw,
-): LangSettings {
+  settings: InitialLangSettings,
+): ConfiguredLangSettings {
   const {
     Extensions,
     Comment,
@@ -160,17 +164,16 @@ function configureLangEntry(
   } else {
     bookends = Bookends as [string, string];
   }
-  // Capture the label if present. A bare marker ("// @reg" with no label) still
-  // matches, but is warned about and skipped rather than formatted.
-  const marker = (token: string) =>
-    new RegExp(
-      `^\\s*${escapeRegex(open)}${escapeRegex(token)}(?: (.+?))?${escapeRegex(close)}\\s*$`,
-    );
+  // Add periods to extensions that don't start with one because path.extname
+  // returns a periods: i.e. path.extname('foo.bar.tsx') => `.tsx`
+  const extensions = Extensions.map((ext) =>
+    ext.startsWith('.') ? ext.slice(1) : ext,
+  );
   // Return
   return {
-    FILE_EXT: getExtensionRegex(Extensions),
-    REGION_MARKER: marker(Markers.REGION),
-    SECTION_MARKER: marker(Markers.SECTION),
+    EXTENSIONS: extensions,
+    REGION_MARKER: getMarkerRegex(open, close, Markers.REGION),
+    SECTION_MARKER: getMarkerRegex(open, close, Markers.SECTION),
     BOOKENDS: bookends,
     CHAR_LIMIT: CharacterLimit,
     FILLER: fillerChar,
@@ -189,22 +192,43 @@ function isPositiveInt(value: unknown): value is number {
 
 /**
  * @private
+ *
+ * Capture the label if present. A bare marker ("// @reg" with no label) still
+ * matches, but is warned about and skipped rather than formatted.
  */
-function getExtensionRegex(extensions: string[]): RegExp {
-  const cleanExtensions = extensions.map((ext: string) => {
-    const extFinal = ext.replace(/^\./, '');
-    return escapeRegex(extFinal);
-  });
-  return new RegExp(`\\.(${cleanExtensions.join('|')})$`);
+function getMarkerRegex(open: string, close: string, token: string): RegExp {
+  const escape = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const str = `^\\s*${escape(open)}${escape(token)}(?: (.+?))?${escape(close)}\\s*$`;
+  return new RegExp(str);
 }
 
 /**
  * @private
  *
- * Escape regex special characters in a literal string.
+ * Organize language settings by file extension
  */
-function escapeRegex(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function setupExtensionsMap(
+  configuredLangSettings: ConfiguredLangSettings[],
+): Map<string, ConfiguredLangSettings> {
+  const map = new Map<string, ConfiguredLangSettings>();
+  for (const setting of configuredLangSettings) {
+    for (const ext of setting.EXTENSIONS) {
+      map.set(ext, setting);
+    }
+  }
+  return map;
+}
+
+/**
+ * @private
+ *
+ * Look at file extension and load it if has a
+ */
+function inspectAndUpdateFile(
+  filePath: string,
+  langSettings: ConfiguredLangSettings[],
+): Promise<void> {
+  return Promise.resolve();
 }
 
 // /**
@@ -265,7 +289,7 @@ function escapeRegex(str: string): string {
 function checkForMarkerAndAddDivider(
   line: string,
   index: number,
-  langConfig: LangSettings,
+  langConfig: ConfiguredLangSettings,
   filePath: string,
 ): string {
   const indent = line.match(/^(\s*)/)?.[1] ?? '';
@@ -276,7 +300,7 @@ function checkForMarkerAndAddDivider(
     if (!label) {
       printMissingLabelWarning(filePath, index);
       return line;
-    };
+    }
     const labelFinal = capitalizeLabel(label, langConfig);
     return formatSection(labelFinal, langConfig, indent);
   }
@@ -301,11 +325,10 @@ function checkForMarkerAndAddDivider(
  * Warn that a marker on the given (0-based) line has no label, and return the
  * line unchanged so nothing is inserted.
  */
-function printMissingLabelWarning(
-  filePath: string,
-  index: number,
-): void {
-  logger.warn(`Warning: ${filePath}:${index + 1}: code-divider marker has no label, skipping`);
+function printMissingLabelWarning(filePath: string, index: number): void {
+  logger.warn(
+    `Warning: ${filePath}:${index + 1}: code-divider marker has no label, skipping`,
+  );
 }
 
 /**
@@ -315,7 +338,10 @@ function printMissingLabelWarning(
  * language has DisableCapitalization set. Words that start or end with a
  * non-alphanumeric character are left untouched (e.g. "@decorator", "foo()").
  */
-function capitalizeLabel(label: string, langConfig: LangSettings): string {
+function capitalizeLabel(
+  label: string,
+  langConfig: ConfiguredLangSettings,
+): string {
   if (langConfig.DISABLE_CAP) return label;
   return label
     .split(/\s+/)
@@ -346,7 +372,7 @@ function getIsAlphaNum(value: string): boolean {
  */
 function formatSection(
   label: string,
-  langConfig: LangSettings,
+  langConfig: ConfiguredLangSettings,
   indent: string,
 ): string {
   const [open, close] = langConfig.BOOKENDS;
@@ -366,7 +392,7 @@ function formatSection(
  */
 function formatRegion(
   label: string,
-  paddingType: LangSettings,
+  paddingType: ConfiguredLangSettings,
   indent: string,
 ): string {
   const [open, close] = paddingType.BOOKENDS;

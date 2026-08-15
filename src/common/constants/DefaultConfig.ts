@@ -1,4 +1,4 @@
-import type { ConfigSettings } from '../types/ConfigSettings';
+import type { InitalSettings } from '../types/settings';
 
 // ========================================================================= //
 //                                  Constants                                //
@@ -88,7 +88,7 @@ const DefaultConfig = {
     Comment: ['# ', ''],
     Bookends: ['# ', ' #'],
   },
-} satisfies ConfigSettings;
+} satisfies InitalSettings;
 
 // ========================================================================= //
 //                                     Export                                //
