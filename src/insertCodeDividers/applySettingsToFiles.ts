@@ -23,20 +23,19 @@ const RGX_ALPHA_NUM = /[a-z0-9]/i;
  */
 async function applySettingsToFiles(
   targetPath: string,
-  files: string[], // These need to be the relative paths
+  files: string[], // These need to be the relative paths from the targetPath
   extensionsMap: ExtensionsMap,
 ): Promise<FileEditResult[]> {
   // Iterate the list of files
   const editFileJobs: Promise<FileEditResult | null>[] = [];
   for (const file of files) {
-    const ext = path.extname(file);
+
+    console.log() // Finish setting update the file data object
+    // const ext = path.extname(file)
+
     const settingsObj = extensionsMap.get(ext);
     if (settingsObj) {
-
-      console.log()
-      // create a new object that has filename, targetpath, fileFullPath, ext, relativePath
-            const fileFullPath = path.join(targetPath, file);
-
+      // const fileFullPath = path.join(targetPath, file);
       const job = startFileEditJob(fileFullPath, settingsObj);
       editFileJobs.push(job);
     }
@@ -126,94 +125,6 @@ function formatLabel(
   return label.split(/\s+/).map(capitalizeWord).join(' ');
 }
 
-// /**
-//  * @private
-//  *
-//  * Recursively walk a path, rewriting markers in every supported file.
-//  */
-// function walkDirectoryRecursivelyx(
-//   targetPath: string,
-//   langConfigArr: LangSettings[],
-// ): string[] {
-//   // pick up here, maybe this can be replaced with something which just lists
-//   // all the files + full path using a glob match
-//   console.log();
-
-//   const updated: string[] = [];
-//   const isDirectory = fileUtils.isDir(targetPath);
-//   // Go recursive if directory
-//   if (isDirectory) {
-//     const items = fileUtils.listDirItems(targetPath);
-//     for (const item of items) {
-//       if (item === 'node_modules' || item.startsWith('.')) {
-//         continue;
-//       }
-//       const fileFullPath = path.join(targetPath, item);
-//       const result = walkDirectoryRecursively(fileFullPath, langConfigArr);
-//       updated.push(...result);
-//     }
-//     return updated;
-//   }
-//   // Check the patting type
-//   const langConfig =
-//     langConfigArr.find((type) => type.FILE_EXT.test(targetPath)) ?? null;
-//   if (!langConfig) return updated;
-//   // Write the divider comment (unless doing a dryRun)
-//   const content = fileUtils.read(targetPath);
-//   const next = content
-//     .split('\n')
-//     .map((line, i) =>
-//       checkForMarkerAndAddDivider(line, i, langConfig, targetPath),
-//     )
-//     .join('\n');
-//   if (next !== content) {
-//     fileUtils.write(targetPath, next);
-//     const logMsgStart = fileUtils.getIsDryRun() ? 'Would update' : 'Updated';
-//     logger.info(logMsgStart + ': ' + targetPath);
-//     updated.push(targetPath);
-//   }
-//   // Return
-//   return updated;
-// }
-
-/**
- * @private
- *
- * Determine whether to format a "section" or a "region".
- */
-function checkForMarkerAndAddDivider(
-  line: string,
-  index: number,
-  langConfig: ConfiguredLangSettings,
-  filePath: string,
-): string {
-  const indent = line.match(/^(\s*)/)?.[1] ?? '';
-  const sectionMatch = line.match(langConfig.SECTION_MARKER);
-  // Insert "section" divider
-  if (sectionMatch) {
-    const label = sectionMatch[1]?.trim() ?? '';
-    if (!label) {
-      printMissingLabelWarning(filePath, index);
-      return line;
-    }
-    const labelFinal = formatLabel(label, langConfig);
-    return formatSection(labelFinal, langConfig, indent);
-  }
-  // Insert "region" divider
-  const regionMatch = line.match(langConfig.REGION_MARKER);
-  if (regionMatch) {
-    const label = regionMatch[1]?.trim() ?? '';
-    if (!label) {
-      printMissingLabelWarning(filePath, index);
-      return line;
-    }
-    const labelFinal = formatLabel(label, langConfig);
-    return formatRegion(labelFinal, langConfig, indent);
-  }
-  // Return unedited line if no marker found
-  return line;
-}
-
 /**
  * @private
  *
@@ -221,7 +132,7 @@ function checkForMarkerAndAddDivider(
  * Filler fills up to the character limit and stops; a label too long to fit
  * simply gets no filler rather than pushing the line past the limit.
  */
-function formatSection(
+function insertSection(
   label: string,
   langConfig: ConfiguredLangSettings,
   indent: string,
@@ -241,7 +152,7 @@ function formatSection(
  * Build a 3-line region header block with the label centered on the middle line.
  * Rule lines stop at the character limit: "// " + filler + " //".
  */
-function formatRegion(
+function insertRegion(
   label: string,
   paddingType: ConfiguredLangSettings,
   indent: string,

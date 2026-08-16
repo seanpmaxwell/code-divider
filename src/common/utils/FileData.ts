@@ -16,11 +16,11 @@ interface IFileData {
 class FileData implements IFileData {
 
   // Accessors
-  #absolutePath = '';
-  #workingDir = '';
-  #relativePath = '';
-  #filename = '';
-  #extension = '';
+  #absolutePath: string;
+  #workingDir: string;
+  #relativePath: string;
+  #filename: string;
+  #extension: string;
 
   /**
    * of: Factory Function
@@ -30,7 +30,25 @@ class FileData implements IFileData {
   //   const abs = path.join(targetDir, relativePath);
   //   fileData.absolutePath(abs);
   // }
+    // Accessor: absolutePath
+    get absolutePath() { return this.#absolutePath; }
+    set absolutePath(value: string) { this.#absolutePath = value; }
 
+    // Accessor: workingDir
+    get workingDir() { return this.#workingDir; }
+    set workingDir(value: string) { this.#workingDir = value; }
+
+    // Accessor: relativePath
+    get relativePath() { return this.#relativePath; }
+    set relativePath(value: string) { this.#relativePath = value; }
+
+    // Accessor: filename
+    get filename() { return this.#filename; }
+    set filename(value: string) { this.#filename = value; }
+
+    // Accessor: extension
+    get extension() { return this.#extension; }
+    set extension(value: string) { this.#extension = value; }
 }
 
 // ========================================================================= //
