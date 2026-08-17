@@ -1,6 +1,7 @@
-import fileUtils from '@src/common/utils/fileUtils';
-import configureSettings from './configureSettings';
+import fileUtils from 'my-dev-tools-external/fileUtils';
+
 import applySettingsToFiles from './applySettingsToFiles';
+import configureSettings from './configureSettings';
 
 // ========================================================================= //
 //                                  Functions                                //
@@ -22,8 +23,8 @@ async function insertCodeDividers(
     targetPath,
   );
   // Insert code-dividers
-  await applySettingsToFiles(files, extensionsMap)
-  // 
+  await applySettingsToFiles(files, extensionsMap);
+  //
   return files;
 }
 

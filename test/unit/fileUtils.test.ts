@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { fileUtils } from '../../src';
 
@@ -8,7 +8,7 @@ import { fileUtils } from '../../src';
 
 const TEMP_DIRECTORY = import.meta.dirname + '/.tmp';
 
-// Note: `fileUtils.createItem` will create folders for items ending in '/'.
+// Note: `fileUtils.create` will create folders for items ending in '/'.
 const DIRECTORY_ITEMS_TO_TEST = [
   './node_modules/',
   './node_modules/cache.conf',
@@ -33,7 +33,7 @@ const DIRECTORY_ITEMS_TO_TEST = [
  */
 async function makeDirItemsToTest(): Promise<void> {
   for (const item of DIRECTORY_ITEMS_TO_TEST) {
-    await fileUtils.createItem(item, TEMP_DIRECTORY);
+    await fileUtils.create(item, TEMP_DIRECTORY);
   }
 }
 
@@ -43,12 +43,12 @@ async function makeDirItemsToTest(): Promise<void> {
 
 describe.only('fileUtils', () => {
   beforeAll(async () => {
-    await fileUtils.rmItem(TEMP_DIRECTORY);
+    await fileUtils.delete(TEMP_DIRECTORY);
     await makeDirItemsToTest();
   });
 
   afterAll(async () => {
-    await fileUtils.rmItem(TEMP_DIRECTORY);
+    await fileUtils.delete(TEMP_DIRECTORY);
   });
 
   // Test: `.filterDirItemsGlob`

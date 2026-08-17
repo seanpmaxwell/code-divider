@@ -17,8 +17,7 @@
     "noEmit": true,
 
     "paths": {
-      "@src/*": ["./src/*"],
-      "my-dev-tools-external/*": ["../my-dev-tools/src/external/src/*"]
+      "@src/*": ["./src/*"]
     }
   },
   "include": ["src", "test", "eslint.config.ts"],

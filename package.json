@@ -31,7 +31,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsx scripts/build.ts",
+    "build": "tsx scripts/build-n-bundle.ts",
     "commit": "tsx scripts/commit.ts",
     "commit:push": "tsx scripts/commit.ts -p",
     "start": "npm run build && node bin/cli.js",
@@ -41,7 +41,7 @@
     "format:check": "prettier --check .",
     "readme:swap": "mv README.md README.tmp.md && mv README-npm.md README.md",
     "readme:restore": "mv README.md README-npm.md && mv README.tmp.md README.md",
-    "prepare": "tsx scripts/esbuild.ts",
+    "prepare": "npm run build",
     "prepublishOnly": "tsc && npm run lint && npm run format:check && npm test && npm run readme:swap",
     "postpack": "npm run readme:restore",
     "test": "vitest run",
@@ -83,6 +83,7 @@
     "execa": "^10.0.1",
     "globals": "^17.7.0",
     "jiti": "^2.7.0",
+    "my-dev-tools-external": "file:../my-dev-tools/src/external",
     "prettier": "^3.9.5",
     "tsx": "^4.23.11",
     "typescript": "^6.0.3",

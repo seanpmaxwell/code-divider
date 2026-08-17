@@ -1,13 +1,14 @@
-import path from 'path';
-import DefaultConfig from '@src/common/constants/DefaultConfig';
-import { CONFIG_FILE_NAME } from '@src/common/constants/misc';
 import type {
-  InitalSettings,
   ConfiguredLangSettings,
+  InitalSettings,
   InitialLangSettings,
 } from '#src/common/types/settings.js';
-import logger from '@src/common/utils/logger';
-import fileUtils from '@src/common/utils/fileUtils';
+import fileUtils from 'my-dev-tools-external/fileUtils';
+import logger from 'my-dev-tools-external/logger';
+import path from 'path';
+
+import DefaultConfig from '@src/common/constants/DefaultConfig';
+import { CONFIG_FILE_NAME } from '@src/common/constants/misc';
 
 // ========================================================================= //
 //                                  Constants                                //
@@ -47,7 +48,6 @@ async function insertCodeDividers(
     targetPath,
   );
   // Insert code-dividers
-  
 
   return walkDirectoryRecursively(targetPath, configuredLanguagesArr);
 }

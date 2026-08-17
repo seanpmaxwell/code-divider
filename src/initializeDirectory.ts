@@ -1,10 +1,10 @@
 import fs from 'fs';
+import fileUtils from 'my-dev-tools-external/fileUtils';
+import { customStringifyObject } from 'my-dev-tools-external/strings';
 import path from 'path';
 
 import DefaultConfig from '@src/common/constants/DefaultConfig';
 import { CONFIG_FILE_NAME } from '@src/common/constants/misc';
-import customStringifyObject from '@src/common/utils/customStringifyObject';
-import fileUtils from '@src/common/utils/fileUtils';
 
 // ========================================================================= //
 //                                  Constants                                //

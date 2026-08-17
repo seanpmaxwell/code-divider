@@ -1,16 +1,16 @@
+import fileUtils from 'my-dev-tools-external/fileUtils';
+import logger from 'my-dev-tools-external/logger';
 import path from 'path';
 
 import DefaultConfig from '@src/common/constants/DefaultConfig';
 import { CONFIG_FILE_NAME } from '@src/common/constants/misc';
 import type {
-  InitalSettings,
   ConfiguredLangSettings,
-  InitialLangSettings,
   ExtensionsMap,
   FilterSettings,
+  InitalSettings,
+  InitialLangSettings,
 } from '@src/common/types/settings.js';
-import logger from '@src/common/utils/logger';
-import fileUtils from '@src/common/utils/fileUtils';
 
 // ========================================================================= //
 //                                  Constants                                //
@@ -33,7 +33,7 @@ const Markers = {
  */
 async function configureSettings(
   targetPath = process.cwd(),
-): Promise<{ filter: FilterSettings, extensionsMap: ExtensionsMap}> {
+): Promise<{ filter: FilterSettings; extensionsMap: ExtensionsMap }> {
   // Load settings
   const dirPath = await configDirFor(targetPath);
   const { filter, All, ...other } = await loadConfig(dirPath);
@@ -45,7 +45,7 @@ async function configureSettings(
   return {
     filter,
     extensionsMap: setupExtensionsMap(configuredLangSettings),
-  }
+  };
 }
 
 /**

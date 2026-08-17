@@ -1,7 +1,8 @@
 import insertCodeDividers from '#src/insertCodeDividers/insertCodeDividers.js';
+import fileUtils from 'my-dev-tools-external/fileUtils';
+import logger from 'my-dev-tools-external/logger';
+
 import initializeDirectory from '@src/initializeDirectory';
-import fileUtils from '@src/common/utils/fileUtils';
-import logger from '@src/common/utils/logger';
 
 export { insertCodeDividers, initializeDirectory, fileUtils, logger };
 

@@ -1,13 +1,13 @@
+import { FileEditResult } from '#src/common/types/misc.js';
+import FilePathData from '#src/shared-utils/FilePathData.js';
+import fileUtils from 'my-dev-tools-external/fileUtils';
+import logger from 'my-dev-tools-external/logger';
 import path from 'path';
 
 import type {
   ConfiguredLangSettings,
   ExtensionsMap,
 } from '@src/common/types/settings.js';
-import logger from '@src/common/utils/logger';
-import fileUtils from '@src/common/utils/fileUtils.js';
-import { FileEditResult } from '#src/common/types/misc.js';
-import FilePathData from '#src/shared-utils/FilePathData.js'
 
 // ========================================================================= //
 //                                  Constants                                //
@@ -29,8 +29,7 @@ async function applySettingsToFiles(
   // Iterate the list of files
   const editFileJobs: Promise<FileEditResult | null>[] = [];
   for (const file of files) {
-
-    console.log() // Finish setting update the file data object
+    console.log(); // Finish setting update the file data object
     // const ext = path.extname(file)
 
     const settingsObj = extensionsMap.get(ext);
@@ -47,7 +46,7 @@ async function applySettingsToFiles(
 
 /**
  * @private
- * 
+ *
  * Insert code-dividers for a file.
  */
 async function startFileEditJob(
@@ -62,7 +61,7 @@ async function startFileEditJob(
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     // Check if inserting `section`
-    const sectionMatch = line.match(settingsObj.SECTION_MARKER)
+    const sectionMatch = line.match(settingsObj.SECTION_MARKER);
     if (sectionMatch) {
       const label = formatLabel(sectionMatch[1], settingsObj, targetPath, i);
       lines[i] = insertSection(line, settingsObj);
@@ -83,7 +82,7 @@ async function startFileEditJob(
       filename: path.basename(fileFullPath),
       fullPath: fileFullPath,
       insertions,
-    }
+    };
   }
   // Return null if no insertions were done
   return null;
@@ -120,7 +119,7 @@ function formatLabel(
       return word;
     }
     return word[0].toUpperCase() + word.slice(1).toLowerCase();
-  }
+  };
   // Split -> capitalize -> rejoin -> return
   return label.split(/\s+/).map(capitalizeWord).join(' ');
 }
