@@ -7,6 +7,7 @@ import type {
 import logger from '@src/common/utils/logger';
 import fileUtils from '@src/common/utils/fileUtils.js';
 import { FileEditResult } from '#src/common/types/misc.js';
+import FilePathData from '#src/shared-utils/FilePathData.js'
 
 // ========================================================================= //
 //                                  Constants                                //
@@ -22,8 +23,7 @@ const RGX_ALPHA_NUM = /[a-z0-9]/i;
  * Look at file extension and load it if it matches the extension. Then
  */
 async function applySettingsToFiles(
-  targetPath: string,
-  files: string[], // These need to be the relative paths from the targetPath
+  files: FilePathData[], // These need to be the relative paths from the targetPath
   extensionsMap: ExtensionsMap,
 ): Promise<FileEditResult[]> {
   // Iterate the list of files

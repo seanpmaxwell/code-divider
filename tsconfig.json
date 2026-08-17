@@ -16,7 +16,10 @@
 
     "noEmit": true,
 
-    "paths": { "@src/*": ["./src/*"] }
+    "paths": {
+      "@src/*": ["./src/*"],
+      "my-dev-tools-external/*": ["../my-dev-tools/src/external/src/*"]
+    }
   },
   "include": ["src", "test", "eslint.config.ts"],
   "exclude": ["node_modules", "lib", "test/playground"]

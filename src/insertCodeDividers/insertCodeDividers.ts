@@ -22,7 +22,7 @@ async function insertCodeDividers(
     targetPath,
   );
   // Insert code-dividers
-  await applySettingsToFiles(targetPath, files, extensionsMap)
+  await applySettingsToFiles(files, extensionsMap)
   // 
   return files;
 }
