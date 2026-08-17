@@ -1,7 +1,8 @@
-import { FileEditResult } from '#src/common/types/misc.js';
-import FilePathData from '#src/shared-utils/FilePathData.js';
-import fileUtils from 'my-dev-tools-external/fileUtils';
+import fileUtils, { FilePathDTO } from 'my-dev-tools-external/fileUtils';
 import logger from 'my-dev-tools-external/logger';
+
+import { FileEditResult } from '@src/common/types/misc.js';
+
 import path from 'path';
 
 import type {
@@ -23,7 +24,7 @@ const RGX_ALPHA_NUM = /[a-z0-9]/i;
  * Look at file extension and load it if it matches the extension. Then
  */
 async function applySettingsToFiles(
-  files: FilePathData[], // These need to be the relative paths from the targetPath
+  files: FilePathDTO[], // These need to be the relative paths from the targetPath
   extensionsMap: ExtensionsMap,
 ): Promise<FileEditResult[]> {
   // Iterate the list of files
@@ -32,10 +33,10 @@ async function applySettingsToFiles(
     console.log(); // Finish setting update the file data object
     // const ext = path.extname(file)
 
-    const settingsObj = extensionsMap.get(ext);
+    const settingsObj = extensionsMap.get(file.ext);
     if (settingsObj) {
       // const fileFullPath = path.join(targetPath, file);
-      const job = startFileEditJob(fileFullPath, settingsObj);
+      const job = startFileEditJob(file.absolutePath, settingsObj);
       editFileJobs.push(job);
     }
   }

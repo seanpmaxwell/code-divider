@@ -20,6 +20,6 @@
       "@src/*": ["./src/*"]
     }
   },
-  "include": ["src", "test", "eslint.config.ts"],
+  "include": ["src", "test", "./*.config.ts"],
   "exclude": ["node_modules", "lib", "test/playground"]
 }
