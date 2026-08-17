@@ -20,6 +20,6 @@
       "@src/*": ["./src/*"]
     }
   },
-  "include": ["src", "test", "./*.config.ts"],
-  "exclude": ["node_modules", "lib", "test/playground"]
+  "include": ["src", "test", "./*.config.ts", "playground"],
+  "exclude": ["node_modules", "lib"]
 }
