@@ -1,4 +1,4 @@
-import fileUtils from '@my-tools/deps/fileUtils';
+import fileUtils from 'my-tools/fileUtils';
 
 import applySettingsToFiles from './applySettingsToFiles';
 import configureSettings from './configureSettings';

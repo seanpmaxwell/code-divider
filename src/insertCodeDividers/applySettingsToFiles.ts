@@ -1,5 +1,5 @@
-import fileUtils, { FilePathDTO } from '@my-tools/deps/fileUtils';
-import logger from '@my-tools/deps/simple-logger';
+import fileUtils, { FilePathDTO } from 'my-tools/fileUtils';
+import logger from 'my-tools/simple-logger';
 
 import { FileEditResult } from '@src/common/types/misc.js';
 

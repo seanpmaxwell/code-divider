@@ -84,7 +84,7 @@
     "execa": "^10.0.1",
     "globals": "^17.7.0",
     "jiti": "^2.7.0",
-    "@my-tools/deps": "file:../my-tools/src/deps",
+    "my-tools": "file:../my-tools/src/deps",
     "prettier": "^3.9.5",
     "tsx": "^4.23.11",
     "typescript": "^6.0.3",
