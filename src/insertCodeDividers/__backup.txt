@@ -4,7 +4,7 @@ import type {
   InitialLangSettings,
 } from '#src/common/types/settings.js';
 import fileUtils from 'my-dev-tools-external/fileUtils';
-import logger from 'my-dev-tools-external/logger';
+import logger from 'my-dev-tools-external/simple-logger';
 import path from 'path';
 
 import DefaultConfig from '@src/common/constants/DefaultConfig';

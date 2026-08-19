@@ -1,4 +1,4 @@
-import fileUtils from 'my-dev-tools-external/fileUtils';
+import fileUtils from '@my-tools/deps/fileUtils';
 
 import applySettingsToFiles from './applySettingsToFiles';
 import configureSettings from './configureSettings';
@@ -22,6 +22,11 @@ async function insertCodeDividers(
     filter.exclude,
     targetPath,
   );
+
+  const fileDTOs = fileUtils.parse({ })
+  // 
+  console.log() // pick up here, need to parse and create DTOs
+
   // Insert code-dividers
   await applySettingsToFiles(files, extensionsMap);
   //

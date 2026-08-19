@@ -1,5 +1,5 @@
-import fileUtils from 'my-dev-tools-external/fileUtils';
-import logger from 'my-dev-tools-external/logger';
+import fileUtils from '@my-tools/deps/fileUtils';
+import logger from '@my-tools/deps/simple-logger';
 import path from 'path';
 
 import DefaultConfig from '@src/common/constants/DefaultConfig';

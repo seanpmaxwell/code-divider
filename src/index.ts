@@ -1,6 +1,6 @@
-import insertCodeDividers from '#src/insertCodeDividers/index.js';
-import fileUtils from 'my-dev-tools-external/fileUtils';
-import logger from 'my-dev-tools-external/logger';
+import insertCodeDividers from '@src/insertCodeDividers/index.js';
+import fileUtils from '@my-tools/deps/fileUtils';
+import logger from '@my-tools/deps/simple-logger';
 
 import initializeDirectory from '@src/initializeDirectory';
 

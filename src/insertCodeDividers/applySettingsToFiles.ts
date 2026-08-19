@@ -1,5 +1,5 @@
-import fileUtils, { FilePathDTO } from 'my-dev-tools-external/fileUtils';
-import logger from 'my-dev-tools-external/logger';
+import fileUtils, { FilePathDTO } from '@my-tools/deps/fileUtils';
+import logger from '@my-tools/deps/simple-logger';
 
 import { FileEditResult } from '@src/common/types/misc.js';
 
@@ -61,17 +61,20 @@ async function startFileEditJob(
   const lines = content.split('\n');
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    const indent = line.match(/^(\s*)/)?.[1] ?? '';
     // Check if inserting `section`
     const sectionMatch = line.match(settingsObj.SECTION_MARKER);
     if (sectionMatch) {
-      const label = formatLabel(sectionMatch[1], settingsObj, targetPath, i);
-      lines[i] = insertSection(line, settingsObj);
+      const label = formatLabel(sectionMatch[1], settingsObj, fileFullPath, i);
+      lines[i] = insertSection(label, settingsObj, indent);
       insertions++;
       continue;
     }
     // Check if inserting `region`
-    if (line.match(settingsObj.REGION_MARKER)) {
-      lines[i] = insertRegion(line, settingsObj);
+    const regionMatch = line.match(settingsObj.REGION_MARKER);
+    if (regionMatch) {
+      const label = formatLabel(regionMatch[1], settingsObj, fileFullPath, i);
+      lines[i] = insertRegion(label, settingsObj, indent);
       insertions++;
       continue;
     }

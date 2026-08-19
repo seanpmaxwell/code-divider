@@ -37,7 +37,5 @@ lib/
 
 # Transient README backup created during publishing
 README-tmp
-my-dep-tools/
-my-dev-tools/
 
-scripts
+workflows

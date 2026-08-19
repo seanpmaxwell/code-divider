@@ -31,9 +31,10 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsx scripts/build-n-bundle.ts",
-    "commit": "tsx scripts/commit.ts",
-    "commit:push": "tsx scripts/commit.ts -p",
+    "build": "tsx workflows/build-n-bundle.ts",
+    "commit": "tsx workflows/commit.ts",
+    "commit:push": "tsx workflows/commit.ts -p",
+    "install:clean": "rm -rf node_modules && rm -f package-lock.json && npm i",
     "start": "npm run build && node bin/cli.js",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
@@ -83,7 +84,7 @@
     "execa": "^10.0.1",
     "globals": "^17.7.0",
     "jiti": "^2.7.0",
-    "my-dev-tools-external": "file:../my-dev-tools/src/external",
+    "@my-tools/deps": "file:../my-tools/src/deps",
     "prettier": "^3.9.5",
     "tsx": "^4.23.11",
     "typescript": "^6.0.3",
