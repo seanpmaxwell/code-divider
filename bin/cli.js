@@ -6,7 +6,7 @@ import {
   insertCodeDividers,
   initializeDirectory,
   loadJsonFile,
-  fileUtils,
+  FileUtils,
 } from '../lib/index.js';
 
 // ========================================================================= //
@@ -18,7 +18,7 @@ const CURR_DIR = path.dirname(fileURLToPath(import.meta.url));
 // What to print to the console for the `--help` command line argument.
 const HELP_ARG_CONTENT = (() => {
   const helpContentFilePath = path.join(CURR_DIR, 'help.txt');
-  return fileUtils.read(helpContentFilePath);
+  return FileUtils.read(helpContentFilePath);
 })();
 
 // ========================================================================= //
@@ -59,7 +59,7 @@ function main() {
   const { paths, isDryRun } = result;
   // If doing a dryRun, we don't want to modify files
   if (isDryRun) {
-    fileUtils.setIsDryRun(true);
+    FileUtils.setIsDryRun(true);
   }
   // Run insert function
   let total = 0;

@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { fileUtils } from '../../src';
+import { FileUtils } from '../../src';
 
 // ========================================================================= //
 //                                 Constants                                 //
@@ -8,7 +8,7 @@ import { fileUtils } from '../../src';
 
 const TEMP_DIRECTORY = import.meta.dirname + '/.tmp';
 
-// Note: `fileUtils.create` will create folders for items ending in '/'.
+// Note: `FileUtils.create` will create folders for items ending in '/'.
 const DIRECTORY_ITEMS_TO_TEST = [
   './node_modules/',
   './node_modules/cache.conf',
@@ -33,7 +33,7 @@ const DIRECTORY_ITEMS_TO_TEST = [
  */
 async function makeDirItemsToTest(): Promise<void> {
   for (const item of DIRECTORY_ITEMS_TO_TEST) {
-    await fileUtils.create(item, TEMP_DIRECTORY);
+    await FileUtils.create(item, TEMP_DIRECTORY);
   }
 }
 
@@ -41,21 +41,21 @@ async function makeDirItemsToTest(): Promise<void> {
 //                                 Run Tests                                 //
 // ========================================================================= //
 
-describe.only('fileUtils', () => {
+describe.only('FileUtils', () => {
   beforeAll(async () => {
-    await fileUtils.delete(TEMP_DIRECTORY);
+    await FileUtils.delete(TEMP_DIRECTORY);
     await makeDirItemsToTest();
   });
 
   afterAll(async () => {
-    await fileUtils.delete(TEMP_DIRECTORY);
+    await FileUtils.delete(TEMP_DIRECTORY);
   });
 
   // Test: `.filterDirItemsGlob`
   describe('.filterDirItemsGlob', () => {
     // Normal
     it('should work as expected', async () => {
-      const result = await fileUtils.filterDirItemsGlob(
+      const result = await FileUtils.filterDirItemsGlob(
         ['**/someLib/*'],
         ['**/bad*'],
         TEMP_DIRECTORY,
@@ -72,7 +72,7 @@ describe.only('fileUtils', () => {
   describe('.filterDirItems`', () => {
     // Normal
     it('should work as expected', async () => {
-      const result = await fileUtils.filterDirItems(
+      const result = await FileUtils.filterDirItems(
         [],
         ['node_modules', 'dist/bad.text'],
         TEMP_DIRECTORY,

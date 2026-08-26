@@ -3,7 +3,7 @@ import type {
   InitalSettings,
   InitialLangSettings,
 } from '#src/common/types/settings.js';
-import fileUtils from 'my-dev-tools-external/fileUtils';
+import FileUtils from 'my-dev-tools-external/FileUtils';
 import logger from 'my-dev-tools-external/simple-logger';
 import path from 'path';
 
@@ -42,7 +42,7 @@ async function insertCodeDividers(
   // Configure the Extensions Map
   const extensionsMap = setupExtensionsMap(configuredLangSettings);
   // Setup list of files to inspect
-  const files = await fileUtils.filterDirItemsGlob(
+  const files = await FileUtils.filterDirItemsGlob(
     filter.include,
     filter.exclude,
     targetPath,
@@ -63,12 +63,12 @@ async function insertCodeDividers(
 async function loadConfig(cwd: string): Promise<InitalSettings> {
   // Check Configuration File exists, otherwise use defaults
   const fileConfigPath = path.join(cwd, CONFIG_FILE_NAME);
-  const hasConfigFile = await fileUtils.exists(fileConfigPath);
+  const hasConfigFile = await FileUtils.exists(fileConfigPath);
   if (!hasConfigFile) return DefaultConfig;
   // Load overrides from config file
   let fileConfig: InitalSettings;
   try {
-    fileConfig = await fileUtils.loadJsonFile<InitalSettings>(fileConfigPath);
+    fileConfig = await FileUtils.loadJsonFile<InitalSettings>(fileConfigPath);
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
     const message = `invalid ${CONFIG_FILE_NAME}: ${reason}`;
@@ -100,10 +100,10 @@ async function loadConfig(cwd: string): Promise<InitalSettings> {
  * directory if it has one, otherwise the directory code-divider is being run from.
  */
 async function configDirFor(targetPath: string): Promise<string> {
-  const isTargetDir = await fileUtils.isDir(targetPath);
+  const isTargetDir = await FileUtils.isDir(targetPath);
   const targetPathFull = isTargetDir ? targetPath : path.dirname(targetPath);
   const configFilePath = path.join(targetPathFull, CONFIG_FILE_NAME);
-  const exists = await fileUtils.exists(configFilePath);
+  const exists = await FileUtils.exists(configFilePath);
   return exists ? targetPathFull : process.cwd();
 }
 
@@ -245,10 +245,10 @@ function inspectAndUpdateFile(
 //   console.log();
 
 //   const updated: string[] = [];
-//   const isDirectory = fileUtils.isDir(targetPath);
+//   const isDirectory = FileUtils.isDir(targetPath);
 //   // Go recursive if directory
 //   if (isDirectory) {
-//     const items = fileUtils.listDirItems(targetPath);
+//     const items = FileUtils.listDirItems(targetPath);
 //     for (const item of items) {
 //       if (item === 'node_modules' || item.startsWith('.')) {
 //         continue;
@@ -264,7 +264,7 @@ function inspectAndUpdateFile(
 //     langConfigArr.find((type) => type.FILE_EXT.test(targetPath)) ?? null;
 //   if (!langConfig) return updated;
 //   // Write the divider comment (unless doing a dryRun)
-//   const content = fileUtils.read(targetPath);
+//   const content = FileUtils.read(targetPath);
 //   const next = content
 //     .split('\n')
 //     .map((line, i) =>
@@ -272,8 +272,8 @@ function inspectAndUpdateFile(
 //     )
 //     .join('\n');
 //   if (next !== content) {
-//     fileUtils.write(targetPath, next);
-//     const logMsgStart = fileUtils.getIsDryRun() ? 'Would update' : 'Updated';
+//     FileUtils.write(targetPath, next);
+//     const logMsgStart = FileUtils.getIsDryRun() ? 'Would update' : 'Updated';
 //     logger.info(logMsgStart + ': ' + targetPath);
 //     updated.push(targetPath);
 //   }

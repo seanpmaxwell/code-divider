@@ -1,4 +1,4 @@
-import fileUtils from 'my-tools/fileUtils';
+import FileUtils from 'my-tools/FileUtils';
 import logger from 'my-tools/simple-logger';
 import path from 'path';
 
@@ -57,14 +57,14 @@ async function configureSettings(
 async function loadConfig(cwd: string): Promise<InitalSettings> {
   // Check Configuration File exists, otherwise use defaults
   const fileConfigPath = path.join(cwd, CONFIG_FILE_NAME);
-  const hasConfigFile = await fileUtils.exists(fileConfigPath);
+  const hasConfigFile = await FileUtils.exists(fileConfigPath);
 
   console.log('// pick up here, need to combine DefaultConfig.All into the others before proceeding');
   if (!hasConfigFile) return DefaultConfig;
   // Load overrides from config file
   let fileConfig: InitalSettings;
   try {
-    fileConfig = await fileUtils.loadJsonFile<InitalSettings>(fileConfigPath);
+    fileConfig = await FileUtils.loadJsonFile<InitalSettings>(fileConfigPath);
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
     const message = `invalid ${CONFIG_FILE_NAME}: ${reason}`;
@@ -96,10 +96,10 @@ async function loadConfig(cwd: string): Promise<InitalSettings> {
  * directory if it has one, otherwise the directory code-divider is being run from.
  */
 async function configDirFor(targetPath: string): Promise<string> {
-  const isTargetDir = await fileUtils.isDir(targetPath);
+  const isTargetDir = await FileUtils.isDir(targetPath);
   const targetPathFull = isTargetDir ? targetPath : path.dirname(targetPath);
   const configFilePath = path.join(targetPathFull, CONFIG_FILE_NAME);
-  const exists = await fileUtils.exists(configFilePath);
+  const exists = await FileUtils.exists(configFilePath);
   return exists ? targetPathFull : process.cwd();
 }
 

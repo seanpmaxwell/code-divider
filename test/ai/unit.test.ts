@@ -4,7 +4,7 @@ import path from 'path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
-  fileUtils,
+  FileUtils,
   initializeDirectory,
   insertCodeDividers,
   logger,
@@ -402,7 +402,7 @@ describe('directory walking', () => {
 // ========================================================================= //
 
 // Skipped: dry-run support did not survive the move to my-dev-tools-external.
-// Its fileUtils hardcodes `IS_DRY_RUN = false` with no setter, and nothing in
+// Its FileUtils hardcodes `IS_DRY_RUN = false` with no setter, and nothing in
 // src/ logs "Would update:" any more. Unskip once dry-run has a home again.
 describe.skip('dry run', () => {
   it('does not write files but reports what would change', () => {
@@ -480,7 +480,7 @@ describe('initializeDirectory', () => {
   it('writes a parseable config with defaults and returns its path', async () => {
     const p = initializeDirectory(dir);
     expect(p).toBe(path.join(dir, 'code-divider.config.json'));
-    const parsed = await fileUtils.loadJsonFile<ParsedConfig>(p);
+    const parsed = await FileUtils.loadJsonFile<ParsedConfig>(p);
     expect(parsed.All).toMatchObject({
       CharacterLimit: 79,
       FillerCharacter: '=',

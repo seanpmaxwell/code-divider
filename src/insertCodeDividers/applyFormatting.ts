@@ -1,4 +1,4 @@
-import fileUtils, { FilePathDTO } from 'my-tools/fileUtils';
+import FileUtils, { FilePathDTO } from 'my-tools/FileUtils';
 import logger from 'my-tools/simple-logger';
 
 import { FileEditResult } from '@src/common/types/misc.js';
@@ -58,7 +58,7 @@ async function startFileEditJob(
   settingsObj: ConfiguredLangSettings,
 ): Promise<FileEditResult | null> {
   // Init
-  const content = await fileUtils.read(fileFullPath);
+  const content = await FileUtils.read(fileFullPath);
   // Iterate the file line-by-line
   let insertions = 0;
   const lines = content.split('\n');
@@ -68,7 +68,7 @@ async function startFileEditJob(
     // Check if inserting `section`
     const sectionMatch = line.match(settingsObj.SECTION_MARKER);
     if (sectionMatch) {
-      const label = formatLabel(sectionMatch[1], settingsObj, fileFullPath, i, 'section');
+      const label = formatLabel(sectionMatch[1], fileFullPath, i, 'section');
       lines[i] = insertSection(label, settingsObj, indent);
       insertions++;
       continue;
@@ -76,7 +76,7 @@ async function startFileEditJob(
     // Check if inserting `region`
     const regionMatch = line.match(settingsObj.REGION_MARKER);
     if (regionMatch) {
-      const label = formatLabel(regionMatch[1], settingsObj, fileFullPath, i, 'region');
+      const label = formatLabel(regionMatch[1], fileFullPath, i, 'region');
       lines[i] = insertRegion(label, settingsObj, indent);
       insertions++;
       continue;
@@ -97,13 +97,12 @@ async function startFileEditJob(
 /**
  * @private
  *
- * Capitalize each word in a label (first letter upper, rest lower), unless the
- * language has DisableCapitalization set. Words that start or end with a
- * non-alphanumeric character are left untouched (e.g. "@decorator", "foo()").
+ * Capitalize or UpperCase each word in a label (first letter upper, rest lower), 
+ * unless the language has DisableCapitalization set. Words that start or end with
+ * a non-alphanumeric character are left untouched (e.g. "@decorator", "foo()").
  */
 function formatLabel(
   labelRaw: string,
-  langConfig: ConfiguredLangSettings,
   filePath: string,
   index: number,
   dividerType: 'region' | 'section'
@@ -116,25 +115,30 @@ function formatLabel(
     );
     return labelRaw;
   }
-  // Skip if capitalization is disabled
-  if (dividerType === 'region' && langConfig.DISABLE_REGION_FORMATTING) return label;
-  if (dividerType === 'section' && langConfig.DISABLE_SECTION_FORMATTING) return label;
-  // Callback for .map
-  const changeCasing = (word: string) => {
-    const firstChar = word[0];
-    const lastChar = word[word.length - 1];
-    if (!RGX_ALPHA_NUM.test(firstChar) || !RGX_ALPHA_NUM.test(lastChar)) {
-      return word;
-    }
-    // Capitalize for `Sections`
-    if (dividerType === 'section') {
-      return word[0].toUpperCase() + word.slice(1).toLowerCase();
-    }
-    // UPPERCASE for `Regions`
-    return word.toUpperCase();
-  };
   // Split -> capitalize -> rejoin -> return
-  return label.split(/\s+/).map(changeCasing).join(' ');
+  return label
+    .split(/\s+/)
+    .map((word) => changeLabelCasing(word, dividerType))
+    .join(' ');
+}
+
+/**
+ * @private
+ * 
+ * 
+ */
+function changeLabelCasing(word: string, dividerType: 'region' | 'section'): string {
+  const firstChar = word[0];
+  const lastChar = word[word.length - 1];
+  if (!RGX_ALPHA_NUM.test(firstChar) || !RGX_ALPHA_NUM.test(lastChar)) {
+    return word;
+  }
+  // Capitalize for `Sections`
+  if (dividerType === 'section') {
+    return word[0].toUpperCase() + word.slice(1).toLowerCase();
+  }
+  // UPPERCASE for `Regions`
+  return word.toUpperCase();
 }
 
 /**

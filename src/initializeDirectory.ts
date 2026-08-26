@@ -1,5 +1,5 @@
 import fs from 'fs';
-import fileUtils from 'my-tools/fileUtils';
+import FileUtils from 'my-tools/FileUtils';
 import { customStringifyObject } from 'my-tools/strings';
 import path from 'path';
 
@@ -28,7 +28,7 @@ function initializeDirectory(dir: string = process.cwd()): string {
     throw new Error(CONFIG_FILE_ALREADY_EXISTS_ERROR);
   }
   // Save file content to JSON file
-  fileUtils.saveJsonFile(configPath, DefaultConfig, customStringifyObject);
+  FileUtils.saveJsonFile(configPath, DefaultConfig, customStringifyObject);
   // Return filepath
   return configPath;
 }

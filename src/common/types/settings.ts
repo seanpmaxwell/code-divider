@@ -27,8 +27,6 @@ export interface FilterSettings {
 interface SharedSettings {
   CharacterLimit: number;
   FillerCharacter: string;
-  DisableRegionFormatting: boolean;
-  DisableSectionFormatting: boolean;
 }
 
 /**
@@ -41,8 +39,6 @@ export interface InitialLangSettings {
   Bookends?: [string, string];
   CharacterLimit?: number;
   FillerCharacter?: string;
-  DisableRegionFormatting?: boolean;
-  DisableSectionFormatting?: boolean;
 }
 
 /**
@@ -56,8 +52,6 @@ export interface ConfiguredLangSettings {
   BOOKENDS: [string, string];
   CHAR_LIMIT: number;
   FILLER: string;
-  DISABLE_REGION_FORMATTING: boolean;
-  DISABLE_SECTION_FORMATTING: boolean;
 }
 
 /**
