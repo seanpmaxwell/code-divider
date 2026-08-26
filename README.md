@@ -16,7 +16,7 @@ becomes:
 
 ```js
 // ========================================================================= //
-//                                 Functions                                 //
+//                                 FUNCTIONS                                 //
 // ========================================================================= //
 ```
 
@@ -92,9 +92,10 @@ The `All` key holds settings shared by every language. Every other top-level key
 | ----------------------- | ----------------------------------------------------------------- |
 | `CharacterLimit`        | Column the header lines fill up to and stop at. Defaults to `79`. |
 | `FillerCharacter`       | Character the header lines are padded with. Defaults to `"="`.    |
-| `DisableCapitalization` | Turn off label capitalization. Defaults to `false`.               |
+| `DisableRegionFormatting` | Turn off label formatting for `@reg` regions. Defaults to `false`. |
+| `DisableSectionFormatting` | Turn off label formatting for `@sec` sections. Defaults to `false`. |
 
-> By default each word in a label is capitalized (first letter upper, the rest lower) — so `// @reg my cool region` becomes a **My Cool Region** header. Words that start or end with a non-alphanumeric character are left as written (e.g. `@decorator`, `foo()`), and setting `DisableCapitalization` to `true` leaves labels exactly as typed.
+> By default, region labels (`@reg`) are UPPERCASED and section labels (`@sec`) are capitalized (first letter upper, the rest lower) — so `// @reg my cool region` becomes a **MY COOL REGION** header and `// @sec my cool section` becomes a **My Cool Section** header. Words that start or end with a non-alphanumeric character are left as written (e.g. `@decorator`, `foo()`). Setting `DisableRegionFormatting` or `DisableSectionFormatting` to `true` leaves the corresponding labels exactly as typed.
 
 Each language can be configured individually via the `code-divider.config.json` file:
 
@@ -105,7 +106,8 @@ Each language can be configured individually via the `code-divider.config.json` 
 | `Bookends`              | Optional. Start/end of generated header lines. Defaults to the comment syntax.  |
 | `CharacterLimit`        | Optional. Overrides `All.CharacterLimit` for this language.                     |
 | `FillerCharacter`       | Optional. Overrides `All.FillerCharacter` for this language.                    |
-| `DisableCapitalization` | Optional. Overrides `All.DisableCapitalization` for this language.              |
+| `DisableRegionFormatting` | Optional. Overrides `All.DisableRegionFormatting` for this language. |
+| `DisableSectionFormatting` | Optional. Overrides `All.DisableSectionFormatting` for this language. |
 
 ```json
 {

@@ -23,12 +23,15 @@ const RGX_ALPHA_NUM = /[a-z0-9]/i;
 /**
  * Look at file extension and load it if it matches the extension. Then
  */
-async function applySettingsToFiles(
+async function applyFormatting(
   files: FilePathDTO[], // These need to be the relative paths from the targetPath
   extensionsMap: ExtensionsMap,
 ): Promise<FileEditResult[]> {
   // Iterate the list of files
   const editFileJobs: Promise<FileEditResult | null>[] = [];
+
+  console.log(files[0])
+
   for (const file of files) {
     console.log(); // Finish setting update the file data object
     // const ext = path.extname(file)
@@ -65,7 +68,7 @@ async function startFileEditJob(
     // Check if inserting `section`
     const sectionMatch = line.match(settingsObj.SECTION_MARKER);
     if (sectionMatch) {
-      const label = formatLabel(sectionMatch[1], settingsObj, fileFullPath, i);
+      const label = formatLabel(sectionMatch[1], settingsObj, fileFullPath, i, 'section');
       lines[i] = insertSection(label, settingsObj, indent);
       insertions++;
       continue;
@@ -73,13 +76,12 @@ async function startFileEditJob(
     // Check if inserting `region`
     const regionMatch = line.match(settingsObj.REGION_MARKER);
     if (regionMatch) {
-      const label = formatLabel(regionMatch[1], settingsObj, fileFullPath, i);
+      const label = formatLabel(regionMatch[1], settingsObj, fileFullPath, i, 'region');
       lines[i] = insertRegion(label, settingsObj, indent);
       insertions++;
       continue;
     }
   }
-
   // Return an object if a file WAS edited
   if (insertions) {
     return {
@@ -104,6 +106,7 @@ function formatLabel(
   langConfig: ConfiguredLangSettings,
   filePath: string,
   index: number,
+  dividerType: 'region' | 'section'
 ): string {
   // Make sure the label exists
   const label = labelRaw?.trim() ?? '';
@@ -114,18 +117,24 @@ function formatLabel(
     return labelRaw;
   }
   // Skip if capitalization is disabled
-  if (langConfig.DISABLE_CAP) return label;
+  if (dividerType === 'region' && langConfig.DISABLE_REGION_FORMATTING) return label;
+  if (dividerType === 'section' && langConfig.DISABLE_SECTION_FORMATTING) return label;
   // Callback for .map
-  const capitalizeWord = (word: string) => {
+  const changeCasing = (word: string) => {
     const firstChar = word[0];
     const lastChar = word[word.length - 1];
     if (!RGX_ALPHA_NUM.test(firstChar) || !RGX_ALPHA_NUM.test(lastChar)) {
       return word;
     }
-    return word[0].toUpperCase() + word.slice(1).toLowerCase();
+    // Capitalize for `Sections`
+    if (dividerType === 'section') {
+      return word[0].toUpperCase() + word.slice(1).toLowerCase();
+    }
+    // UPPERCASE for `Regions`
+    return word.toUpperCase();
   };
   // Split -> capitalize -> rejoin -> return
-  return label.split(/\s+/).map(capitalizeWord).join(' ');
+  return label.split(/\s+/).map(changeCasing).join(' ');
 }
 
 /**
@@ -175,4 +184,4 @@ function insertRegion(
 //                                     Export                                //
 // ========================================================================= //
 
-export default applySettingsToFiles;
+export default applyFormatting;

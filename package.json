@@ -32,8 +32,8 @@
   ],
   "scripts": {
     "build": "tsx workflows/build-n-bundle.ts",
-    "commit": "tsx workflows/commit.ts",
-    "commit:push": "tsx workflows/commit.ts -p",
+    "commit": "tsx workflows/commit/run.ts",
+    "commit:push": "tsx workflows/commit/run.ts -p",
     "install:clean": "rm -rf node_modules && rm -f package-lock.json && npm i",
     "start": "npm run build && node bin/cli.js",
     "lint": "eslint . --max-warnings 0",

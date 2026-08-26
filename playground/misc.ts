@@ -1,4 +1,8 @@
-import insertCodeDividers from '@src/initializeDirectory';
+import initializeDirectory from '@src/initializeDirectory';
+import insertCodeDividers from '@src/index';
 
-const resp = await insertCodeDividers();
+// const resp = await initializeDirectory();
+// console.log(resp);
+
+const resp = await initializeDirectory();
 console.log(resp);

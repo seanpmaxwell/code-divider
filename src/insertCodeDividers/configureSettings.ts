@@ -118,7 +118,8 @@ function configureLangEntry(
     Comment,
     CharacterLimit,
     FillerCharacter,
-    DisableCapitalization,
+    DisableRegionFormatting,
+    DisableSectionFormatting,
     Bookends,
   } = settings;
   // Check the configuration for errors
@@ -144,10 +145,16 @@ function configureLangEntry(
       `invalid ${CONFIG_FILE_NAME}: "${lang}" FillerCharacter must be a single character, e.g. "="`,
     );
   }
-  const disableCap = DisableCapitalization ?? false;
-  if (typeof disableCap !== 'boolean') {
+  const disableRegFormatting = DisableRegionFormatting ?? false;
+  if (typeof disableRegFormatting !== 'boolean') {
     throw new Error(
-      `invalid ${CONFIG_FILE_NAME}: "${lang}" DisableCapitalization must be true or false`,
+      `invalid ${CONFIG_FILE_NAME}: "${lang}" DisableRegionFormatting must be true or false`,
+    );
+  }
+  const disableSecFormatting = DisableSectionFormatting ?? false;
+  if (typeof disableSecFormatting !== 'boolean') {
+    throw new Error(
+      `invalid ${CONFIG_FILE_NAME}: "${lang}" DisableSectionFormatting must be true or false`,
     );
   }
   // Bookends default to the comment syntax when the language doesn't set them.
@@ -171,7 +178,8 @@ function configureLangEntry(
     BOOKENDS: bookends,
     CHAR_LIMIT: CharacterLimit,
     FILLER: fillerChar,
-    DISABLE_CAP: disableCap,
+    DISABLE_REGION_FORMATTING: disableRegFormatting,
+    DISABLE_SECTION_FORMATTING: disableSecFormatting,
   };
 }
 

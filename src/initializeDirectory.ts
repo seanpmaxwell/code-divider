@@ -1,6 +1,6 @@
 import fs from 'fs';
-import fileUtils from 'my-dev-tools-external/fileUtils';
-import { customStringifyObject } from 'my-dev-tools-external/strings';
+import fileUtils from 'my-tools/fileUtils';
+import { customStringifyObject } from 'my-tools/strings';
 import path from 'path';
 
 import DefaultConfig from '@src/common/constants/DefaultConfig';

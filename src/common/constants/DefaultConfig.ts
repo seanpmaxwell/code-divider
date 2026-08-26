@@ -25,7 +25,8 @@ const DefaultConfig = {
   },
   All: {
     CharacterLimit: 79,
-    DisableCapitalization: false,
+    DisableRegionFormatting: false,
+    DisableSectionFormatting: false,
     FillerCharacter: '=',
   },
   JavaScript: {
