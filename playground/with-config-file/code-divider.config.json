@@ -1,7 +1,6 @@
 {
   "All": {
     "CharacterLimit": 79,
-    "DisableCapitalization": false,
     "FillerCharacter": "="
   },
   "JavaScript": {

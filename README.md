@@ -92,10 +92,8 @@ The `All` key holds settings shared by every language. Every other top-level key
 | ----------------------- | ----------------------------------------------------------------- |
 | `CharacterLimit`        | Column the header lines fill up to and stop at. Defaults to `79`. |
 | `FillerCharacter`       | Character the header lines are padded with. Defaults to `"="`.    |
-| `DisableRegionFormatting` | Turn off label formatting for `@reg` regions. Defaults to `false`. |
-| `DisableSectionFormatting` | Turn off label formatting for `@sec` sections. Defaults to `false`. |
 
-> By default, region labels (`@reg`) are UPPERCASED and section labels (`@sec`) are capitalized (first letter upper, the rest lower) — so `// @reg my cool region` becomes a **MY COOL REGION** header and `// @sec my cool section` becomes a **My Cool Section** header. Words that start or end with a non-alphanumeric character are left as written (e.g. `@decorator`, `foo()`). Setting `DisableRegionFormatting` or `DisableSectionFormatting` to `true` leaves the corresponding labels exactly as typed.
+> By default, region labels (`@reg`) are UPPERCASED and section labels (`@sec`) are capitalized (first letter upper, the rest lower) — so `// @reg my cool region` becomes a **MY COOL REGION** header and `// @sec my cool section` becomes a **My Cool Section** header. Two kinds of text are left exactly as written: words that start or end with a non-alphanumeric character (e.g. `@decorator`, `foo()`), and any portion of the label wrapped in backticks, including internal spacing (e.g. `` // @reg keep `myFunctionName` as is `` leaves `myFunctionName` untouched).
 
 Each language can be configured individually via the `code-divider.config.json` file:
 
@@ -106,8 +104,6 @@ Each language can be configured individually via the `code-divider.config.json` 
 | `Bookends`              | Optional. Start/end of generated header lines. Defaults to the comment syntax.  |
 | `CharacterLimit`        | Optional. Overrides `All.CharacterLimit` for this language.                     |
 | `FillerCharacter`       | Optional. Overrides `All.FillerCharacter` for this language.                    |
-| `DisableRegionFormatting` | Optional. Overrides `All.DisableRegionFormatting` for this language. |
-| `DisableSectionFormatting` | Optional. Overrides `All.DisableSectionFormatting` for this language. |
 
 ```json
 {

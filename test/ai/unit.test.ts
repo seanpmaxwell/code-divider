@@ -177,18 +177,14 @@ describe('label capitalization', () => {
     expect(label('a    b')).toBe('A B');
   });
 
-  it('can be disabled globally via DisableCapitalization', () => {
-    writeConfig({ All: { DisableCapitalization: true } });
-    write('a.js', '// @sec keep AS is\n');
-    run();
-    expect(read('a.js').split('\n')[0]).toContain(' keep AS is ');
+  it('leaves a single backtick-quoted word untouched', () => {
+    expect(label('call `myFunctionName` now')).toBe('Call `myFunctionName` Now');
   });
 
-  it('can be disabled per language', () => {
-    writeConfig({ JavaScript: { DisableCapitalization: true } });
-    write('a.js', '// @sec leave ME\n');
-    run();
-    expect(read('a.js').split('\n')[0]).toContain(' leave ME ');
+  it('leaves multi-word backtick-quoted spans untouched, including internal spacing', () => {
+    expect(label('run `some multi word literal` here')).toBe(
+      'Run `some multi word literal` Here',
+    );
   });
 });
 
@@ -349,10 +345,6 @@ describe('configuration validation', () => {
     expectThrows(/FillerCharacter must be a single character/);
   });
 
-  it('rejects a non-boolean DisableCapitalization', () => {
-    writeConfig({ All: { DisableCapitalization: 'yes' } });
-    expectThrows(/DisableCapitalization must be true or false/);
-  });
 });
 
 // ========================================================================= //

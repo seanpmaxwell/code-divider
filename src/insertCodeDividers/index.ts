@@ -1,6 +1,6 @@
 import FileUtils from 'my-tools/FileUtils';
 
-import applyFormatting from './applyFormatting';
+import applyFormatting from './applyFormatting/applyFormatting';
 import configureSettings from './configureSettings';
 
 // ========================================================================= //
@@ -17,7 +17,7 @@ async function insertCodeDividers(
   // Load settings
   const { filter, extensionsMap } = await configureSettings(targetPath);
   // Setup list of files to inspect
-  const files = await FileUtils.filterDirItemsGlob(
+  const files = await FileUtils.globSearch(
     filter.include,
     filter.exclude,
     targetPath,

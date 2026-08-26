@@ -72,7 +72,7 @@ describe.only('FileUtils', () => {
   describe('.filterDirItems`', () => {
     // Normal
     it('should work as expected', async () => {
-      const result = await FileUtils.filterDirItems(
+      const result = await FileUtils.basicSearch(
         [],
         ['node_modules', 'dist/bad.text'],
         TEMP_DIRECTORY,

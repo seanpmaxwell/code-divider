@@ -55,12 +55,25 @@ async function configureSettings(
  * configuration file into the default file.
  */
 async function loadConfig(cwd: string): Promise<InitalSettings> {
+  // -- Initialize -- //
+  // Set a starting point for the configuration object using the `DefaultConfig`
+  // object and pulling in `All` settings.
+  const retVal: InitalSettings = {
+    ...DefaultConfig,
+    All: { ...DefaultConfig.All },
+  };
+  Object.keys(retVal).forEach((key) => {
+    retVal[key] = {
+      ...retVal.All,
+      ...retVal[key],
+    };
+  });
+
+  // -- Apply Settings from Configuration File -- //
   // Check Configuration File exists, otherwise use defaults
   const fileConfigPath = path.join(cwd, CONFIG_FILE_NAME);
   const hasConfigFile = await FileUtils.exists(fileConfigPath);
-
-  console.log('// pick up here, need to combine DefaultConfig.All into the others before proceeding');
-  if (!hasConfigFile) return DefaultConfig;
+  if (!hasConfigFile) return retVal;
   // Load overrides from config file
   let fileConfig: InitalSettings;
   try {
@@ -70,21 +83,16 @@ async function loadConfig(cwd: string): Promise<InitalSettings> {
     const message = `invalid ${CONFIG_FILE_NAME}: ${reason}`;
     throw new Error(message, { cause: err });
   }
-  // Initialize "All", which holds settings shared by every language.
-  const retVal: InitalSettings = {
-    ...DefaultConfig,
-    All: { ...DefaultConfig.All, ...fileConfig.All },
-  };
   // Combine default settings with file settings.
-  Object.entries(fileConfig).forEach((fileConfigEntry) => {
-    const [key, settings] = fileConfigEntry;
+  Object.keys(fileConfig).forEach((key) => {
+    const overridesFromFile = fileConfig[key] as InitialLangSettings;
     retVal[key] = {
-      ...retVal.All,
       ...retVal[key],
-      ...(settings as InitialLangSettings),
+      ...overridesFromFile,
     };
   });
-  // Return
+
+  // -- Return -- //
   logger.info(`Using config overrides from: ${fileConfigPath}`);
   return retVal;
 }
@@ -120,8 +128,6 @@ function configureLangEntry(
     Comment,
     CharacterLimit,
     FillerCharacter,
-    DisableRegionFormatting,
-    DisableSectionFormatting,
     Bookends,
   } = settings;
   // Check the configuration for errors
@@ -136,7 +142,6 @@ function configureLangEntry(
       `invalid ${CONFIG_FILE_NAME}: "${lang}" needs a Comment pair, e.g. ["# ", ""]`,
     );
   }
-  console.trace(settings)
   if (!isPositiveInt(CharacterLimit)) {
     throw new Error(
       `invalid ${CONFIG_FILE_NAME}: "${lang}" CharacterLimit must be a positive integer, e.g. 79`,
@@ -146,18 +151,6 @@ function configureLangEntry(
   if (typeof fillerChar !== 'string' || fillerChar.length !== 1) {
     throw new Error(
       `invalid ${CONFIG_FILE_NAME}: "${lang}" FillerCharacter must be a single character, e.g. "="`,
-    );
-  }
-  const disableRegFormatting = DisableRegionFormatting ?? false;
-  if (typeof disableRegFormatting !== 'boolean') {
-    throw new Error(
-      `invalid ${CONFIG_FILE_NAME}: "${lang}" DisableRegionFormatting must be true or false`,
-    );
-  }
-  const disableSecFormatting = DisableSectionFormatting ?? false;
-  if (typeof disableSecFormatting !== 'boolean') {
-    throw new Error(
-      `invalid ${CONFIG_FILE_NAME}: "${lang}" DisableSectionFormatting must be true or false`,
     );
   }
   // Bookends default to the comment syntax when the language doesn't set them.
@@ -181,8 +174,6 @@ function configureLangEntry(
     BOOKENDS: bookends,
     CHAR_LIMIT: CharacterLimit,
     FILLER: fillerChar,
-    DISABLE_REGION_FORMATTING: disableRegFormatting,
-    DISABLE_SECTION_FORMATTING: disableSecFormatting,
   };
 }
 

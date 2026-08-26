@@ -1,20 +1,13 @@
-import FileUtils, { FilePathDTO } from 'my-tools/FileUtils';
-import logger from 'my-tools/simple-logger';
-
-import { FileEditResult } from '@src/common/types/misc.js';
-
 import path from 'path';
+
+import FileUtils, { FilePathDTO } from 'my-tools/FileUtils';
+import { FileEditResult } from '@src/common/types/misc.js';
 
 import type {
   ConfiguredLangSettings,
   ExtensionsMap,
 } from '@src/common/types/settings.js';
-
-// ========================================================================= //
-//                                  Constants                                //
-// ========================================================================= //
-
-const RGX_ALPHA_NUM = /[a-z0-9]/i;
+import formatLabel from './formatLabel';
 
 // ========================================================================= //
 //                                  Functions                                //
@@ -29,18 +22,12 @@ async function applyFormatting(
 ): Promise<FileEditResult[]> {
   // Iterate the list of files
   const editFileJobs: Promise<FileEditResult | null>[] = [];
-
-  console.log(files[0])
-
   for (const file of files) {
-    console.log(); // Finish setting update the file data object
-    // const ext = path.extname(file)
-
     const settingsObj = extensionsMap.get(file.ext);
     if (settingsObj) {
       // const fileFullPath = path.join(targetPath, file);
       const job = startFileEditJob(file.absolutePath, settingsObj);
-      editFileJobs.push(job);
+      if (job) editFileJobs.push(job);
     }
   }
   // Return a list of files that were edited
@@ -92,53 +79,6 @@ async function startFileEditJob(
   }
   // Return null if no insertions were done
   return null;
-}
-
-/**
- * @private
- *
- * Capitalize or UpperCase each word in a label (first letter upper, rest lower), 
- * unless the language has DisableCapitalization set. Words that start or end with
- * a non-alphanumeric character are left untouched (e.g. "@decorator", "foo()").
- */
-function formatLabel(
-  labelRaw: string,
-  filePath: string,
-  index: number,
-  dividerType: 'region' | 'section'
-): string {
-  // Make sure the label exists
-  const label = labelRaw?.trim() ?? '';
-  if (!label) {
-    logger.warn(
-      `Warning: ${filePath}:${index + 1}: code-divider marker has no label, skipping`,
-    );
-    return labelRaw;
-  }
-  // Split -> capitalize -> rejoin -> return
-  return label
-    .split(/\s+/)
-    .map((word) => changeLabelCasing(word, dividerType))
-    .join(' ');
-}
-
-/**
- * @private
- * 
- * 
- */
-function changeLabelCasing(word: string, dividerType: 'region' | 'section'): string {
-  const firstChar = word[0];
-  const lastChar = word[word.length - 1];
-  if (!RGX_ALPHA_NUM.test(firstChar) || !RGX_ALPHA_NUM.test(lastChar)) {
-    return word;
-  }
-  // Capitalize for `Sections`
-  if (dividerType === 'section') {
-    return word[0].toUpperCase() + word.slice(1).toLowerCase();
-  }
-  // UPPERCASE for `Regions`
-  return word.toUpperCase();
 }
 
 /**
