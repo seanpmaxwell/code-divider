@@ -58,6 +58,8 @@ async function loadConfig(cwd: string): Promise<InitalSettings> {
   // Check Configuration File exists, otherwise use defaults
   const fileConfigPath = path.join(cwd, CONFIG_FILE_NAME);
   const hasConfigFile = await fileUtils.exists(fileConfigPath);
+
+  console.log('// pick up here, need to combine DefaultConfig.All into the others before proceeding');
   if (!hasConfigFile) return DefaultConfig;
   // Load overrides from config file
   let fileConfig: InitalSettings;
@@ -134,6 +136,7 @@ function configureLangEntry(
       `invalid ${CONFIG_FILE_NAME}: "${lang}" needs a Comment pair, e.g. ["# ", ""]`,
     );
   }
+  console.trace(settings)
   if (!isPositiveInt(CharacterLimit)) {
     throw new Error(
       `invalid ${CONFIG_FILE_NAME}: "${lang}" CharacterLimit must be a positive integer, e.g. 79`,
