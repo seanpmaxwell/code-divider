@@ -88,12 +88,14 @@ To do so, add a `code-divider.config.json`. `code-divider` looks for it in the t
 
 The `All` key holds settings shared by every language. Every other top-level key is a language — unknown keys define new languages.
 
-| `All` field             | Meaning                                                           |
-| ----------------------- | ----------------------------------------------------------------- |
-| `CharacterLimit`        | Column the header lines fill up to and stop at. Defaults to `79`. |
-| `FillerCharacter`       | Character the header lines are padded with. Defaults to `"="`.    |
+| `All` field             | Meaning                                                                                    |
+| ----------------------- | ------------------------------------------------------------------------------------------- |
+| `CharacterLimit`        | Column the header lines fill up to and stop at. Defaults to `79`.                          |
+| `FillerCharacter`       | Character the header lines are padded with. Defaults to `"="`.                             |
+| `RegionLabelFormat`     | How `@reg` labels are cased: `uppercase`, `lowercase`, `capitalize`, or `none`. Defaults to `uppercase`. |
+| `SectionLabelFormat`    | How `@sec` labels are cased: `uppercase`, `lowercase`, `capitalize`, or `none`. Defaults to `capitalize`. |
 
-> By default, region labels (`@reg`) are UPPERCASED and section labels (`@sec`) are capitalized (first letter upper, the rest lower) — so `// @reg my cool region` becomes a **MY COOL REGION** header and `// @sec my cool section` becomes a **My Cool Section** header. However, words that start or end with a non-alphanumeric character are left exactly as written (e.g. `@decorator`, `foo()`)
+> By default, region labels (`@reg`) are UPPERCASED and section labels (`@sec`) are capitalized (first letter upper, the rest lower) — so `// @reg my cool region` becomes a **MY COOL REGION** header and `// @sec my cool section` becomes a **My Cool Section** header. Set `RegionLabelFormat`/`SectionLabelFormat` to `lowercase` or `none` to change or skip this; regardless of the setting, words that start or end with a non-alphanumeric character are always left exactly as written (e.g. `@decorator`, `foo()`).
 
 Each language can be configured individually via the `code-divider.config.json` file:
 
@@ -104,6 +106,8 @@ Each language can be configured individually via the `code-divider.config.json` 
 | `Bookends`              | Optional. Start/end of generated header lines. Defaults to the comment syntax.  |
 | `CharacterLimit`        | Optional. Overrides `All.CharacterLimit` for this language.                     |
 | `FillerCharacter`       | Optional. Overrides `All.FillerCharacter` for this language.                    |
+| `RegionLabelFormat`     | Optional. Overrides `All.RegionLabelFormat` for this language.                  |
+| `SectionLabelFormat`    | Optional. Overrides `All.SectionLabelFormat` for this language.                 |
 
 ```json
 {

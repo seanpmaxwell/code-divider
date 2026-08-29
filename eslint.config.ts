@@ -6,7 +6,7 @@ import prettier from 'eslint-config-prettier';
 export default [
   {
     // Playground files are formatting fixtures for code-divider itself
-    ignores: ['test/playground/', 'lib/', 'node_modules/'],
+    ignores: ['test/playground/', 'playground/', 'lib/', 'node_modules/'],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
@@ -17,7 +17,9 @@ export default [
       ecmaVersion: 'latest',
       sourceType: 'module',
       parserOptions: {
-        projectService: true,
+        projectService: {
+          allowDefaultProject: ['bin/*.js'],
+        },
         tsconfigRootDir: import.meta.dirname,
       },
       globals: {

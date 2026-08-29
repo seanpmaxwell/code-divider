@@ -191,8 +191,7 @@ function configureLangEntry(
   }
 
   // -- Extensions -- //
-  // Add periods to extensions that don't start with one because path.extname
-  // returns a periods: i.e. path.extname('foo.bar.tsx') => `.tsx`
+  // Remove periods from extensions that start with one
   if (!isStrArr(Extensions)) {
     throw new Error(
       `invalid ${CONFIG_FILE_NAME}: "${lang}" Extensions must of type string[]`,

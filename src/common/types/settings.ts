@@ -5,6 +5,11 @@
 export type LabelFormats = 'uppercase' | 'lowercase' | 'capitalize' | 'none';
 
 /**
+ * Match a language extension to a language settings object. 
+ */
+export type ExtensionsMap = Map<string, ConfiguredLangSettings>;
+
+/**
  * The shared "All" block plus one entry per language.
  */
 export interface InitalSettings {
@@ -61,8 +66,3 @@ export interface ConfiguredLangSettings {
   REGION_LABEL_FORMAT: LabelFormats;
   SECTION_LABEL_FORMAT: LabelFormats;
 }
-
-/**
- * Match a language extension to a language settings object. 
- */
-export type ExtensionsMap = Map<string, ConfiguredLangSettings>;
