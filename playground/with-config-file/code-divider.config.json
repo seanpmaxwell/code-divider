@@ -1,7 +1,9 @@
 {
   "All": {
     "CharacterLimit": 79,
-    "FillerCharacter": "="
+    "FillerCharacter": "=",
+    "RegionLabelFormat": "uppercase",
+    "SectionLabelFormat": "capitalize"
   },
   "JavaScript": {
     "Extensions": ["ts", "tsx", "js", "jsx", "mjs", "cjs"],

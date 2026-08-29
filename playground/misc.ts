@@ -15,16 +15,4 @@ const resp = await insertCodeDividers();
 
 // printTestLabels();
 
-function printTestLabels() {
-  const LABEL_1 = 'Functions';
-  const LABEL_2 = 'setup the .someFn function';
-  const LABEL_3 = 'setup the `someFn` function';
-  const LABEL_4 = 'setup the `someFn function`';
-  const LABELS = [LABEL_1, LABEL_2, LABEL_3, LABEL_4];
-  let i = 0;
-  for (const label of LABELS) {
-    const dividerType = i++ % 2 === 0 ? 'region' : 'section';
-    const labelNew = formatLabel(label, '', 0, dividerType);
-    logger.info(labelNew);
-  }
-}
+
