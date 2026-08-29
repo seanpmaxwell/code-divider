@@ -26,6 +26,8 @@ const DefaultConfig = {
   All: {
     CharacterLimit: 79,
     FillerCharacter: '=',
+    RegionLabelFormat: 'uppercase',
+    SectionLabelFormat: 'capitalize',
   },
   JavaScript: {
     Extensions: ['ts', 'tsx', 'js', 'jsx', 'mjs', 'cjs'],

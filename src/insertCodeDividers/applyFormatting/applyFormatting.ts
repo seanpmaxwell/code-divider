@@ -1,6 +1,6 @@
 import path from 'path';
 
-import FileUtils, { FilePathDTO } from 'my-tools/FileUtils';
+import FileUtils, { FilePathMd } from 'my-tools/FileUtils';
 import { FileEditResult } from '@src/common/types/misc.js';
 
 import type {
@@ -17,7 +17,7 @@ import formatLabel from './formatLabel';
  * Look at file extension and load it if it matches the extension. Then
  */
 async function applyFormatting(
-  files: FilePathDTO[], // These need to be the relative paths from the targetPath
+  files: FilePathMd[], // These need to be the relative paths from the targetPath
   extensionsMap: ExtensionsMap,
 ): Promise<FileEditResult[]> {
   // Iterate the list of files
@@ -55,7 +55,7 @@ async function startFileEditJob(
     // Check if inserting `section`
     const sectionMatch = line.match(settingsObj.SECTION_MARKER);
     if (sectionMatch) {
-      const label = formatLabel(sectionMatch[1], fileFullPath, i, 'section');
+      const label = formatLabel(sectionMatch[1], fileFullPath, i, settingsObj.SECTION_LABEL_FORMAT);
       lines[i] = insertSection(label, settingsObj, indent);
       insertions++;
       continue;
@@ -63,7 +63,7 @@ async function startFileEditJob(
     // Check if inserting `region`
     const regionMatch = line.match(settingsObj.REGION_MARKER);
     if (regionMatch) {
-      const label = formatLabel(regionMatch[1], fileFullPath, i, 'region');
+      const label = formatLabel(regionMatch[1], fileFullPath, i, settingsObj.REGION_LABEL_FORMAT);
       lines[i] = insertRegion(label, settingsObj, indent);
       insertions++;
       continue;

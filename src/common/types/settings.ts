@@ -2,6 +2,8 @@
 //                                    Types                                  //
 // ========================================================================= //
 
+export type LabelFormats = 'uppercase' | 'lowercase' | 'capitalize' | 'none';
+
 /**
  * The shared "All" block plus one entry per language.
  */
@@ -27,6 +29,8 @@ export interface FilterSettings {
 interface SharedSettings {
   CharacterLimit: number;
   FillerCharacter: string;
+  RegionLabelFormat: LabelFormats;
+  SectionLabelFormat: LabelFormats;
 }
 
 /**
@@ -39,6 +43,8 @@ export interface InitialLangSettings {
   Bookends?: [string, string];
   CharacterLimit?: number;
   FillerCharacter?: string;
+  RegionLabelFormat?: LabelFormats;
+  SectionLabelFormat?: LabelFormats;
 }
 
 /**
@@ -52,6 +58,8 @@ export interface ConfiguredLangSettings {
   BOOKENDS: [string, string];
   CHAR_LIMIT: number;
   FILLER: string;
+  REGION_LABEL_FORMAT: LabelFormats;
+  SECTION_LABEL_FORMAT: LabelFormats;
 }
 
 /**

@@ -1,5 +1,5 @@
 import FileUtils from 'my-tools/FileUtils';
-import logger from 'my-tools/simple-logger';
+import logger from '@logger';
 import path from 'path';
 
 import DefaultConfig from '@src/common/constants/DefaultConfig';
@@ -10,6 +10,7 @@ import type {
   FilterSettings,
   InitalSettings,
   InitialLangSettings,
+  LabelFormats,
 } from '@src/common/types/settings.js';
 
 // ========================================================================= //
@@ -22,6 +23,13 @@ const Markers = {
   REGION: '@reg',
   SECTION: '@sec',
 } as const;
+
+const LabelFormatOptions: ReadonlySet<unknown> = new Set([
+  'uppercase',
+  'lowercase',
+  'capitalize',
+  'none',
+]);
 
 // ========================================================================= //
 //                                  Functions                                //
@@ -36,7 +44,7 @@ async function configureSettings(
 ): Promise<{ filter: FilterSettings; extensionsMap: ExtensionsMap }> {
   // Load settings
   const dirPath = await configDirFor(targetPath);
-  const { filter, All, ...other } = await loadConfig(dirPath);
+  const { filter, ...other } = await loadConfig(dirPath);
   // Configure Settings
   const configuredLangSettings = Object.keys(other).map((lang) =>
     configureLangEntry(lang, other[lang] as InitialLangSettings),
@@ -129,8 +137,11 @@ function configureLangEntry(
     CharacterLimit,
     FillerCharacter,
     Bookends,
+    RegionLabelFormat,
+    SectionLabelFormat,
   } = settings;
-  // Check the configuration for errors
+
+  // -- Run validations -- //
   if (!Array.isArray(Extensions) || Extensions.length === 0) {
     throw new Error(
       `invalid ${CONFIG_FILE_NAME}: "${lang}" needs an Extensions array`,
@@ -153,20 +164,45 @@ function configureLangEntry(
       `invalid ${CONFIG_FILE_NAME}: "${lang}" FillerCharacter must be a single character, e.g. "="`,
     );
   }
+  const regionLabelFormat = RegionLabelFormat?.toLowerCase() ?? '';
+  if (!isLabelFormat(regionLabelFormat)) {
+    throw new Error(
+      `invalid ${CONFIG_FILE_NAME}: "${lang}" RegionLabelFormat must be 'uppercase','lowercase','capitalize', or 'none'`,
+    );
+  }
+  const sectionLabelFormat = SectionLabelFormat?.toLowerCase() ?? '';
+  if (!isLabelFormat(sectionLabelFormat)) {
+    throw new Error(
+      `invalid ${CONFIG_FILE_NAME}: "${lang}" SectionLabelFormat must be 'uppercase','lowercase','capitalize', or 'none'`,
+    );
+  }
+
+  // -- Bookends -- //
   // Bookends default to the comment syntax when the language doesn't set them.
-  let bookends: [string, string];
+  let bookends = Bookends ?? [];
   if (!Bookends) {
     const closeFinal = close ?? ` ${open.trim()}`;
     bookends = [open, closeFinal];
-  } else {
-    bookends = Bookends as [string, string];
   }
+  if (!isStrArr(bookends) || bookends.length !== 2) {
+    throw new Error(
+      `invalid ${CONFIG_FILE_NAME}: "${lang}" Bookends must of type [string, string]`,
+    );
+  }
+
+  // -- Extensions -- //
   // Add periods to extensions that don't start with one because path.extname
   // returns a periods: i.e. path.extname('foo.bar.tsx') => `.tsx`
+  if (!isStrArr(Extensions)) {
+    throw new Error(
+      `invalid ${CONFIG_FILE_NAME}: "${lang}" Extensions must of type string[]`,
+    );
+  }
   const extensions = Extensions.map((ext) =>
     ext.startsWith('.') ? ext.slice(1) : ext,
   );
-  // Return
+
+  // -- Return -- //
   return {
     EXTENSIONS: extensions,
     REGION_MARKER: getMarkerRegex(open, close, Markers.REGION),
@@ -174,6 +210,8 @@ function configureLangEntry(
     BOOKENDS: bookends,
     CHAR_LIMIT: CharacterLimit,
     FILLER: fillerChar,
+    REGION_LABEL_FORMAT: regionLabelFormat,
+    SECTION_LABEL_FORMAT: sectionLabelFormat,
   };
 }
 
@@ -184,6 +222,26 @@ function configureLangEntry(
  */
 function isPositiveInt(value: unknown): value is number {
   return Number.isInteger(value) && (value as number) >= 1;
+}
+
+/**
+ * @private
+ * 
+ * Check that a value is of type: string[]
+ */
+function isStrArr(value: unknown): value is string[] {
+  if (!Array.isArray(value)) return false;
+  const hasNonStringValue = value.some((item) => typeof item !== 'string');
+  return !hasNonStringValue;
+}
+
+/**
+ * @private
+ * 
+ * Check that a value is of type: `LabelFormats`
+ */
+function isLabelFormat(value: unknown): value is LabelFormats {
+  return LabelFormatOptions.has(value);
 }
 
 /**

@@ -1,4 +1,5 @@
-import logger from 'my-tools/simple-logger';
+import { LabelFormats } from '#src/common/types/settings.js';
+import logger from '#src/common/utils/logger.js';
 
 // ========================================================================= //
 //                                  Constants                                //
@@ -20,7 +21,7 @@ function formatLabel(
   label: string,
   filePath: string,
   lineNum: number,
-  dividerType: 'region' | 'section',
+  format: LabelFormats,
 ): string {
   // Make sure the label exists
   const labelNew = label?.trim() ?? '';
@@ -30,56 +31,41 @@ function formatLabel(
     );
     return label;
   }
-  // Split into backtick-quoted spans (left untouched, including internal
-  // whitespace) and everything else (cased word by word), then rejoin.
-  return formatLabelHelper(label, dividerType);
-}
-
-/**
- * @private
- * @see {formatLabel}
- *
- * Refer to the calling function for full details.
- */
-function formatLabelHelper(
-  label: string,
-  dividerType: 'region' | 'section'
-): string {
+  // Skip if value is "none"
+  if (format === 'none') return label;
+  // Apply formatting
   const tokens: string[] = [];
-  for (const part of label.split(/(`[^`]*`)/)) {
-    if (/^`[^`]*`$/.test(part)) {
-      tokens.push(part);
-      continue;
-    }
-    for (const word of part.split(/\s+/)) {
-      if (word) {
-        const wordNew = changeLabelCasing(word, dividerType);
-        tokens.push(wordNew);
-      };
-    }
+  for (const word of label.split(/\s+/)) {
+    if (word) {
+      const wordNew = applyFormatting(word, format);
+      tokens.push(wordNew);
+    };
   }
   return tokens.join(' ');
 }
 
 /**
  * @private
- * @see {formatLabelHelper}
+ * @see {formatLabel}
  * 
  * Change a word to uppercase or capitalize depending on the `dividerType` 
  * param.
  */
-function changeLabelCasing(word: string, dividerType: 'region' | 'section'): string {
+function applyFormatting(word: string, format: LabelFormats): string {
   const firstChar = word[0];
   const lastChar = word[word.length - 1];
   if (!RGX_ALPHA_NUM.test(firstChar) || !RGX_ALPHA_NUM.test(lastChar)) {
     return word;
   }
-  // Capitalize for `Sections`
-  if (dividerType === 'section') {
-    return word[0].toUpperCase() + word.slice(1).toLowerCase();
+  switch (format) {
+    case 'uppercase':
+      return word.toUpperCase();
+    case 'lowercase':
+      return word.toLowerCase();
+    case 'capitalize':
+      return word[0].toUpperCase() + word.slice(1).toLowerCase();
   }
-  // UPPERCASE for `Regions`
-  return word.toUpperCase();
+  return word;
 }
 
 // ========================================================================= //

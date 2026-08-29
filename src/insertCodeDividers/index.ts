@@ -1,7 +1,8 @@
+import { FileEditResult } from '#src/common/types/misc.js';
 import FileUtils from 'my-tools/FileUtils';
 
-import applyFormatting from './applyFormatting/applyFormatting';
 import configureSettings from './configureSettings';
+import applyFormatting from './applyFormatting/applyFormatting';
 
 // ========================================================================= //
 //                                  Functions                                //
@@ -17,15 +18,18 @@ async function insertCodeDividers(
   // Load settings
   const { filter, extensionsMap } = await configureSettings(targetPath);
   // Setup list of files to inspect
-  const files = await FileUtils.globSearch(
+  const fileDTOs = await FileUtils.globSearch(
     filter.include,
     filter.exclude,
     targetPath,
   );
-  const fileDTOs = files.map((file) => FileUtils.parse(file, targetPath)); 
   // Insert code-dividers
-  await applyFormatting(fileDTOs, extensionsMap);
-  return files;
+  const updatedFiles: FileEditResult[] = await applyFormatting(
+    fileDTOs,
+    extensionsMap,
+  );
+  // Return
+  return updatedFiles.map((file) => file.filename);
 }
 
 // ========================================================================= //

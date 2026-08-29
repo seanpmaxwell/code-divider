@@ -93,7 +93,7 @@ The `All` key holds settings shared by every language. Every other top-level key
 | `CharacterLimit`        | Column the header lines fill up to and stop at. Defaults to `79`. |
 | `FillerCharacter`       | Character the header lines are padded with. Defaults to `"="`.    |
 
-> By default, region labels (`@reg`) are UPPERCASED and section labels (`@sec`) are capitalized (first letter upper, the rest lower) — so `// @reg my cool region` becomes a **MY COOL REGION** header and `// @sec my cool section` becomes a **My Cool Section** header. Two kinds of text are left exactly as written: words that start or end with a non-alphanumeric character (e.g. `@decorator`, `foo()`), and any portion of the label wrapped in backticks, including internal spacing (e.g. `` // @reg keep `myFunctionName` as is `` leaves `myFunctionName` untouched).
+> By default, region labels (`@reg`) are UPPERCASED and section labels (`@sec`) are capitalized (first letter upper, the rest lower) — so `// @reg my cool region` becomes a **MY COOL REGION** header and `// @sec my cool section` becomes a **My Cool Section** header. However, words that start or end with a non-alphanumeric character are left exactly as written (e.g. `@decorator`, `foo()`)
 
 Each language can be configured individually via the `code-divider.config.json` file:
 
