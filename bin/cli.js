@@ -1,13 +1,10 @@
 #!/usr/bin/env node
 
-import path from 'path';
 import fs from 'fs/promises';
+import path from 'path';
 import { fileURLToPath } from 'url';
 
-import {
-  insertCodeDividers,
-  initializeDirectory,
-} from '../lib/index.js';
+import { initializeDirectory, insertCodeDividers } from '../lib/index.js';
 
 // ========================================================================= //
 //                                      Run                                  //
@@ -15,7 +12,7 @@ import {
 
 {
   // -- Initialize a directory -- //
-  // `init` option generates a default config file instead of inserting 
+  // `init` option generates a default config file instead of inserting
   // code-dividers
   const args = process.argv.slice(2);
   if (args[0] === 'init') {
@@ -118,7 +115,7 @@ async function processCommandLineArgs(args) {
 /**
  * @private
  * Load the contents of the `--help` flag
- * 
+ *
  * @returns {Promise<string>}
  */
 async function loadHelpArgContent(cliFileDir) {

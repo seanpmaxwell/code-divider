@@ -5,7 +5,7 @@ const foo: string = 'bar';
 // @reg Functions
 
 function bar(): () => string {
-    return () => 'foo';
+  return () => 'foo';
 }
 
 // @sec Configured Functions

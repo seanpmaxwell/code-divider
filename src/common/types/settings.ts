@@ -5,7 +5,7 @@
 export type LabelFormats = 'uppercase' | 'lowercase' | 'capitalize' | 'none';
 
 /**
- * Match a language extension to a language settings object. 
+ * Match a language extension to a language settings object.
  */
 export type ExtensionsMap = Map<string, ConfiguredLangSettings>;
 
@@ -45,7 +45,7 @@ export interface SharedSettings {
 export interface InitialLangSettings {
   Extensions: string[];
   Comment: [string, string];
-  Bookends?: [string, string];
+  Bookends: [string, string];
   CharacterLimit?: number;
   FillerCharacter?: string;
   RegionLabelFormat?: LabelFormats;

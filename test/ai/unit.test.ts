@@ -178,7 +178,9 @@ describe('label capitalization', () => {
   });
 
   it('leaves a single backtick-quoted word untouched', () => {
-    expect(label('call `myFunctionName` now')).toBe('Call `myFunctionName` Now');
+    expect(label('call `myFunctionName` now')).toBe(
+      'Call `myFunctionName` Now',
+    );
   });
 
   it('leaves multi-word backtick-quoted spans untouched, including internal spacing', () => {
@@ -344,7 +346,6 @@ describe('configuration validation', () => {
     writeConfig({ All: { FillerCharacter: '==' } });
     expectThrows(/FillerCharacter must be a single character/);
   });
-
 });
 
 // ========================================================================= //

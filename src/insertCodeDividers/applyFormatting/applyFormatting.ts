@@ -1,12 +1,12 @@
+import FileUtils, { FilePathMd } from 'my-tools/FileUtils';
 import path from 'path';
 
-import FileUtils, { FilePathMd } from 'my-tools/FileUtils';
 import { FileEditResult } from '@src/common/types/misc.js';
-
 import type {
   ConfiguredLangSettings,
   ExtensionsMap,
 } from '@src/common/types/settings.js';
+
 import formatLabel from './formatLabel';
 
 // ========================================================================= //
@@ -55,7 +55,12 @@ async function startFileEditJob(
     // Check if inserting `section`
     const sectionMatch = line.match(settingsObj.SECTION_MARKER);
     if (sectionMatch) {
-      const label = formatLabel(sectionMatch[1], fileFullPath, i, settingsObj.SECTION_LABEL_FORMAT);
+      const label = formatLabel(
+        sectionMatch[1],
+        fileFullPath,
+        i,
+        settingsObj.SECTION_LABEL_FORMAT,
+      );
       lines[i] = insertSection(label, settingsObj, indent);
       insertions++;
       continue;
@@ -63,7 +68,12 @@ async function startFileEditJob(
     // Check if inserting `region`
     const regionMatch = line.match(settingsObj.REGION_MARKER);
     if (regionMatch) {
-      const label = formatLabel(regionMatch[1], fileFullPath, i, settingsObj.REGION_LABEL_FORMAT);
+      const label = formatLabel(
+        regionMatch[1],
+        fileFullPath,
+        i,
+        settingsObj.REGION_LABEL_FORMAT,
+      );
       lines[i] = insertRegion(label, settingsObj, indent);
       insertions++;
       continue;

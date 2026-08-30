@@ -1,8 +1,8 @@
 import { FileEditResult } from '#src/common/types/misc.js';
 import FileUtils from 'my-tools/FileUtils';
 
-import configureSettings from './configureSettings';
 import applyFormatting from './applyFormatting/applyFormatting';
+import configureSettings from './configureSettings/configureSettings';
 
 // ========================================================================= //
 //                                  Functions                                //

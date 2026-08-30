@@ -39,7 +39,7 @@ function formatLabel(
     if (word) {
       const wordNew = applyFormatting(word, format);
       tokens.push(wordNew);
-    };
+    }
   }
   return tokens.join(' ');
 }
@@ -47,8 +47,8 @@ function formatLabel(
 /**
  * @private
  * @see {formatLabel}
- * 
- * Change a word to uppercase or capitalize depending on the `dividerType` 
+ *
+ * Change a word to uppercase or capitalize depending on the `dividerType`
  * param.
  */
 function applyFormatting(word: string, format: LabelFormats): string {
