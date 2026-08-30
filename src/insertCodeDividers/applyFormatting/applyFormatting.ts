@@ -21,6 +21,7 @@ async function applyFormatting(
   files: FilePathMd[],
   extensionsMap: ExtensionsMap,
 ): Promise<FileEditResult[]> {
+  console.log('files', files)
   // Iterate the list of files
   const editFileJobs: Promise<FileEditResult | null>[] = [];
   for (const file of files) {
@@ -44,6 +45,7 @@ async function applyFormatting(
 async function applyFormattingToOneFile(
   fileFullPath: string,
   settingsObj: ConfiguredLangSettings,
+  isDryRun = false,
 ): Promise<FileEditResult | null> {
   // -- Load content -- //
   const content = await FileUtils.read(fileFullPath);
@@ -79,6 +81,10 @@ async function applyFormattingToOneFile(
   // -- Return -- //
   // Return an object if a file WAS edited
   if (insertions) {
+    if (!isDryRun) {
+      const newContent = lines.join('\n');
+      await FileUtils.write(fileFullPath, newContent);
+    }
     return {
       filename: path.basename(fileFullPath),
       fullPath: fileFullPath,

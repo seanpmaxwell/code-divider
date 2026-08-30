@@ -15,7 +15,7 @@ await (async function _run(): Promise<void> {
     // const resp = await initializeDirectory();
     // console.log(resp);
 
-    const resp = await insertCodeDividers('.');
+    const resp = await insertCodeDividers('./playground/misc.ts');
     console.log(resp)
 
   } catch (err) {

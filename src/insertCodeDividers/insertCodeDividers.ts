@@ -15,14 +15,17 @@ import configureSettings from './configureSettings/configureSettings';
 async function insertCodeDividers(
   targetPath = process.cwd(),
 ): Promise<string[]> {
+  console.log('targetPath', targetPath)
   // Load settings
   const { filter, extensionsMap } = await configureSettings(targetPath);
+  console.log('filter', filter)
   // Setup list of files to inspect
   const fileDTOs = await FileUtils.globSearch(
     filter.include,
     filter.exclude,
     targetPath,
   );
+  console.log('globSearch', fileDTOs)
   // Insert code-dividers
   const updatedFiles: FileEditResult[] = await applyFormatting(
     fileDTOs,

@@ -48,10 +48,12 @@ async function configureSettings(
   const configuredLangSettings = Object.keys(other).map((lang) =>
     configureLangEntry(lang, other[lang] as InitialLangSettings),
   );
+  // Configure extensions map
+  const extensionsMap = setupExtensionsMap(configuredLangSettings);
   // Return
   return {
     filter,
-    extensionsMap: setupExtensionsMap(configuredLangSettings),
+    extensionsMap,
   };
 }
 
@@ -71,6 +73,7 @@ async function loadConfig(cwd: string): Promise<InitalSettings> {
     All: { ...DefaultConfig.All },
   };
   Object.keys(retVal).forEach((key) => {
+    if (key === 'filter') return;
     retVal[key] = {
       ...retVal.All,
       ...retVal[key],
