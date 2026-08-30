@@ -1,5 +1,5 @@
 import { LabelFormats } from '#src/common/types/settings.js';
-import logger from '#src/common/utils/logger.js';
+
 
 // ========================================================================= //
 //                                  Constants                                //
@@ -17,21 +17,7 @@ const RGX_ALPHA_NUM = /[a-z0-9]/i;
  * (e.g. "@decorator", "foo()"), and any portion of the label wrapped in
  * backticks (`) is left untouched verbatim, including internal spacing.
  */
-function formatLabel(
-  label: string,
-  filePath: string,
-  lineNum: number,
-  format: LabelFormats,
-): string {
-  // Make sure the label exists
-  const labelNew = label?.trim() ?? '';
-  if (!labelNew) {
-    logger.warn(
-      `Warning: ${filePath}:${lineNum + 1}: code-divider marker has no label, skipping`,
-    );
-    return label;
-  }
-  // Skip if value is "none"
+function formatLabel(label: string, format: LabelFormats): string {
   if (format === 'none') return label;
   // Apply formatting
   const tokens: string[] = [];

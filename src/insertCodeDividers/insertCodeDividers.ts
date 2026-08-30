@@ -29,7 +29,7 @@ async function insertCodeDividers(
     extensionsMap,
   );
   // Return
-  return updatedFiles.map((file) => file.filename);
+  return updatedFiles.map((file) => file.fullPath);
 }
 
 // ========================================================================= //

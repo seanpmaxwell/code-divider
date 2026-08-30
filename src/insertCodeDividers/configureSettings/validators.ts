@@ -106,6 +106,7 @@ export function validateLangSpecificSettings(
   settings: InitialLangSettings,
 ): Pick<InitialLangSettings, 'Extensions' | 'Comment' | 'Bookends'> {
   const { Extensions, Comment, Bookends } = settings;
+
   // -- Validate "Comment" -- //
   const [open, close] = Array.isArray(Comment) ? Comment : [];
   if (typeof open !== 'string' || typeof close !== 'string') {
@@ -113,6 +114,7 @@ export function validateLangSpecificSettings(
       `invalid ${CONFIG_FILE_NAME}: "${lang}" needs a Comment pair, e.g. ["# ", ""]`,
     );
   }
+
   // -- Validate "Bookends" -- //
   // Bookends default to the comment syntax when the language doesn't set them.
   let bookends = Bookends ?? [];
@@ -125,16 +127,17 @@ export function validateLangSpecificSettings(
       `invalid ${CONFIG_FILE_NAME}: "${lang}" Bookends must of type [string, string]`,
     );
   }
+
   // -- Validate "Extensions" -- //
-  // Remove periods from extensions that start with one
   if (!isStrArr(Extensions)) {
     throw new Error(
       `invalid ${CONFIG_FILE_NAME}: "${lang}" Extensions must of type string[]`,
     );
   }
   const extensions = Extensions.map((ext) =>
-    ext.startsWith('.') ? ext.slice(1) : ext,
+    !ext.startsWith('.') ? `.${ext}` : ext,
   );
+
   // -- Return -- //
   return {
     Comment,

@@ -6,6 +6,7 @@ import type {
   ConfiguredLangSettings,
   ExtensionsMap,
 } from '@src/common/types/settings.js';
+import logger from '@logger';
 
 import formatLabel from './formatLabel';
 
@@ -17,7 +18,7 @@ import formatLabel from './formatLabel';
  * Look at file extension and load it if it matches the extension. Then
  */
 async function applyFormatting(
-  files: FilePathMd[], // These need to be the relative paths from the targetPath
+  files: FilePathMd[],
   extensionsMap: ExtensionsMap,
 ): Promise<FileEditResult[]> {
   // Iterate the list of files
@@ -25,8 +26,7 @@ async function applyFormatting(
   for (const file of files) {
     const settingsObj = extensionsMap.get(file.ext);
     if (settingsObj) {
-      // const fileFullPath = path.join(targetPath, file);
-      const job = startFileEditJob(file.absolutePath, settingsObj);
+      const job = applyFormattingToOneFile(file.absolutePath, settingsObj);
       if (job) editFileJobs.push(job);
     }
   }
@@ -37,30 +37,29 @@ async function applyFormatting(
 
 /**
  * @private
+ * @see {applyFormatting}
  *
  * Insert code-dividers for a file.
  */
-async function startFileEditJob(
+async function applyFormattingToOneFile(
   fileFullPath: string,
   settingsObj: ConfiguredLangSettings,
 ): Promise<FileEditResult | null> {
-  // Init
+  // -- Load content -- //
   const content = await FileUtils.read(fileFullPath);
-  // Iterate the file line-by-line
-  let insertions = 0;
   const lines = content.split('\n');
+
+  // -- Iterate the file line-by-line -- //
+  let insertions = 0;
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const indent = line.match(/^(\s*)/)?.[1] ?? '';
     // Check if inserting `section`
     const sectionMatch = line.match(settingsObj.SECTION_MARKER);
     if (sectionMatch) {
-      const label = formatLabel(
-        sectionMatch[1],
-        fileFullPath,
-        i,
-        settingsObj.SECTION_LABEL_FORMAT,
-      );
+      let label = validateLabel(sectionMatch[1], fileFullPath, i);
+      if (!label) continue;
+      label = formatLabel(label, settingsObj.SECTION_LABEL_FORMAT);
       lines[i] = insertSection(label, settingsObj, indent);
       insertions++;
       continue;
@@ -68,17 +67,16 @@ async function startFileEditJob(
     // Check if inserting `region`
     const regionMatch = line.match(settingsObj.REGION_MARKER);
     if (regionMatch) {
-      const label = formatLabel(
-        regionMatch[1],
-        fileFullPath,
-        i,
-        settingsObj.REGION_LABEL_FORMAT,
-      );
+      let label = validateLabel(regionMatch[1], fileFullPath, i);
+      if (!label) continue;
+      label = formatLabel(label, settingsObj.REGION_LABEL_FORMAT);
       lines[i] = insertRegion(label, settingsObj, indent);
       insertions++;
       continue;
     }
   }
+
+  // -- Return -- //
   // Return an object if a file WAS edited
   if (insertions) {
     return {
@@ -93,6 +91,23 @@ async function startFileEditJob(
 
 /**
  * @private
+ * @see {applyFormattingToOneFile}
+ * 
+ * Double check the label is truthy after trimming.
+ */
+function validateLabel(label: string, filePath: string, lineNum: number): string {
+  const labelNew = label?.trim() ?? '';
+  if (!labelNew) {
+    logger.warn(
+      `Warning: ${filePath}:${lineNum + 1}: code-divider marker has no label, skipping`,
+    );
+  }
+  return labelNew;
+}
+
+/**
+ * @private
+ * @see {applyFormattingToOneFile}
  *
  * Build a single-line section header centered within `[open] = label = [close]`.
  * Filler fills up to the character limit and stops; a label too long to fit
@@ -114,6 +129,7 @@ function insertSection(
 
 /**
  * @private
+ * @see {applyFormattingToOneFile}
  *
  * Build a 3-line region header block with the label centered on the middle line.
  * Rule lines stop at the character limit: "// " + filler + " //".
