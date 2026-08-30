@@ -31,7 +31,7 @@ export interface FilterSettings {
  * Settings shared by every language, held under the "All" key. A language may
  * override any of these individually.
  */
-interface SharedSettings {
+export interface SharedSettings {
   CharacterLimit: number;
   FillerCharacter: string;
   RegionLabelFormat: LabelFormats;

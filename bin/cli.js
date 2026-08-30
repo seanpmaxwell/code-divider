@@ -1,44 +1,22 @@
 #!/usr/bin/env node
 
 import path from 'path';
+import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
+
 import {
   insertCodeDividers,
   initializeDirectory,
-  loadJsonFile,
-  FileUtils,
 } from '../lib/index.js';
-
-// ========================================================================= //
-//                                  Constants                                //
-// ========================================================================= //
-
-const CURR_DIR = path.dirname(fileURLToPath(import.meta.url));
-
-// What to print to the console for the `--help` command line argument.
-const HELP_ARG_CONTENT = (() => {
-  const helpContentFilePath = path.join(CURR_DIR, 'help.txt');
-  return FileUtils.read(helpContentFilePath);
-})();
 
 // ========================================================================= //
 //                                      Run                                  //
 // ========================================================================= //
 
-main();
-
-// ========================================================================= //
-//                                    Functions                              //
-// ========================================================================= //
-
-/**
- * Start here
- *
- * @returns {void}
- */
-function main() {
-  // `init` option generates a default config file instead of
-  // "inserting code-dividers"
+{
+  // -- Initialize a directory -- //
+  // `init` option generates a default config file instead of inserting 
+  // code-dividers
   const args = process.argv.slice(2);
   if (args[0] === 'init') {
     try {
@@ -50,6 +28,8 @@ function main() {
     }
     return;
   }
+
+  // -- Process Command Line Arguments -- //
   // Process other command line arguments (besides `init`). A null result means
   // the args were fully handled already (e.g. --help/--version), so stop here.
   const result = processCommandLineArgs(args);
@@ -57,11 +37,8 @@ function main() {
     return;
   }
   const { paths, isDryRun } = result;
-  // If doing a dryRun, we don't want to modify files
-  if (isDryRun) {
-    FileUtils.setIsDryRun(true);
-  }
-  // Run insert function
+
+  // -- Insert Code Dividers -- //
   let total = 0;
   for (const p of paths) {
     try {
@@ -72,13 +49,20 @@ function main() {
       process.exitCode = 1;
     }
   }
+
+  // -- Finish -- //
   // Print finished message
   const verb = isDryRun ? 'would be updated' : 'updated';
   const message = `code-divider: ${total} file${total === 1 ? '' : 's'} ${verb}.\n`;
   process.stdout.write(message);
 }
 
+// ========================================================================= //
+//                                    Functions                              //
+// ========================================================================= //
+
 /**
+ * @private
  * Process the command-line arguments. If running insertCodeDividers, return an
  * object with an array of paths (strings) and whether to do a dry-run, if not
  * return `null`.
@@ -86,7 +70,10 @@ function main() {
  * @param {string[]} args
  * @returns {object | null}
  */
-function processCommandLineArgs(args) {
+async function processCommandLineArgs(args) {
+  // Get the directory of the the command-line-file
+  const cliFilePath = fileURLToPath(import.meta.url);
+  const cliFileDir = path.dirname(cliFilePath);
   // Init retVal
   const retVal = {
     paths: [],
@@ -96,13 +83,17 @@ function processCommandLineArgs(args) {
   for (const arg of args) {
     switch (arg) {
       case '-h':
-      case '--help':
-        process.stdout.write(HELP_ARG_CONTENT);
+      case '--help': {
+        const content = await loadHelpArgContent(cliFileDir);
+        process.stdout.write(content);
         return null;
+      }
       case '-v':
-      case '--version':
-        process.stdout.write(`${readVersion()}\n`);
+      case '--version': {
+        const version = readVersion(cliFileDir);
+        process.stdout.write(`${version}\n`);
         return null;
+      }
       case '-n':
       case '--dry-run':
         retVal.isDryRun = true;
@@ -125,11 +116,25 @@ function processCommandLineArgs(args) {
 }
 
 /**
+ * @private
+ * Load the contents of the `--help` flag
+ * 
+ * @returns {Promise<string>}
+ */
+async function loadHelpArgContent(cliFileDir) {
+  const helpContentFilePath = path.join(cliFileDir, 'help.txt');
+  return fs.readFile(helpContentFilePath);
+}
+
+/**
+ * @private
  * Look at the package.json and return the version.
  *
  * @returns {string}
  */
-function readVersion() {
-  const filePath = path.join(CURR_DIR, '..', 'package.json');
-  return loadJsonFile(filePath).version;
+async function readVersion(cliFileDir) {
+  const filePath = path.join(cliFileDir, '..', 'package.json');
+  const content = await fs.readFile(filePath);
+  const packageJson = JSON.parse(content);
+  return packageJson.version;
 }

@@ -21,6 +21,6 @@
       "@logger": ["./src/common/utils/logger.ts"]
     }
   },
-  "include": ["src", "test", "./*.config.ts", "playground"],
+  "include": ["src", "test", "./*.config.ts", "playground", "scripts"],
   "exclude": ["node_modules", "lib", "bin"]
 }

@@ -11,6 +11,7 @@ import type {
   InitalSettings,
   InitialLangSettings,
   LabelFormats,
+  SharedSettings,
 } from '@src/common/types/settings.js';
 
 // ========================================================================= //
@@ -44,7 +45,9 @@ async function configureSettings(
 ): Promise<{ filter: FilterSettings; extensionsMap: ExtensionsMap }> {
   // Load settings
   const dirPath = await configDirFor(targetPath);
-  const { filter, ...other } = await loadConfig(dirPath);
+  const { filter, All, ...other } = await loadConfig(dirPath);
+  // Run validations for just the `All` settings
+  runSharedValidations('All', All);
   // Configure Settings
   const configuredLangSettings = Object.keys(other).map((lang) =>
     configureLangEntry(lang, other[lang] as InitialLangSettings),
@@ -58,6 +61,7 @@ async function configureSettings(
 
 /**
  * @private
+ * @see {configureSettings}
  *
  * Check if a configuration file exists. If it does, override settings from the
  * configuration file into the default file.
@@ -107,6 +111,7 @@ async function loadConfig(cwd: string): Promise<InitalSettings> {
 
 /**
  * @private
+ * @see {configureSettings}
  *
  * Directory whose code-divider.config.json applies to a target path: the target's own
  * directory if it has one, otherwise the directory code-divider is being run from.
@@ -121,6 +126,7 @@ async function configDirFor(targetPath: string): Promise<string> {
 
 /**
  * @private
+ * @see {configureSettings}
  *
  * Compile a declarative language entry into the matchers used while walking:
  * a FILE_EXT regex and REGION/SECTION marker regexes built from the comment
@@ -131,53 +137,34 @@ function configureLangEntry(
   lang: string,
   settings: InitialLangSettings,
 ): ConfiguredLangSettings {
+  // -- Init -- //
+  const {
+    CharacterLimit,
+    FillerCharacter,
+    RegionLabelFormat,
+    SectionLabelFormat,
+  } = runSharedValidations(lang, settings);
   const {
     Extensions,
     Comment,
-    CharacterLimit,
-    FillerCharacter,
     Bookends,
-    RegionLabelFormat,
-    SectionLabelFormat,
   } = settings;
 
   // -- Run validations -- //
+  // Validate "Extensions"
   if (!Array.isArray(Extensions) || Extensions.length === 0) {
     throw new Error(
       `invalid ${CONFIG_FILE_NAME}: "${lang}" needs an Extensions array`,
     );
   }
+  // Validate "Comment"
   const [open, close] = Array.isArray(Comment) ? Comment : [];
   if (typeof open !== 'string' || typeof close !== 'string') {
     throw new Error(
       `invalid ${CONFIG_FILE_NAME}: "${lang}" needs a Comment pair, e.g. ["# ", ""]`,
     );
   }
-  if (!isPositiveInt(CharacterLimit)) {
-    throw new Error(
-      `invalid ${CONFIG_FILE_NAME}: "${lang}" CharacterLimit must be a positive integer, e.g. 79`,
-    );
-  }
-  const fillerChar = FillerCharacter;
-  if (typeof fillerChar !== 'string' || fillerChar.length !== 1) {
-    throw new Error(
-      `invalid ${CONFIG_FILE_NAME}: "${lang}" FillerCharacter must be a single character, e.g. "="`,
-    );
-  }
-  const regionLabelFormat = RegionLabelFormat?.toLowerCase() ?? '';
-  if (!isLabelFormat(regionLabelFormat)) {
-    throw new Error(
-      `invalid ${CONFIG_FILE_NAME}: "${lang}" RegionLabelFormat must be 'uppercase','lowercase','capitalize', or 'none'`,
-    );
-  }
-  const sectionLabelFormat = SectionLabelFormat?.toLowerCase() ?? '';
-  if (!isLabelFormat(sectionLabelFormat)) {
-    throw new Error(
-      `invalid ${CONFIG_FILE_NAME}: "${lang}" SectionLabelFormat must be 'uppercase','lowercase','capitalize', or 'none'`,
-    );
-  }
-
-  // -- Bookends -- //
+  // Validate "Bookends"
   // Bookends default to the comment syntax when the language doesn't set them.
   let bookends = Bookends ?? [];
   if (!Bookends) {
@@ -189,8 +176,7 @@ function configureLangEntry(
       `invalid ${CONFIG_FILE_NAME}: "${lang}" Bookends must of type [string, string]`,
     );
   }
-
-  // -- Extensions -- //
+  // Validate "Extensions"
   // Remove periods from extensions that start with one
   if (!isStrArr(Extensions)) {
     throw new Error(
@@ -208,14 +194,15 @@ function configureLangEntry(
     SECTION_MARKER: getMarkerRegex(open, close, Markers.SECTION),
     BOOKENDS: bookends,
     CHAR_LIMIT: CharacterLimit,
-    FILLER: fillerChar,
-    REGION_LABEL_FORMAT: regionLabelFormat,
-    SECTION_LABEL_FORMAT: sectionLabelFormat,
+    FILLER: FillerCharacter,
+    REGION_LABEL_FORMAT: RegionLabelFormat,
+    SECTION_LABEL_FORMAT: SectionLabelFormat,
   };
 }
 
 /**
  * @private
+ * @see {configureLangEntry}
  *
  * Check a value is an integer of at least 1.
  */
@@ -225,6 +212,7 @@ function isPositiveInt(value: unknown): value is number {
 
 /**
  * @private
+ * @see {configureLangEntry}
  * 
  * Check that a value is of type: string[]
  */
@@ -236,15 +224,7 @@ function isStrArr(value: unknown): value is string[] {
 
 /**
  * @private
- * 
- * Check that a value is of type: `LabelFormats`
- */
-function isLabelFormat(value: unknown): value is LabelFormats {
-  return LabelFormatOptions.has(value);
-}
-
-/**
- * @private
+ * @see {configureLangEntry}
  *
  * Capture the label if present. A bare marker ("// @reg" with no label) still
  * matches, but is warned about and skipped rather than formatted.
@@ -257,6 +237,7 @@ function getMarkerRegex(open: string, close: string, token: string): RegExp {
 
 /**
  * @private
+ * @see {configureSettings}
  *
  * Organize language settings by file extension
  */
@@ -270,6 +251,73 @@ function setupExtensionsMap(
     }
   }
   return map;
+}
+
+// ========================== Shared Private Helpers ======================= //
+
+/**
+ * @private
+ * 
+ * Run validations that both `All` and individual languages use. Note that none 
+ * of these settings need to be defined in the `All` property. But they do 
+ * eventually defined by either the `All` or the language settings. If they are 
+ * defined in the `All` property, they do need to be validated. 
+ */
+function runSharedValidations<T extends string>(
+  lang: T,
+  settings: Partial<SharedSettings>,
+) {
+  // Init
+  const {
+    CharacterLimit,
+    FillerCharacter,
+    RegionLabelFormat,
+    SectionLabelFormat,
+  } = settings;
+  const notAll = lang !== 'All';
+  // Validate "Character Limit"
+  if ((notAll || CharacterLimit) && !isPositiveInt(CharacterLimit)) {
+    throw new Error(
+      `invalid ${CONFIG_FILE_NAME}: "${lang}" CharacterLimit must be a positive integer, e.g. 79`,
+    );
+  }
+  // Validate "Filler Character"
+  if ((notAll || FillerCharacter) && (typeof FillerCharacter !== 'string' || FillerCharacter.length !== 1)) {
+    throw new Error(
+      `invalid ${CONFIG_FILE_NAME}: "${lang}" FillerCharacter must be a single character, e.g. "="`,
+    );
+  }
+  // Validate "Region Label" format
+  const rlf = RegionLabelFormat?.toLowerCase();
+  if ((notAll || rlf) && !isLabelFormat(rlf)) {
+    throw new Error(
+      `invalid ${CONFIG_FILE_NAME}: "${lang}" RegionLabelFormat must be 'uppercase','lowercase','capitalize', or 'none'`,
+    );
+  }
+  // Validate "Section Label" format
+  const slf = SectionLabelFormat?.toLowerCase();
+  if ((notAll || slf) && !isLabelFormat(slf)) {
+    throw new Error(
+      `invalid ${CONFIG_FILE_NAME}: "${lang}" SectionLabelFormat must be 'uppercase','lowercase','capitalize', or 'none'`,
+    );
+  }
+  // Return
+  return {
+    CharacterLimit,
+    FillerCharacter,
+    RegionLabelFormat: rlf,
+    SectionLabelFormat: slf,
+  } as (T extends 'All' ? Partial<SharedSettings> : SharedSettings);
+}
+
+/**
+ * @private
+ * @see {runSharedValidations}
+ * 
+ * Check that a value is of type: `LabelFormats`
+ */
+function isLabelFormat(value: unknown): value is LabelFormats {
+  return LabelFormatOptions.has(value);
 }
 
 // ========================================================================= //

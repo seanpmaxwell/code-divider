@@ -31,7 +31,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsx workflows/build-n-bundle.ts",
+    "build": "tsx scripts/build.ts",
     "commit": "tsx workflows/commit/run.ts",
     "commit:push": "tsx workflows/commit/run.ts -p",
     "install:clean": "rm -rf node_modules && rm -f package-lock.json && npm i",
@@ -78,7 +78,7 @@
     "@eslint/js": "^10.0.1",
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
     "@types/node": "^26.2.0",
-    "esbuild": "^0.28.1",
+    "esbuild": "^0.28.2",
     "eslint": "^10.7.0",
     "eslint-config-prettier": "^10.1.8",
     "execa": "^10.0.1",
