@@ -5,12 +5,24 @@ import insertCodeDividers from '@src/index';
 import initializeDirectory from '@src/initializeDirectory';
 import formatLabel from '@src/insertCodeDividers/applyFormatting/formatLabel';
 
-// const resp = await initializeDirectory();
-// console.log(resp);
 
-const resp = await insertCodeDividers();
-// logger.info(resp);
+/**
+ * Run
+ */
+await (async function _run(): Promise<void> {
 
-// @sec Test the `formatLabel()` function
 
-// printTestLabels();
+  try {
+    // const resp = await initializeDirectory();
+    // console.log(resp);
+
+    const resp = await insertCodeDividers('.');
+    console.log(resp)
+
+  } catch (err) {
+    logger.error(err);
+    // logger.info(resp);
+    // @sec Test the `formatLabel()` function
+    // printTestLabels();
+  }
+})();

@@ -30,7 +30,7 @@ async function initializeDirectory(
     throw new Error(CONFIG_FILE_ALREADY_EXISTS_ERROR);
   }
   // Save file content to JSON file
-  FileUtils.saveJsonFile(configPath, DefaultConfig, customStringifyObject);
+  await FileUtils.saveJsonFile(configPath, DefaultConfig, customStringifyObject);
   // Return filepath
   return configPath;
 }

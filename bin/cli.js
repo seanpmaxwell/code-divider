@@ -4,13 +4,16 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { initializeDirectory, insertCodeDividers } from '../lib/index.js';
+import insertCodeDividers, { initializeDirectory } from '../lib/index.js';
 
 // ========================================================================= //
 //                                      Run                                  //
 // ========================================================================= //
 
-{
+// Module-load entry point. Wrapped in a named function (rather than firing
+// directly at module scope) so early exits can use `return` and the async
+// work below can be awaited properly.
+await (async function _run() {
   // -- Initialize a directory -- //
   // `init` option generates a default config file instead of inserting
   // code-dividers
@@ -29,7 +32,7 @@ import { initializeDirectory, insertCodeDividers } from '../lib/index.js';
   // -- Process Command Line Arguments -- //
   // Process other command line arguments (besides `init`). A null result means
   // the args were fully handled already (e.g. --help/--version), so stop here.
-  const result = processCommandLineArgs(args);
+  const result = await processCommandLineArgs(args);
   if (!result) {
     return;
   }
@@ -52,7 +55,7 @@ import { initializeDirectory, insertCodeDividers } from '../lib/index.js';
   const verb = isDryRun ? 'would be updated' : 'updated';
   const message = `code-divider: ${total} file${total === 1 ? '' : 's'} ${verb}.\n`;
   process.stdout.write(message);
-}
+})();
 
 // ========================================================================= //
 //                                    Functions                              //
