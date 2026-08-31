@@ -5,15 +5,16 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import insertCodeDividers, { initializeDirectory } from '../lib/index.js';
+import onInit from './onInit.js';
 
 // ========================================================================= //
-//                                      Run                                  //
+//                                   Init                                    //
 // ========================================================================= //
 
 // Module-load entry point. Wrapped in a named function (rather than firing
 // directly at module scope) so early exits can use `return` and the async
 // work below can be awaited properly.
-await (async function _run() {
+await onInit(async () => {
   // -- Initialize a directory -- //
   // `init` option generates a default config file instead of inserting
   // code-dividers
@@ -29,7 +30,7 @@ await (async function _run() {
     return;
   }
 
-  // -- Process Command Line Arguments -- //
+  // -- Process Command-Line-Arguments -- //
   // Process other command line arguments (besides `init`). A null result means
   // the args were fully handled already (e.g. --help/--version), so stop here.
   const result = await processCommandLineArgs(args);
@@ -38,7 +39,7 @@ await (async function _run() {
   }
   const { paths, isDryRun } = result;
 
-  // -- Insert Code Dividers -- //
+  // -- Insert Code-Dividers -- //
   let total = 0;
   for (const p of paths) {
     try {

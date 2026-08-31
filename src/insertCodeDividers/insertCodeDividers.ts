@@ -15,6 +15,15 @@ import configureSettings from './configureSettings/configureSettings';
 async function insertCodeDividers(
   targetPath = process.cwd(),
 ): Promise<string[]> {
+
+  // There's an issue with how targetPath and default include in the configSettings
+  // is getting loaded. 
+  // Maybe the command line path should point to what to include: file or directory
+  // Use a flag to set the configFile path to another directory
+  // If there's not configpath flag look in current directory
+  // if there's no configPath in current directory or directory set through flag
+  // go with default settings. 
+
   console.log('targetPath', targetPath)
   // Load settings
   const { filter, extensionsMap } = await configureSettings(targetPath);
