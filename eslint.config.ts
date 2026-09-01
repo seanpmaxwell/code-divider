@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint';
 export default [
   {
     // Playground files are formatting fixtures for code-divider itself
-    ignores: ['test/playground/', 'playground/', 'lib/', 'node_modules/'],
+    ignores: ['lib/', 'node_modules/'],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
@@ -29,6 +29,7 @@ export default [
     rules: {
       'no-unused-vars': 'off',
       'no-console': 'warn',
+      '@typescript-eslint/no-extraneous-class': 'error',
       '@typescript-eslint/no-unused-vars': [
         'warn',
         { argsIgnorePattern: '^_', ignoreRestSiblings: true },
