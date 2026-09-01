@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { FileUtils } from '../../src';
+import FileUtils from '@FileUtils';
 
 // ========================================================================= //
 //                                 Constants                                 //
@@ -55,7 +55,7 @@ describe.only('FileUtils', () => {
   describe('.filterDirItemsGlob', () => {
     // Normal
     it('should work as expected', async () => {
-      const result = await FileUtils.filterDirItemsGlob(
+      const result = await FileUtils.globSearch(
         ['**/someLib/*'],
         ['**/bad*'],
         TEMP_DIRECTORY,

@@ -1,4 +1,3 @@
-
 // @reg Functions
 
 /**
@@ -20,4 +19,17 @@ export async function asyncItrToArr<T>(
     out.push(r.value);
   }
   return out;
+}
+
+/**
+ * For logic that needs to be run when a file loads.
+ */
+export async function onInit<T>(cb: () => Promise<T>): Promise<T> {
+  try {
+    return await cb();
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error(`onInit failed:`, err);
+    throw err; // rethrow
+  }
 }

@@ -4,9 +4,10 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import insertCodeDividers, { initializeDirectory } from '../lib/index.js';
-
-import onInit from './onInit.js';
+import insertCodeDividers, {
+  initializeDirectory,
+  onInit,
+} from '../lib/index.js';
 
 // ========================================================================= //
 //                                   Init                                    //
@@ -65,6 +66,7 @@ await onInit(async () => {
 
 /**
  * @private
+ *
  * Process the command-line arguments. If running insertCodeDividers, return an
  * object with an array of paths (strings) and whether to do a dry-run, if not
  * return `null`.
@@ -119,8 +121,10 @@ async function processCommandLineArgs(args) {
 
 /**
  * @private
+ *
  * Load the contents of the `--help` flag
  *
+ * @param {string} cliFileDir
  * @returns {Promise<string>}
  */
 async function loadHelpArgContent(cliFileDir) {
@@ -130,8 +134,10 @@ async function loadHelpArgContent(cliFileDir) {
 
 /**
  * @private
+ *
  * Look at the package.json and return the version.
  *
+ * @param {string} cliFileDir
  * @returns {string}
  */
 async function readVersion(cliFileDir) {

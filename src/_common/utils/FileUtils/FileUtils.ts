@@ -44,6 +44,55 @@ function read(path: string): Promise<string> {
 }
 
 /**
+ * If the path ends in '/' create a directory, else create a file with
+ * an empty string as the only content.
+ */
+async function create(
+  relativePath: string,
+  startingDir?: string,
+): Promise<void> {
+  // Setup final path
+  let finalPath = relativePath;
+  if (startingDir && !path.isAbsolute(relativePath)) {
+    finalPath = path.join(startingDir, relativePath);
+  }
+  // Edge cases
+  if (await exists(finalPath)) {
+    logger.info(`Item "${finalPath}" already exists: skipping ".createItem"`);
+  } else if (relativePath.endsWith('/')) {
+    await fs.mkdir(finalPath, { recursive: true });
+    return;
+  }
+  // Create file: `wx` means create only if doesn't exist
+  return fs.writeFile(finalPath, '', {
+    encoding: ENCODING,
+    flag: 'wx',
+  });
+}
+
+/**
+ * Delete a file or a directory. This works even if the folder has content.
+ */
+async function _delete(
+  relativePath: string,
+  startingDir?: string,
+): Promise<void> {
+  let finalPath = relativePath;
+  if (startingDir && !path.isAbsolute(relativePath)) {
+    finalPath = path.join(startingDir, relativePath);
+  }
+  if (!exists(finalPath)) {
+    logger.info(
+      `File or folder "${finalPath}" does not exist: skipping ".rmItem"`,
+    );
+  } else if (await isDir(finalPath)) {
+    return fs.rm(finalPath, { recursive: true, force: true });
+  } else {
+    return fs.rm(finalPath);
+  }
+}
+
+/**
  * Check if a file/folder exists.
  */
 async function exists(target: string): Promise<boolean> {
@@ -119,9 +168,6 @@ async function globSearch(
 }
 
 /**
- * @private
- * @see {globSearch}
- * 
  * Filter directory items by using exact path match.
  */
 async function basicSearch(
@@ -218,8 +264,11 @@ function parseDirent(dirent: Dirent<string>): FilePathMd {
 export default {
   write,
   read,
+  create,
+  delete: _delete,
   exists,
   isDir,
+  basicSearch,
   globSearch,
   loadJsonFile,
   saveJsonFile,
