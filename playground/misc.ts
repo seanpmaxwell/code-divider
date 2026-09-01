@@ -2,7 +2,7 @@
 import logger from '#src/_common/utils/logger.js';
 
 import insertCodeDividers from '@src/index';
-import initializeDirectory from '@src/initializeDirectory';
+import initializeDirectory from '@src/initializeDirectory/initializeDirectory';
 import formatLabel from '@src/insertCodeDividers/applyFormatting/formatLabel';
 
 // @reg run

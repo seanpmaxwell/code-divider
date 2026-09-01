@@ -1,8 +1,12 @@
+// @reg Types
+
 type FunctionKeys<T> = {
   [K in keyof T]: T[K] extends (...args: unknown[]) => unknown ? K : never;
 }[keyof T];
 
 type ConsoleFnKeys = FunctionKeys<typeof console>;
+
+// @reg Functions
 
 /**
  * Print info. Return content
@@ -38,6 +42,8 @@ function callConsoleFn(args: unknown[], fnKey: ConsoleFnKeys): void {
   // eslint-disable-next-line no-console
   return console[fnKey](...args);
 }
+
+// @reg Export
 
 export default {
   info,
