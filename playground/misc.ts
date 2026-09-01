@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-
 import logger from '@logger';
+import processCmdLineArgs from '@src/cli-helpers/processCmdLineArgs';
 import insertCodeDividers, { onInit } from '@src/index';
 import initializeDirectory from '@src/initializeDirectory/initializeDirectory';
 import formatLabel from '@src/insertCodeDividers/applyFormatting/formatLabel';
-import processCmdLineArgs from '@src/cli-helpers/processCmdLineArgs';
 
 // @reg run
 
@@ -22,8 +21,8 @@ await onInit(async () => {
 });
 
 /**
- * 
+ *
  */
 function testProcessCmdLineArgs() {
-  console.log() // pick up here
+  console.log(); // pick up here
 }
