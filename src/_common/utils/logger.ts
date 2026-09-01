@@ -1,10 +1,3 @@
-// @reg Types
-
-type FunctionKeys<T> = {
-  [K in keyof T]: T[K] extends (...args: unknown[]) => unknown ? K : never;
-}[keyof T];
-
-type ConsoleFnKeys = FunctionKeys<typeof console>;
 
 // @reg Functions
 
@@ -38,7 +31,7 @@ function error(...args: unknown[]): string {
  * Wrap the console function so we don't have to disable eslint repeatedly or
  * for the whole file.
  */
-function callConsoleFn(args: unknown[], fnKey: ConsoleFnKeys): void {
+function callConsoleFn(args: unknown[], fnKey: 'info' | 'warn' | 'error'): void {
   // eslint-disable-next-line no-console
   return console[fnKey](...args);
 }
