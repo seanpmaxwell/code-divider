@@ -1,5 +1,4 @@
-import { LabelFormats } from '#src/common/types/settings.js';
-
+import { LabelFormats } from '@common/types/settings.js';
 
 // ========================================================================= //
 //                                  Constants                                //

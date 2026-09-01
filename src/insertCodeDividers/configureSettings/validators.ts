@@ -1,9 +1,9 @@
-import { CONFIG_FILE_NAME } from '@src/common/constants/misc';
+import { CONFIG_FILE_NAME } from '@common/constants/misc.js';
 import type {
   InitialLangSettings,
   LabelFormats,
   SharedSettings,
-} from '@src/common/types/settings.js';
+} from '@common/types/settings.js';
 
 // ========================================================================= //
 //                                  Constants                                //

@@ -5,6 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import insertCodeDividers, { initializeDirectory } from '../lib/index.js';
+
 import onInit from './onInit.js';
 
 // ========================================================================= //

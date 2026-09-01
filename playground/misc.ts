@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import logger from '@logger';
+import logger from '#src/_common/utils/logger.js';
 
 import insertCodeDividers from '@src/index';
 import initializeDirectory from '@src/initializeDirectory';
@@ -16,8 +16,7 @@ await (async function _run(): Promise<void> {
     // console.log(resp);
 
     const resp = await insertCodeDividers('./playground/misc.ts');
-    console.log(resp)
-
+    console.log(resp);
   } catch (err) {
     logger.error(err);
     // logger.info(resp);

@@ -1,16 +1,16 @@
-import logger from '@logger';
-import FileUtils from 'my-tools/FileUtils';
 import path from 'path';
 
-import DefaultConfig from '@src/common/constants/DefaultConfig';
-import { CONFIG_FILE_NAME } from '@src/common/constants/misc';
+import DefaultConfig from '@common/constants/DefaultConfig.js';
+import { CONFIG_FILE_NAME } from '@common/constants/misc.js';
 import type {
   ConfiguredLangSettings,
   ExtensionsMap,
   FilterSettings,
   InitalSettings,
   InitialLangSettings,
-} from '@src/common/types/settings.js';
+} from '@common/types/settings.js';
+import FileUtils from '@FileUtils';
+import logger from '@logger';
 
 import {
   validateLangSpecificSettings,

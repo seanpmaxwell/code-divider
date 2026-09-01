@@ -1,6 +1,6 @@
 import type { TestProject } from 'vitest/node';
 
-import { UNIT_TEST_ENV } from '../src/common/constants/misc';
+import { UNIT_TEST_ENV } from '../src/_common/constants/misc';
 
 let project: TestProject;
 

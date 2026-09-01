@@ -1,4 +1,4 @@
-import logger from '@src/common/utils/logger';
+import logger from '#src/_common/utils/logger.js';
 import { build as esbuild } from 'esbuild';
 import { $ } from 'execa';
 

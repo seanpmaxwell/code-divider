@@ -3,7 +3,7 @@
 // ========================================================================= //
 
 /**
- * For logic that needs to be run when a file loads. 
+ * For logic that needs to be run when a file loads.
  */
 async function onInit(cb) {
   try {

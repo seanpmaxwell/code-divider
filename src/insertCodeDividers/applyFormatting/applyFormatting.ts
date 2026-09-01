@@ -1,11 +1,11 @@
-import FileUtils, { FilePathMd } from 'my-tools/FileUtils';
 import path from 'path';
 
-import { FileEditResult } from '@src/common/types/misc.js';
+import { FileEditResult } from '@common/types/misc';
 import type {
   ConfiguredLangSettings,
   ExtensionsMap,
-} from '@src/common/types/settings.js';
+} from '@common/types/settings';
+import FileUtils, { FilePathMd } from '@FileUtils';
 import logger from '@logger';
 
 import formatLabel from './formatLabel';
@@ -21,7 +21,7 @@ async function applyFormatting(
   files: FilePathMd[],
   extensionsMap: ExtensionsMap,
 ): Promise<FileEditResult[]> {
-  console.log('files', files)
+  console.log('files', files);
   // Iterate the list of files
   const editFileJobs: Promise<FileEditResult | null>[] = [];
   for (const file of files) {
@@ -98,10 +98,14 @@ async function applyFormattingToOneFile(
 /**
  * @private
  * @see {applyFormattingToOneFile}
- * 
+ *
  * Double check the label is truthy after trimming.
  */
-function validateLabel(label: string, filePath: string, lineNum: number): string {
+function validateLabel(
+  label: string,
+  filePath: string,
+  lineNum: number,
+): string {
   const labelNew = label?.trim() ?? '';
   if (!labelNew) {
     logger.warn(

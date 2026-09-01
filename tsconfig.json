@@ -18,7 +18,9 @@
 
     "paths": {
       "@src/*": ["./src/*"],
-      "@logger": ["./src/common/utils/logger.ts"]
+      "@common/*": ["./src/_common/*"],
+      "@logger": ["./src/_common/utils/logger.ts"],
+      "@FileUtils": ["./src/_common/utils/FileUtils"]
     }
   },
   "include": ["src", "test", "./*.config.ts", "playground", "scripts"],
