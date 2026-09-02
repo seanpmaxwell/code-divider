@@ -3,6 +3,8 @@ import prettier from 'eslint-config-prettier';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
+import { onInitEslintPlugin } from '@common/utils/onInit';
+
 export default [
   {
     // Playground files are formatting fixtures for code-divider itself
@@ -13,6 +15,7 @@ export default [
   // Turns off stylistic rules that would conflict with Prettier
   prettier,
   {
+    plugins: { onInit: onInitEslintPlugin },
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
@@ -34,6 +37,7 @@ export default [
         'warn',
         { argsIgnorePattern: '^_', ignoreRestSiblings: true },
       ],
+      'onInit/no-nested-oninit': 'error',
     },
   },
 ];
