@@ -1,6 +1,6 @@
 
-import isPlainObject from '../isPlainObject';
-import logger from '../logger';
+import isPlainObject from '../../_common/utils/isPlainObject';
+import logger from '../../_common/utils/logger';
 
 type PlainObject = Record<string, unknown>;
 

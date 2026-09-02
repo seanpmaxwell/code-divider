@@ -3,10 +3,11 @@
 const DEFAULT_VALUES = {
   showHelp: false,
   showVersion: false,
-  doDryRun: false,
   initializeDirectory: false,
+  initializeDirectoryPath: './',
   configFilePath: './code-divider.config.json',
   targetPath: './',
+  doDryRun: false,
 } as const satisfies ProcessedCmdLineArgs;
 
 const CommandLineArgs = {
@@ -14,13 +15,13 @@ const CommandLineArgs = {
   helpers: {
     help: ['-h', '--help'],
     version: ['-v', '--version'],
-    dryRun: ['-dr', '--dry-run'],
-    init: ['init'],
+    init: ['-i', '--init'],
   },
   // Options when inserting code-dividers
   options: {
     targetPath: ['-p', '--path'],
     configFilePath: ['-c', '--config'],
+    dryRun: ['-dr', '--dry-run'],
   },
 } as const;
 
@@ -33,6 +34,7 @@ interface ProcessedCmdLineArgs {
   showVersion: boolean;
   doDryRun: boolean;
   initializeDirectory: boolean;
+  initializeDirectoryPath: string;
   configFilePath: string;
   targetPath: string;
 }
@@ -40,34 +42,59 @@ interface ProcessedCmdLineArgs {
 // @reg Functions
 
 /**
- * Convert the command line args array to an object. For the "helpers"
- * property, there should only be one argument so we return right away.
+ * Convert the command line args array to an object: 2 categories.
+ * 
+ * `Helpers`: Run alone and do not insert code-dividers.
+ * 
+ * `Options`: Can be combined with each-other and do insert code-dividers.
+ *   Exception: `--dry-run` fires `insertCodeDividers()` but skips the actual
+ *     file editing.
  */
-function processCmdLineArgs(args: string[]): ProcessedCmdLineArgs {
-  const arg1 = args[0];
+function processCmdLineArgs(argsParam: string[]): ProcessedCmdLineArgs {
+  const args = splitEqualsSign(argsParam);
   const retVal: ProcessedCmdLineArgs = { ...DEFAULT_VALUES };
-  // Check `helpers`
+
+  // == Process Helpers == //
+  const arg1 = args[0];
+  const arg2 = args[1];
   if (testHelperFlag('help', arg1)) {
     return { ...retVal, showHelp: true };
   } else if (testHelperFlag('version', arg1)) {
     return { ...retVal, showVersion: true };
-  } else if (testHelperFlag('dryRun', arg1)) {
-    return { ...retVal, doDryRun: true };
   } else if (testHelperFlag('init', arg1)) {
-    return { ...retVal, initializeDirectory: true };
+    return {
+      ...retVal,
+      initializeDirectory: true,
+      initializeDirectoryPath: arg2 ?? './',
+    };
   }
+
+  // == Process Options == //
   // Check `targetPath`
-  const argsNew = splitEqualsSign(args);
-  const targetPath = getOptionValue('targetPath', argsNew);
-  if (targetPath !== null) {
-    retVal.targetPath = targetPath;
+  const targetPathIdx = getOptionIdx('targetPath', args);
+  if (targetPathIdx > -1) {
+    retVal.targetPath = args[targetPathIdx + 1];
+    args.splice(targetPathIdx, 2);
   }
   // Check `configFilePath`
-  const configFilePath = getOptionValue('configFilePath', argsNew);
-  if (configFilePath !== null) {
-    retVal.configFilePath = configFilePath;
+  const configFilePath = getOptionIdx('configFilePath', args);
+  if (configFilePath > -1) {
+    retVal.configFilePath = args[configFilePath + 1];
+    args.splice(configFilePath, 2);
   }
-  // Return
+  // Check `dryRun`
+  const dryRunIdx = getOptionIdx('dryRun', args);
+  if (dryRunIdx > -1) {
+    retVal.doDryRun = true;
+    args.splice(configFilePath, 2);
+  }
+  // `getOptionValue` contains args.splice, so if we get to this point the 
+  // `argsNew.length` should be `0`.  
+  if (args.length > 0) {
+    throw new Error(`Unknown option "${args[0]}".`)
+  }
+
+  // == Return == //
   return retVal;
 }
 
@@ -104,21 +131,17 @@ function splitEqualsSign(args: string[]): string[] {
  *
  * Get the value for an option flag: i.e. `-c ./config.json`
  */
-function getOptionValue(
+function getOptionIdx(
   optionKey: keyof CommandLineArgs['options'],
   args: string[],
-): string | null {
+): number {
   const optionFlags = CommandLineArgs.options[optionKey];
   const [shortFlag, longFlag] = optionFlags;
   let optionIdx = args.indexOf(shortFlag);
   if (optionIdx === -1) {
-    optionIdx = args.indexOf(longFlag);
+    return args.indexOf(longFlag);
   }
-  if (optionIdx === -1) {
-    return null;
-  }
-  // The value should be the index after the flag
-  return args[optionIdx + 1];
+  return optionIdx;
 }
 
 // @reg Export

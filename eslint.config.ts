@@ -3,7 +3,7 @@ import prettier from 'eslint-config-prettier';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
-import { onInitEslintPlugin } from '@common/utils/onInit';
+import { onInitEslintPlugin } from './src/cli-helpers/onInit';
 
 export default [
   {

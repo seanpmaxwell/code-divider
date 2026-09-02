@@ -6,8 +6,9 @@ import { fileURLToPath } from 'url';
 
 import insertCodeDividers, {
   initializeDirectory,
-  onInit,
 } from '../lib/index.js';
+
+import { onInit } from '../lib/cli-helpers';
 
 // ========================================================================= //
 //                                   Init                                    //
@@ -17,7 +18,7 @@ import insertCodeDividers, {
 // directly at module scope) so early exits can use `return` and the async
 // work below can be awaited properly.
 await onInit(async () => {
-  // -- Initialize a directory -- //
+  // == Initialize a directory == //
   // `init` option generates a default config file instead of inserting
   // code-dividers
   const args = process.argv.slice(2);
@@ -32,7 +33,7 @@ await onInit(async () => {
     return;
   }
 
-  // -- Process Command-Line-Arguments -- //
+  // == Process Command-Line-Arguments == //
   // Process other command line arguments (besides `init`). A null result means
   // the args were fully handled already (e.g. --help/--version), so stop here.
   const result = await processCommandLineArgs(args);
@@ -41,7 +42,7 @@ await onInit(async () => {
   }
   const { paths, isDryRun } = result;
 
-  // -- Insert Code-Dividers -- //
+  // == Insert Code-Dividers == //
   let total = 0;
   for (const p of paths) {
     try {
@@ -53,7 +54,7 @@ await onInit(async () => {
     }
   }
 
-  // -- Finish -- //
+  // == Finish == //
   // Print finished message
   const verb = isDryRun ? 'would be updated' : 'updated';
   const message = `code-divider: ${total} file${total === 1 ? '' : 's'} ${verb}.\n`;

@@ -41,7 +41,7 @@ async function makeDirItemsToTest(): Promise<void> {
 //                                 Run Tests                                 //
 // ========================================================================= //
 
-describe.only('FileUtils', () => {
+describe('FileUtils', () => {
   beforeAll(async () => {
     await FileUtils.delete(TEMP_DIRECTORY);
     await makeDirItemsToTest();
@@ -51,8 +51,8 @@ describe.only('FileUtils', () => {
     await FileUtils.delete(TEMP_DIRECTORY);
   });
 
-  // Test: `.filterDirItemsGlob`
-  describe('.filterDirItemsGlob', () => {
+  // Test: `.globSearch`
+  describe('.globSearch', () => {
     // Normal
     it('should work as expected', async () => {
       const result = await FileUtils.globSearch(
@@ -68,7 +68,7 @@ describe.only('FileUtils', () => {
     });
   });
 
-  // Test: `filterDirItemsShallow`
+  // Test: `basicSearch`
   describe('.filterDirItems`', () => {
     // Normal
     it('should work as expected', async () => {
