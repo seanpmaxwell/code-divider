@@ -1,31 +1,34 @@
+
 import isPlainObject from '../isPlainObject';
 import logger from '../logger';
+
+type PlainObject = Record<string, unknown>;
 
 /**
  * Operator overloads
  */
-async function onInit<T extends Record<string, unknown>>(
+async function onInit<T extends PlainObject | void>(
   cb: () => Promise<T>,
-): Promise<T>;
-async function onInit<T extends Record<string, unknown>>(
+): Promise<T | void>;
+async function onInit<T extends PlainObject | void>(
   cb: () => Promise<T>,
   opts: { throwOnError: true },
-): Promise<T>;
-async function onInit<T extends Record<string, unknown>>(
+): Promise<T | void>;
+async function onInit<T extends PlainObject | void>(
   cb: () => Promise<T>,
   opts: { throwOnError: false },
-): Promise<T | undefined>;
+): Promise<T | { error: unknown } | void>;
 
 /**
  * Default function.
  */
-async function onInit<T extends Record<string, unknown>>(
+async function onInit<T extends PlainObject | void>(
   cb: () => Promise<T>,
   opts: { throwOnError: boolean } = { throwOnError: true },
-): Promise<T | undefined> {
+): Promise<T | { error: unknown } | void> {
   try {
     const result = await cb();
-    if (!isPlainObject(result)) {
+    if (result !== undefined && !isPlainObject(result)) {
       const resultType = (result as any)?.constructor?.name ?? typeof result;
       throw new TypeError(
         `onInit callback must return a plain object, got: ${resultType}`,
@@ -39,10 +42,10 @@ async function onInit<T extends Record<string, unknown>>(
         cause: err,
       });
     }
-    return undefined;
+    return { error: err };
   }
 }
 
-onInit.skip = function skip(): void {};
+onInit.skip = function skip(cb: () => void | unknown): void {};
 
 export default onInit;
