@@ -4,7 +4,7 @@ import { $ } from 'execa';
 import logger from '@logger';
 
 // ========================================================================= //
-//                                      Run                                  //
+//                                    RUN                                    //
 // ========================================================================= //
 // Note 1:
 //   This is a bundler, it's meant for libraries, not applications. You don't

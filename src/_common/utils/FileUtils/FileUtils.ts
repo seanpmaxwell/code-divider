@@ -8,20 +8,20 @@ import logger from '@logger';
 import parse, { FilePathMd } from './parse';
 
 // ========================================================================= //
-//                                  Constants                                //
+//                                 CONSTANTS                                 //
 // ========================================================================= //
 
 const IS_DRY_RUN = false;
 const ENCODING = 'utf8';
 
 // ========================================================================= //
-//                                   Types                                   //
+//                                   TYPES                                   //
 // ========================================================================= //
 
 type Stringify = (value: unknown) => string;
 
 // ========================================================================= //
-//                                  Functions                                //
+//                                 FUNCTIONS                                 //
 // ========================================================================= //
 // During a dry-run, we want to skip modifying files. To create consistency,
 // I just decided to wrap the other "fs" library functions too.
@@ -258,7 +258,7 @@ function parseDirent(dirent: Dirent<string>): FilePathMd {
 }
 
 // ========================================================================= //
-//                                     Export                                //
+//                                  EXPORT                                   //
 // ========================================================================= //
 
 export default {

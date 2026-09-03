@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { CONFIG_FILE_NAME } from '@common/constants/misc';
 
 // ========================================================================= //
-//                                 Constants                                 //
+//                                 CONSTANTS                                 //
 // ========================================================================= //
 
 const CURRENT_WORKING_DIRECTORY = process.cwd();
@@ -41,7 +41,7 @@ const GetDefaultInitResult = (
 });
 
 // ========================================================================= //
-//                                 Run Tests                                 //
+//                                 RUN TESTS                                 //
 // ========================================================================= //
 
 describe.only('processCmdLineArgs', () => {

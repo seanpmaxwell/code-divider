@@ -8,7 +8,7 @@ import { onInit } from '../lib';
 import insertCodeDividers, { initializeDirectory } from '../lib/index.js';
 
 // ========================================================================= //
-//                                   Init                                    //
+//                                   INIT                                    //
 // ========================================================================= //
 
 // Module-load entry point. Wrapped in a named function (rather than firing
@@ -59,7 +59,7 @@ await onInit(async () => {
 })();
 
 // ========================================================================= //
-//                                    Functions                              //
+//                                 FUNCTIONS                                 //
 // ========================================================================= //
 
 /**

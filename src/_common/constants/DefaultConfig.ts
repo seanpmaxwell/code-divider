@@ -1,7 +1,7 @@
 import type { InitalSettings } from '../types/settings';
 
 // ========================================================================= //
-//                                  Constants                                //
+//                                 CONSTANTS                                 //
 // ========================================================================= //
 
 // Each language declares its file extensions, the comment syntax markers are
@@ -92,7 +92,7 @@ const DefaultConfig = {
 } satisfies InitalSettings;
 
 // ========================================================================= //
-//                                     Export                                //
+//                                  EXPORT                                   //
 // ========================================================================= //
 
 export default DefaultConfig;

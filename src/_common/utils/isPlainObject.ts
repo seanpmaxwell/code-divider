@@ -1,3 +1,7 @@
+// ========================================================================= //
+//                                 FUNCTIONS                                 //
+// ========================================================================= //
+
 /**
  * An object is plain if it's created by either an object-literal,
  * new Object(), or Object.create(null).
@@ -15,5 +19,9 @@ function isPlainObject(value: unknown): value is object {
     !(Symbol.iterator in value)
   );
 }
+
+// ========================================================================= //
+//                                  EXPORT                                   //
+// ========================================================================= //
 
 export default isPlainObject;

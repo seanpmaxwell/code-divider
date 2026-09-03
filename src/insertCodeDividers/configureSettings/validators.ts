@@ -6,7 +6,7 @@ import type {
 } from '@common/types/settings.js';
 
 // ========================================================================= //
-//                                  Constants                                //
+//                                 CONSTANTS                                 //
 // ========================================================================= //
 
 const LabelFormatOptions: ReadonlySet<unknown> = new Set([
@@ -17,7 +17,7 @@ const LabelFormatOptions: ReadonlySet<unknown> = new Set([
 ]);
 
 // ========================================================================= //
-//                                  Functions                                //
+//                                 FUNCTIONS                                 //
 // ========================================================================= //
 
 /**

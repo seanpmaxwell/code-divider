@@ -5,7 +5,7 @@ import applyFormatting from './applyFormatting/applyFormatting';
 import configureSettings from './configureSettings/configureSettings';
 
 // ========================================================================= //
-//                                  Functions                                //
+//                                 FUNCTIONS                                 //
 // ========================================================================= //
 
 /**
@@ -44,7 +44,7 @@ async function insertCodeDividers(
 }
 
 // ========================================================================= //
-//                                     Export                                //
+//                                  EXPORT                                   //
 // ========================================================================= //
 
 export default insertCodeDividers;

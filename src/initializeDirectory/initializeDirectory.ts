@@ -6,13 +6,13 @@ import customStringifyObject from '@common/utils/customStringifyObject';
 import FileUtils from '@FileUtils';
 
 // ========================================================================= //
-//                                  Constants                                //
+//                                 CONSTANTS                                 //
 // ========================================================================= //
 
 const CONFIG_FILE_ALREADY_EXISTS_ERROR = `${CONFIG_FILE_NAME} already exists here, not overwriting`;
 
 // ========================================================================= //
-//                                  Functions                                //
+//                                 FUNCTIONS                                 //
 // ========================================================================= //
 
 /**
@@ -39,7 +39,7 @@ async function initializeDirectory(
 }
 
 // ========================================================================= //
-//                                     Export                                //
+//                                  EXPORT                                   //
 // ========================================================================= //
 
 export default initializeDirectory;

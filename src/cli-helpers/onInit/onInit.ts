@@ -2,14 +2,14 @@ import isPlainObject from '@common/utils/isPlainObject';
 import logger from '@common/utils/logger';
 
 // ========================================================================= //
-//                                   Types                                   //
+//                                   TYPES                                   //
 // ========================================================================= //
 
 type PlainObject = Record<string, unknown>;
 type Result = { constructor: { name: string } };
 
 // ========================================================================= //
-//                                 Functions                                 //
+//                                 FUNCTIONS                                 //
 // ========================================================================= //
 
 /**
@@ -35,7 +35,7 @@ async function onInit<T extends PlainObject>(
 onInit.skip = function skip(_: () => void | unknown): void {};
 
 // ========================================================================= //
-//                                   Export                                  //
+//                                  EXPORT                                   //
 // ========================================================================= //
 
 export default onInit;

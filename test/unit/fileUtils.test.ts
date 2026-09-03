@@ -3,7 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import FileUtils from '@FileUtils';
 
 // ========================================================================= //
-//                                 Constants                                 //
+//                                 CONSTANTS                                 //
 // ========================================================================= //
 
 const TEMP_DIRECTORY = import.meta.dirname + '/.tmp';
@@ -25,7 +25,7 @@ const DIRECTORY_ITEMS_TO_TEST = [
 ] as const;
 
 // ========================================================================= //
-//                                  Helpers                                  //
+//                                  HELPERS                                  //
 // ========================================================================= //
 
 /**
@@ -38,7 +38,7 @@ async function makeDirItemsToTest(): Promise<void> {
 }
 
 // ========================================================================= //
-//                                 Run Tests                                 //
+//                                 RUN TESTS                                 //
 // ========================================================================= //
 
 describe('FileUtils', () => {
