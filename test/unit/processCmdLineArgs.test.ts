@@ -82,10 +82,11 @@ describe.only('processCmdLineArgs', () => {
       const res2a = processCmdLineArgs(['-i']);
       expect(res2a).not.toEqual(SHOW_HELP_RESULT);
       const res3 = processCmdLineArgs(['-i', 'some-folder']);
-      console.log(); // pick up here
-      expect(res3).toEqual(GetDefaultInitResult());
+      expect(res3).toEqual(GetDefaultInitResult('some-folder'));
       const res4 = () => processCmdLineArgs(['some-folder', '--init']);
       expect(() => res4()).toThrow();
+      const res5 = () => processCmdLineArgs(['-i', '--config']);
+      expect(() => res5()).toThrow();
     });
   });
 
