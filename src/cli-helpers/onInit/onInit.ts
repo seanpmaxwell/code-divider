@@ -1,13 +1,16 @@
-
 import isPlainObject from '@common/utils/isPlainObject';
 import logger from '@common/utils/logger';
 
-// @reg Types
+// ========================================================================= //
+//                                   Types                                   //
+// ========================================================================= //
 
 type PlainObject = Record<string, unknown>;
-type Result = { constructor: { name: string }};
+type Result = { constructor: { name: string } };
 
-// @reg Functions
+// ========================================================================= //
+//                                 Functions                                 //
+// ========================================================================= //
 
 /**
  * Default function.
@@ -31,6 +34,8 @@ async function onInit<T extends PlainObject>(
 
 onInit.skip = function skip(_: () => void | unknown): void {};
 
-// @reg Export
+// ========================================================================= //
+//                                   Export                                  //
+// ========================================================================= //
 
 export default onInit;

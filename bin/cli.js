@@ -4,11 +4,8 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import insertCodeDividers, {
-  initializeDirectory,
-} from '../lib/index.js';
-
-import { onInit } from '../lib/cli-helpers';
+import { onInit } from '../lib';
+import insertCodeDividers, { initializeDirectory } from '../lib/index.js';
 
 // ========================================================================= //
 //                                   Init                                    //

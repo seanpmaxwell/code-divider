@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import logger from '@logger';
 import insertCodeDividers, { initializeDirectory } from '@src';
-import { onInit, processCmdLineArgs } from '../src/cli-helpers';
+import { onInit, processCmdLineArgs } from '@src';
+
+import logger from '@logger';
 
 // @reg run
 
@@ -17,10 +18,10 @@ await onInit.skip(async () => {
 
 // @sec Process Command Line Arguments
 
-logger.info('horse')
+logger.info('horse');
 
 await onInit(async () => {
-  logger.info('horse')
+  logger.info('horse');
   logger.info(processCmdLineArgs(['--help']));
   logger.info(processCmdLineArgs(['-h']));
   logger.info(processCmdLineArgs(['-h', 'horse']));

@@ -1,36 +1,51 @@
+import { processCmdLineArgs, type ProcessedCmdLineArgs } from '@src';
+import path from 'path';
 import { describe, expect, it } from 'vitest';
 
-import { processCmdLineArgs } from '../../src/cli-helpers';
+import { CONFIG_FILE_NAME } from '@common/constants/misc';
 
-// @reg Constants
+// ========================================================================= //
+//                                 Constants                                 //
+// ========================================================================= //
 
-const SHOW_HELP_RESULT = {
-  showHelp: true,
+const CURRENT_WORKING_DIRECTORY = process.cwd();
+const DEFAULT_CONFIG_FILE_PATH = path.join(process.cwd(), CONFIG_FILE_NAME);
+
+const DEFAULT_RESULT = {
+  showHelp: false,
   showVersion: false,
   doDryRun: false,
   initializeDirectory: false,
-  configFilePath: './code-divider.config.json',
-  targetPath: './'
-} as const;
+  initializeDirectoryPath: CURRENT_WORKING_DIRECTORY,
+  configFilePath: DEFAULT_CONFIG_FILE_PATH,
+  targetPath: CURRENT_WORKING_DIRECTORY,
+} as const satisfies ProcessedCmdLineArgs;
+
+const SHOW_HELP_RESULT = {
+  ...DEFAULT_RESULT,
+  showHelp: true,
+} as const satisfies ProcessedCmdLineArgs;
 
 const SHOW_VERSION_RESULT = {
-  showHelp: false,
+  ...DEFAULT_RESULT,
   showVersion: true,
-  doDryRun: false,
-  initializeDirectory: false,
-  configFilePath: './code-divider.config.json',
-  targetPath: './'
-} as const;
+} as const satisfies ProcessedCmdLineArgs;
+
+const GetDefaultInitResult = (
+  path = CURRENT_WORKING_DIRECTORY,
+): ProcessedCmdLineArgs => ({
+  ...DEFAULT_RESULT,
+  showVersion: false,
+  initializeDirectory: true,
+  initializeDirectoryPath: path,
+});
 
 // ========================================================================= //
 //                                 Run Tests                                 //
 // ========================================================================= //
 
 describe.only('processCmdLineArgs', () => {
-
-
   describe('help flag [-h, --help]', () => {
-
     it('should work as expected', async () => {
       const res1 = processCmdLineArgs(['--help']);
       expect(res1).toEqual(SHOW_HELP_RESULT);
@@ -44,7 +59,6 @@ describe.only('processCmdLineArgs', () => {
   });
 
   describe('version flag [-v, --version]', () => {
-
     it('should work as expected', async () => {
       const res1 = processCmdLineArgs(['--version']);
       expect(res1).toEqual(SHOW_VERSION_RESULT);
@@ -55,6 +69,22 @@ describe.only('processCmdLineArgs', () => {
       const res3 = processCmdLineArgs(['-v', 'horse']);
       expect(res3).toEqual(SHOW_VERSION_RESULT);
       const res4 = () => processCmdLineArgs(['horse', '-v']);
+      expect(() => res4()).toThrow();
+    });
+  });
+
+  describe('init flag [-i, --init]', () => {
+    it('should work as expected', async () => {
+      const res1 = processCmdLineArgs(['--init']);
+      expect(res1).toEqual(GetDefaultInitResult());
+      const res2 = processCmdLineArgs(['-i']);
+      expect(res2).toEqual(GetDefaultInitResult());
+      const res2a = processCmdLineArgs(['-i']);
+      expect(res2a).not.toEqual(SHOW_HELP_RESULT);
+      const res3 = processCmdLineArgs(['-i', 'some-folder']);
+      console.log(); // pick up here
+      expect(res3).toEqual(GetDefaultInitResult());
+      const res4 = () => processCmdLineArgs(['some-folder', '--init']);
       expect(() => res4()).toThrow();
     });
   });
