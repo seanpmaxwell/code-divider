@@ -1,8 +1,11 @@
 
-import isPlainObject from '../../_common/utils/isPlainObject';
-import logger from '../../_common/utils/logger';
+import isPlainObject from '@common/utils/isPlainObject';
+import logger from '@common/utils/logger';
+
+// @reg Types
 
 type PlainObject = Record<string, unknown>;
+type Result = { constructor: { name: string }};
 
 /**
  * Operator overloads
@@ -19,6 +22,8 @@ async function onInit<T extends PlainObject | void>(
   opts: { throwOnError: false },
 ): Promise<T | { error: unknown } | void>;
 
+// @reg Functions
+
 /**
  * Default function.
  */
@@ -29,7 +34,7 @@ async function onInit<T extends PlainObject | void>(
   try {
     const result = await cb();
     if (result !== undefined && !isPlainObject(result)) {
-      const resultType = (result as any)?.constructor?.name ?? typeof result;
+      const resultType = (result as Result)?.constructor?.name ?? typeof result;
       throw new TypeError(
         `onInit callback must return a plain object, got: ${resultType}`,
       );
@@ -46,6 +51,8 @@ async function onInit<T extends PlainObject | void>(
   }
 }
 
-onInit.skip = function skip(cb: () => void | unknown): void {};
+onInit.skip = function skip(_: () => void | unknown): void {};
+
+// @reg Export
 
 export default onInit;

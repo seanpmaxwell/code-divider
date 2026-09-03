@@ -44,62 +44,38 @@ interface ProcessedCmdLineArgs {
 /**
  * Convert the command line args array to an object: 2 categories.
  * 
- * `Helpers`: Run alone and do not insert code-dividers.
- * 
- * `Options`: Can be combined with each-other and do insert code-dividers.
- *   Exception: `--dry-run` fires `insertCodeDividers()` but skips the actual
- *     file editing.
+ * `Helpers`: Run alone and do not fire `insertCodeDividers`
+ * `Options`: Can be combined with each-other and do fire `insertCodeDividers`.
  */
 function processCmdLineArgs(argsParam: string[]): ProcessedCmdLineArgs {
+  // Init
   const args = splitEqualsSign(argsParam);
-  const retVal: ProcessedCmdLineArgs = { ...DEFAULT_VALUES };
-
-  // == Process Helpers == //
+  const argsObj: ProcessedCmdLineArgs = {
+    ...DEFAULT_VALUES,
+    initializeDirectoryPath: process.cwd(),
+    targetPath: process.cwd(),
+  };
+  // Process Helpers
   const arg1 = args[0];
   const arg2 = args[1];
   if (testHelperFlag('help', arg1)) {
-    return { ...retVal, showHelp: true };
+    return { ...argsObj, showHelp: true };
   } else if (testHelperFlag('version', arg1)) {
-    return { ...retVal, showVersion: true };
+    return { ...argsObj, showVersion: true };
   } else if (testHelperFlag('init', arg1)) {
     return {
-      ...retVal,
+      ...argsObj,
       initializeDirectory: true,
-      initializeDirectoryPath: arg2 ?? './',
+      initializeDirectoryPath: arg2 ?? process.cwd(),
     };
   }
-
-  // == Process Options == //
-  // Check `targetPath`
-  const targetPathIdx = getOptionIdx('targetPath', args);
-  if (targetPathIdx > -1) {
-    retVal.targetPath = args[targetPathIdx + 1];
-    args.splice(targetPathIdx, 2);
-  }
-  // Check `configFilePath`
-  const configFilePath = getOptionIdx('configFilePath', args);
-  if (configFilePath > -1) {
-    retVal.configFilePath = args[configFilePath + 1];
-    args.splice(configFilePath, 2);
-  }
-  // Check `dryRun`
-  const dryRunIdx = getOptionIdx('dryRun', args);
-  if (dryRunIdx > -1) {
-    retVal.doDryRun = true;
-    args.splice(configFilePath, 2);
-  }
-  // `getOptionValue` contains args.splice, so if we get to this point the 
-  // `argsNew.length` should be `0`.  
-  if (args.length > 0) {
-    throw new Error(`Unknown option "${args[0]}".`)
-  }
-
-  // == Return == //
-  return retVal;
+  // Process Options
+  return processOptions(args, argsObj);
 }
 
 /**
  * @private
+ * @see {processCmdLineArgs}
  *
  * See if a helper flag was passed. These skip running "insertCodeDividers"
  * function so should return right away.
@@ -114,6 +90,7 @@ function testHelperFlag(
 
 /**
  * @private
+ * @see {processCmdLineArgs}
  *
  * This is incase the user passes equal signs when specifying the options.
  * Split something like:
@@ -128,6 +105,51 @@ function splitEqualsSign(args: string[]): string[] {
 
 /**
  * @private
+ * @see {processCmdLineArgs}
+ * 
+ * Process the "Options". Unlike the "Helpers", these can be combined with each-other 
+ * and do fire `insertCodeDividers`.
+ */
+function processOptions(args: string[], argsObj: ProcessedCmdLineArgs): ProcessedCmdLineArgs {
+  const targetPathFlagIdx = getOptionIdx('targetPath', args);
+  const configFilePathFlagIdx = getOptionIdx('configFilePath', args);
+  const dryRunIdx = getOptionIdx('dryRun', args);
+  const optionIdxSet = new Set([targetPathFlagIdx, configFilePathFlagIdx, dryRunIdx]);
+  const argsTracker = [ ...args ];
+  // Process `targetPath`
+  if (targetPathFlagIdx > -1) {
+    const targetPathValueIdx = targetPathFlagIdx + 1
+    if (!targetPathValueIdx || optionIdxSet.has(targetPathValueIdx)) {
+      throw new Error('The "path" command line flag was passed but no value was present.');
+    }
+    argsObj.targetPath = args[targetPathValueIdx];
+    argsTracker.splice(targetPathFlagIdx, 2);
+  }
+  // Process `configFilePath`
+  if (configFilePathFlagIdx > -1) {
+    const configFilePathValueIdx = configFilePathFlagIdx + 1
+    if (!configFilePathValueIdx || optionIdxSet.has(configFilePathValueIdx)) {
+      throw new Error('The "config" command line flag was passed but no value was present.');
+    }
+    argsObj.configFilePath = args[configFilePathValueIdx];
+    argsTracker.splice(configFilePathFlagIdx, 2);
+  }
+  // Process `dryRun`. Is just a boolean so has no value.
+  if (dryRunIdx > -1) {
+    argsObj.doDryRun = true;
+    argsTracker.splice(dryRunIdx, 1);
+  }
+  // Splicing should reduce the length of the final array to 0
+  if (argsTracker.length > 0) {
+    throw new Error(`Unknown option/s "${args.join(', ')}"`)
+  }
+  // Return
+  return argsObj;
+}
+
+/**
+ * @private
+ * @see {processCmdLineArgs}
  *
  * Get the value for an option flag: i.e. `-c ./config.json`
  */
@@ -137,7 +159,7 @@ function getOptionIdx(
 ): number {
   const optionFlags = CommandLineArgs.options[optionKey];
   const [shortFlag, longFlag] = optionFlags;
-  let optionIdx = args.indexOf(shortFlag);
+  const optionIdx = args.indexOf(shortFlag);
   if (optionIdx === -1) {
     return args.indexOf(longFlag);
   }

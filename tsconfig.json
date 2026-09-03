@@ -23,6 +23,6 @@
       "@FileUtils": ["./src/_common/utils/FileUtils"]
     }
   },
-  "include": ["src", "test", "./*.config.ts", "playground", "scripts"],
+  "include": ["src", "test", "eslint.config.ts", "playground", "scripts"],
   "exclude": ["node_modules", "lib", "bin"]
 }
