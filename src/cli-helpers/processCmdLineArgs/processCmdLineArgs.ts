@@ -1,6 +1,7 @@
 import path from 'path';
 
 import { CONFIG_FILE_NAME } from '@common/constants/misc';
+import { getRange } from '@common/utils/misc';
 
 // ========================================================================= //
 //                                 CONSTANTS                                 //
@@ -16,26 +17,29 @@ const DEFAULT_VALUES = {
   doDryRun: false,
 } as const satisfies ProcessedCmdLineArgs;
 
-const CommandLineArgs = {
-  // Helpers
-  helpers: {
-    help: ['-h', '--help'],
-    version: ['-v', '--version'],
-    init: ['-i', '--init'],
-  },
+const CmdLineArgFlags = {
+  // Helpers, run alone
+  help: ['-h', '--help'],
+  version: ['-v', '--version'],
+  init: ['-i', '--init'],
   // Options when inserting code-dividers
-  options: {
-    targetPath: ['-p', '--path'],
-    configFilePath: ['-c', '--config'],
-    dryRun: ['-dr', '--dry-run'],
-  },
+  targetPath: ['-p', '--path'],
+  configFilePath: ['-c', '--config'],
+  dryRun: ['-dr', '--dry-run'],
+} as const;
+
+const FlagGroups = {
+  Helpers: new Set<CmdLineArgKey>(['help', 'version', 'init']),
+  Options: new Set<CmdLineArgKey>(['targetPath', 'configFilePath', 'dryRun']),
 } as const;
 
 // ========================================================================= //
 //                                   TYPES                                   //
 // ========================================================================= //
 
-type CommandLineArgs = typeof CommandLineArgs;
+type CmdLineArgFlags = typeof CmdLineArgFlags;
+type CmdLineArgKey = keyof CmdLineArgFlags;
+type CmdLineArgMap = Map<CmdLineArgKey, number>;
 
 // Exported for testing purposes
 export interface ProcessedCmdLineArgs {
@@ -67,23 +71,58 @@ function processCmdLineArgs(args: string[]): ProcessedCmdLineArgs {
     targetPath: currWorkingDir,
     configFilePath: path.join(currWorkingDir, CONFIG_FILE_NAME),
   };
-  // Process Helpers
-  const arg1 = args[0];
-  const arg2 = args[1];
-  if (testHelperFlag('help', arg1)) {
-    return { ...argsObj, showHelp: true };
-  } else if (testHelperFlag('version', arg1)) {
-    return { ...argsObj, showVersion: true };
-  } else if (testHelperFlag('init', arg1)) {
-    return {
-      ...argsObj,
-      initializeDirectory: true,
-      initializeDirectoryPath: arg2 ?? process.cwd(),
-    };
+  if (!args.length) {
+    return argsObj;
   }
-  // Process Options
-  const argsNoEqualSigns = splitEqualsSign(args);
-  return processOptions(argsNoEqualSigns, argsObj);
+  // Process Helpers
+  const argsMap = setupCmdLineArgMap(args);
+  const arg1 = args[0];
+  if (FlagGroups.Helpers.has(arg1 as CmdLineArgKey)) {
+    if (argsMap.has('help')) {
+      return { ...argsObj, showHelp: true };
+    } else if
+  }
+
+  // // Process Helpers
+  // const arg1 = args[0];
+  // const arg2 = args[1];
+  // if (testHelperFlag('help', arg1)) {
+  //   return { ...argsObj, showHelp: true };
+  // } else if (testHelperFlag('version', arg1)) {
+  //   return { ...argsObj, showVersion: true };
+  // } else if (testHelperFlag('init', arg1)) {
+  //   return {
+  //     ...argsObj,
+  //     initializeDirectory: true,
+  //     initializeDirectoryPath: arg2 ?? process.cwd(),
+  //   };
+  // }
+  // // Process Options
+  // const argsNoEqualSigns = splitEqualsSign(args);
+  // return processOptions(argsNoEqualSigns, argsObj);
+}
+
+/**
+ * 
+ */
+function setupCmdLineArgMap(args: string[]): CmdLineArgMap {
+  const argMap: CmdLineArgMap = new Map();
+  // Remove equals sign for things like `--init=./some-path`
+  const argsNew = args.flatMap((arg) => {
+    const i = arg.indexOf('=');
+    return i === -1 ? [arg] : [arg.slice(0, i), arg.slice(i + 1)];
+  });
+  // Add keys/indexes to the map
+  for (const idx of getRange(argsNew.length)) {
+    const arg = argsNew[idx];
+    for (const flag in CmdLineArgFlags) {
+      if (flag.includes(arg)) {
+        argMap.set(flag as CmdLineArgKey, idx);
+      }
+    }
+  }
+  // Return
+  return argMap;
 }
 
 /**
@@ -94,10 +133,10 @@ function processCmdLineArgs(args: string[]): ProcessedCmdLineArgs {
  * function so should return right away.
  */
 function testHelperFlag(
-  key: keyof CommandLineArgs['helpers'],
+  key: keyof CmdLineArgFlags['helpers'],
   arg1: string,
 ): boolean {
-  const flags: string[] = [...CommandLineArgs.helpers[key]];
+  const flags: string[] = [...CmdLineArgFlags.helpers[key]];
   return flags.includes(arg1);
 }
 
@@ -178,10 +217,10 @@ function processOptions(
  * Get the value for an option flag: i.e. `-c ./config.json`
  */
 function getOptionIdx(
-  optionKey: keyof CommandLineArgs['options'],
+  optionKey: keyof CmdLineArgFlags['options'],
   args: string[],
 ): number {
-  const optionFlags = CommandLineArgs.options[optionKey];
+  const optionFlags = CmdLineArgFlags.options[optionKey];
   const [shortFlag, longFlag] = optionFlags;
   const optionIdx = args.indexOf(shortFlag);
   if (optionIdx === -1) {

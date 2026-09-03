@@ -86,6 +86,7 @@ describe.only('processCmdLineArgs', () => {
       const res4 = () => processCmdLineArgs(['some-folder', '--init']);
       expect(() => res4()).toThrow();
       const res5 = () => processCmdLineArgs(['-i', '--config']);
+      console.log(res5())
       expect(() => res5()).toThrow();
     });
   });
