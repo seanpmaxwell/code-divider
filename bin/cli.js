@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { onInit } from '../lib';
-import insertCodeDividers, { parseCmdLineArgs, initializeDirectory } from '../lib/index.js';
+// import { onInit } from '../lib';
+// import insertCodeDividers, { parseCmdLineArgs, initializeDirectory } from '../lib/index.js';
+import insertCodeDividers from '../lib/index.js';
 
 // ========================================================================= //
 //                                   INIT                                    //
@@ -26,7 +26,9 @@ await onInit(async () => {
   const args = process.argv.slice(2);
 
   // == Process Command-Line-Arguments == //
+  /** @see {ParsedCmdLineArgs} for `parsedArgs` type */
   const parsedArgs = await parseCmdLineArgs(args);
+  console.log() // pick up here, before continuing, import FileUtils
   if () {
 
   } else if () {
@@ -34,21 +36,19 @@ await onInit(async () => {
   }
 
   // == Insert Code-Dividers ==
-  const { paths, isDryRun } = result;
-  let total = 0;
-  for (const p of paths) {
-    try {
-      const filesChanged = insertCodeDividers(p);
-      total += filesChanged.length;
-    } catch (err) {
-      process.stderr.write(`code-divider: ${p}: ${err.message}\n`);
-      process.exitCode = 1;
-    }
+  let numOfFilesChanged = 0;
+  try {
+    const filesChanged = insertCodeDividers(p);
+    numOfFilesChanged = filesChanged.length;
+  } catch (err) {
+    process.stderr.write(`code-divider: ${p}: ${err.message}\n`);
+    process.exitCode = 1;
   }
+
 
   // == Print finished message == //
   const verb = isDryRun ? 'would be updated' : 'updated';
-  const message = `code-divider: ${total} file${total === 1 ? '' : 's'} ${verb}.\n`;
+  const message = `code-divider: ${numOfFilesChanged} file/s ${verb}.\n`;
   process.stdout.write(message);
 })();
 
