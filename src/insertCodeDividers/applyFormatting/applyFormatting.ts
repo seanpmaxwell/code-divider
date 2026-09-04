@@ -5,8 +5,10 @@ import type {
   ConfiguredLangSettings,
   ExtensionsMap,
 } from '@common/types/settings';
-import FileUtils, { FilePathMd } from '@FileUtils';
+
 import logger from '@logger';
+
+import FileUtils, { FilePathMd } from '@FileUtils';
 
 import formatLabel from './formatLabel';
 

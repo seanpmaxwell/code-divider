@@ -9,8 +9,10 @@ import type {
   InitalSettings,
   InitialLangSettings,
 } from '@common/types/settings.js';
-import FileUtils from '@FileUtils';
+
 import logger from '@logger';
+
+import FileUtils from '@FileUtils';
 
 import {
   validateLangSpecificSettings,

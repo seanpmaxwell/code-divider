@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import insertCodeDividers, { initializeDirectory } from '@src';
-import { onInit, parseCmdLineArgs } from '@src';
+import insertCodeDividers, {
+  initializeDirectory,
+  onInit,
+  parseCmdLineArgs,
+} from '@src/index';
 
 import logger from '@logger';
 

@@ -17,7 +17,7 @@
     "noEmit": true,
 
     "paths": {
-      "@src": ["./src/index.ts"],
+      "@src/*": ["./src/*"],
       "@common/*": ["./src/_common/*"],
       "@logger": ["./src/_common/utils/logger.ts"],
       "@FileUtils": ["./src/_common/utils/FileUtils"]

@@ -1,4 +1,5 @@
 import { FileEditResult } from '@common/types/misc.js';
+
 import FileUtils from '@FileUtils';
 
 import applyFormatting from './applyFormatting/applyFormatting';
