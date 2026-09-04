@@ -21,14 +21,3 @@ export async function asyncItrToArr<T>(
   }
   return out;
 }
-
-/**
- * Get an array of integers where each integer is the index in the array.
- * Shorter alternative to `for (let i = 0, i < ...`
- */
-export function getRange(n: number): number[] {
-  if (!Number.isInteger(n) || n < 0) {
-    throw new Error('n must be a positive integer');
-  }
-  return [...Array(n).keys()];
-}

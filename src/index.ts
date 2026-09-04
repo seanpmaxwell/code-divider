@@ -3,8 +3,10 @@ export { default as initializeDirectory } from './initializeDirectory/initialize
 export { default as default } from './insertCodeDividers/insertCodeDividers';
 
 // Command-line stuff
-export { default as onInit } from './cli-helpers/onInit';
 export {
-  default as processCmdLineArgs,
-  type ProcessedCmdLineArgs,
-} from './cli-helpers/processCmdLineArgs';
+  default as parseCmdLineArgs,
+  type ParsedCmdLineArgs,
+} from './cli-helpers/parseCmdLineArgs';
+
+// Misc
+export { default as onInit } from './cli-helpers/onInit';

@@ -1,4 +1,4 @@
-import { processCmdLineArgs, type ProcessedCmdLineArgs } from '@src';
+import { type ParsedCmdLineArgs, processCmdLineArgs } from '@src';
 import path from 'path';
 import { describe, expect, it } from 'vitest';
 
@@ -19,21 +19,21 @@ const DEFAULT_RESULT = {
   initializeDirectoryPath: CURRENT_WORKING_DIRECTORY,
   configFilePath: DEFAULT_CONFIG_FILE_PATH,
   targetPath: CURRENT_WORKING_DIRECTORY,
-} as const satisfies ProcessedCmdLineArgs;
+} as const satisfies ParsedCmdLineArgs;
 
 const SHOW_HELP_RESULT = {
   ...DEFAULT_RESULT,
   showHelp: true,
-} as const satisfies ProcessedCmdLineArgs;
+} as const satisfies ParsedCmdLineArgs;
 
 const SHOW_VERSION_RESULT = {
   ...DEFAULT_RESULT,
   showVersion: true,
-} as const satisfies ProcessedCmdLineArgs;
+} as const satisfies ParsedCmdLineArgs;
 
 const GetDefaultInitResult = (
   path = CURRENT_WORKING_DIRECTORY,
-): ProcessedCmdLineArgs => ({
+): ParsedCmdLineArgs => ({
   ...DEFAULT_RESULT,
   showVersion: false,
   initializeDirectory: true,
@@ -86,7 +86,7 @@ describe.only('processCmdLineArgs', () => {
       const res4 = () => processCmdLineArgs(['some-folder', '--init']);
       expect(() => res4()).toThrow();
       const res5 = () => processCmdLineArgs(['-i', '--config']);
-      console.log(res5())
+      console.log(res5());
       expect(() => res5()).toThrow();
     });
   });

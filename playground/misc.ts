@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import insertCodeDividers, { initializeDirectory } from '@src';
-import { onInit, processCmdLineArgs } from '@src';
+import { onInit, parseCmdLineArgs } from '@src';
 
 import logger from '@logger';
 
@@ -22,8 +22,8 @@ logger.info('horse');
 
 await onInit(async () => {
   logger.info('horse');
-  logger.info(processCmdLineArgs(['--help']));
-  logger.info(processCmdLineArgs(['-h']));
-  logger.info(processCmdLineArgs(['-h', 'horse']));
-  logger.info(processCmdLineArgs(['-h', 'horse']));
+  logger.info(parseCmdLineArgs(['--help']));
+  logger.info(parseCmdLineArgs(['-h']));
+  logger.info(parseCmdLineArgs(['-h', 'horse']));
+  logger.info(parseCmdLineArgs(['-h', 'horse']));
 });

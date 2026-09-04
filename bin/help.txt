@@ -2,21 +2,19 @@ code-divider - format separator / header comment markers
 
 Usage:
   code-divider [options] [paths...]
-  code-divider init
-
-Commands:
-  init             Generate a code-divider.config.json in the current directory
-                   containing all the default settings.
 
 Arguments:
-  paths            Files or directories to process (default: current
-                   directory). Directories are walked recursively, skipping
-                   node_modules and dotfiles.
+  paths              Files or directories to process (default: current
+                      directory). Directories are walked recursively, skipping
+                      node_modules and dotfiles.
 
 Options:
-  -n, --dry-run    Show what would change without writing any files.
-  -h, --help       Show this help.
-  -v, --version    Show the version.
+  -i, --init <value>    Initialize with the given value.
+  -h, --help            Show this help.
+  -d, --dry-run         Show what would change without writing any files.
+  -p, --path <value>    Path to operate on.
+  -c, --config <value>  Config file to use.
+  -v, --version         Show the version.
 
 Markers (rewritten in place, centered and padded to the character limit):
   // @reg Label    Region  -> a 3-line boxed header block.
