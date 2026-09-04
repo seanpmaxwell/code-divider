@@ -5,41 +5,36 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import { onInit } from '../lib';
-import insertCodeDividers, { initializeDirectory } from '../lib/index.js';
+import insertCodeDividers, { parseCmdLineArgs, initializeDirectory } from '../lib/index.js';
 
 // ========================================================================= //
 //                                   INIT                                    //
 // ========================================================================= //
 
-// Module-load entry point. Wrapped in a named function (rather than firing
-// directly at module scope) so early exits can use `return` and the async
-// work below can be awaited properly.
+/**
+ * Parsed command-line arguments for the `code-divider` CLI.
+ *
+ * @typedef {Object} ParsedCmdLineArgs
+ * @property {boolean} help - Whether `--help`/`-h` was passed.
+ * @property {boolean} version - Whether `--version`/`-v` was passed.
+ * @property {string} init - Target directory for the `init` command.
+ * @property {boolean} dryRun - Whether `--dry-run`/`-n` was passed.
+ * @property {string} path - The target path to process.
+ * @property {string} config - Path to the config file to use.
+ */
 await onInit(async () => {
-  // == Initialize a directory == //
-  // `init` option generates a default config file instead of inserting
-  // code-dividers
   const args = process.argv.slice(2);
-  if (args[0] === 'init') {
-    try {
-      const filePath = initializeDirectory();
-      process.stdout.write(`code-divider: created ${filePath}\n`);
-    } catch (err) {
-      process.stderr.write(`code-divider: ${err.message}\n`);
-      process.exitCode = 1;
-    }
-    return;
-  }
 
   // == Process Command-Line-Arguments == //
-  // Process other command line arguments (besides `init`). A null result means
-  // the args were fully handled already (e.g. --help/--version), so stop here.
-  const result = await processCommandLineArgs(args);
-  if (!result) {
-    return;
-  }
-  const { paths, isDryRun } = result;
+  const parsedArgs = await parseCmdLineArgs(args);
+  if () {
 
-  // == Insert Code-Dividers == //
+  } else if () {
+
+  }
+
+  // == Insert Code-Dividers ==
+  const { paths, isDryRun } = result;
   let total = 0;
   for (const p of paths) {
     try {
@@ -51,8 +46,7 @@ await onInit(async () => {
     }
   }
 
-  // == Finish == //
-  // Print finished message
+  // == Print finished message == //
   const verb = isDryRun ? 'would be updated' : 'updated';
   const message = `code-divider: ${total} file${total === 1 ? '' : 's'} ${verb}.\n`;
   process.stdout.write(message);
@@ -76,6 +70,19 @@ async function processCommandLineArgs(args) {
   // Get the directory of the the command-line-file
   const cliFilePath = fileURLToPath(import.meta.url);
   const cliFileDir = path.dirname(cliFilePath);
+
+
+  //   if (args[0] === 'init') {
+  //   try {
+  //     const filePath = initializeDirectory();
+  //     process.stdout.write(`code-divider: created ${filePath}\n`);
+  //   } catch (err) {
+  //     process.stderr.write(`code-divider: ${err.message}\n`);
+  //     process.exitCode = 1;
+  //   }
+  //   return;
+  // }
+
   // Init retVal
   const retVal = {
     paths: [],

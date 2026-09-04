@@ -68,8 +68,8 @@ describe('FileUtils', () => {
     });
   });
 
-  // Test: `basicSearch`
-  describe('.filterDirItems`', () => {
+  // Test: `.basicSearch`
+  describe('.basicSearch`', () => {
     // Normal
     it('should work as expected', async () => {
       const result = await FileUtils.basicSearch(
