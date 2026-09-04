@@ -2,8 +2,7 @@
 import insertCodeDividers from '@src/index';
 
 import logger from '@logger';
-import onInit from '@src/cli-helpers/onInit';
-import parseCmdLineArgs from '@src/cli-helpers/parseCmdLineArgs';
+import { onInit, parseCmdLineArgs } from '@src/cli-helpers';
 
 // @reg run
 

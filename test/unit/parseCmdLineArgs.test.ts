@@ -1,10 +1,7 @@
 import path from 'path';
 import { describe, expect, it } from 'vitest';
 
-import parseCmdLineArgs, {
-  type ParsedCmdLineArgs,
-} from '@src/cli-helpers/parseCmdLineArgs';
-
+import { parseCmdLineArgs, type ParsedCmdLineArgs } from '@src/cli-helpers';
 import { CONFIG_FILE_NAME } from '@common/constants/misc';
 
 // ========================================================================= //

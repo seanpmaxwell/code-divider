@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 
 import path from 'path';
+import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 
 // import { onInit } from '../lib';
 // import insertCodeDividers, { parseCmdLineArgs, initializeDirectory } from '../lib/index.js';
-import insertCodeDividers from '../lib/index.js';
+import insertCodeDividers from '../lib';
+import { onInit, parseCmdLineArgs } from '../lib/cli-helpers';
 
 // ========================================================================= //
 //                                   INIT                                    //
@@ -29,11 +31,18 @@ await onInit(async () => {
   /** @see {ParsedCmdLineArgs} for `parsedArgs` type */
   const parsedArgs = await parseCmdLineArgs(args);
   console.log() // pick up here, before continuing, import FileUtils
-  if () {
-
-  } else if () {
+  if (args.length === 1) {
+    if (parsedArgs.help) {
+      const cliFilePath = fileURLToPath(import.meta.url);
+      const cliFileDir = path.dirname(cliFilePath);
+      return loadHelpArgContent(cliFileDir);
+    }
+  }
+  // Init
+  if (args.length <=2 && parsedArgs.init) {
 
   }
+
 
   // == Insert Code-Dividers ==
   let numOfFilesChanged = 0;
@@ -56,73 +65,73 @@ await onInit(async () => {
 //                                 FUNCTIONS                                 //
 // ========================================================================= //
 
-/**
- * @private
- *
- * Process the command-line arguments. If running insertCodeDividers, return an
- * object with an array of paths (strings) and whether to do a dry-run, if not
- * return `null`.
- *
- * @param {string[]} args
- * @returns {object | null}
- */
-async function processCommandLineArgs(args) {
-  // Get the directory of the the command-line-file
-  const cliFilePath = fileURLToPath(import.meta.url);
-  const cliFileDir = path.dirname(cliFilePath);
+// /**
+//  * @private
+//  *
+//  * Process the command-line arguments. If running insertCodeDividers, return an
+//  * object with an array of paths (strings) and whether to do a dry-run, if not
+//  * return `null`.
+//  *
+//  * @param {string[]} args
+//  * @returns {object | null}
+//  */
+// async function processCommandLineArgs(args) {
+//   // Get the directory of the the command-line-file
+//   const cliFilePath = fileURLToPath(import.meta.url);
+//   const cliFileDir = path.dirname(cliFilePath);
 
 
-  //   if (args[0] === 'init') {
-  //   try {
-  //     const filePath = initializeDirectory();
-  //     process.stdout.write(`code-divider: created ${filePath}\n`);
-  //   } catch (err) {
-  //     process.stderr.write(`code-divider: ${err.message}\n`);
-  //     process.exitCode = 1;
-  //   }
-  //   return;
-  // }
+//   //   if (args[0] === 'init') {
+//   //   try {
+//   //     const filePath = initializeDirectory();
+//   //     process.stdout.write(`code-divider: created ${filePath}\n`);
+//   //   } catch (err) {
+//   //     process.stderr.write(`code-divider: ${err.message}\n`);
+//   //     process.exitCode = 1;
+//   //   }
+//   //   return;
+//   // }
 
-  // Init retVal
-  const retVal = {
-    paths: [],
-    isDryRun: false,
-  };
-  // Process other command line arguments (besides init)
-  for (const arg of args) {
-    switch (arg) {
-      case '-h':
-      case '--help': {
-        const content = await loadHelpArgContent(cliFileDir);
-        process.stdout.write(content);
-        return null;
-      }
-      case '-v':
-      case '--version': {
-        const version = readVersion(cliFileDir);
-        process.stdout.write(`${version}\n`);
-        return null;
-      }
-      case '-n':
-      case '--dry-run':
-        retVal.isDryRun = true;
-        break;
-      default:
-        if (arg.startsWith('-')) {
-          process.stderr.write(`code-divider: unknown option '${arg}'\n`);
-          process.exitCode = 1;
-          return null;
-        }
-        retVal.paths.push(arg);
-    }
-  }
-  // If no paths, use the current directory.
-  if (retVal.paths.length === 0) {
-    retVal.paths.push('.');
-  }
-  // Return
-  return retVal;
-}
+//   // Init retVal
+//   const retVal = {
+//     paths: [],
+//     isDryRun: false,
+//   };
+//   // Process other command line arguments (besides init)
+//   for (const arg of args) {
+//     switch (arg) {
+//       case '-h':
+//       case '--help': {
+//         const content = await loadHelpArgContent(cliFileDir);
+//         process.stdout.write(content);
+//         return null;
+//       }
+//       case '-v':
+//       case '--version': {
+//         const version = readVersion(cliFileDir);
+//         process.stdout.write(`${version}\n`);
+//         return null;
+//       }
+//       case '-n':
+//       case '--dry-run':
+//         retVal.isDryRun = true;
+//         break;
+//       default:
+//         if (arg.startsWith('-')) {
+//           process.stderr.write(`code-divider: unknown option '${arg}'\n`);
+//           process.exitCode = 1;
+//           return null;
+//         }
+//         retVal.paths.push(arg);
+//     }
+//   }
+//   // If no paths, use the current directory.
+//   if (retVal.paths.length === 0) {
+//     retVal.paths.push('.');
+//   }
+//   // Return
+//   return retVal;
+// }
 
 /**
  * @private
@@ -134,7 +143,8 @@ async function processCommandLineArgs(args) {
  */
 async function loadHelpArgContent(cliFileDir) {
   const helpContentFilePath = path.join(cliFileDir, 'help.txt');
-  return fs.readFile(helpContentFilePath);
+  const content = await fs.readFile(helpContentFilePath);
+  return process.stdout.write(content);
 }
 
 /**
