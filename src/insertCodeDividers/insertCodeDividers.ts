@@ -1,3 +1,6 @@
+import path from 'path';
+
+import { CONFIG_FILE_NAME } from '@common/constants/misc';
 import { FileEditResult } from '@common/types/misc.js';
 
 import FileUtils from '@FileUtils';
@@ -14,31 +17,33 @@ import configureSettings from './configureSettings/configureSettings';
  * Returns the list of file paths that were updated.
  */
 async function insertCodeDividers(
-  targetPath = process.cwd(),
+  cwd: string,
+  targetPath: string,
+  configFilePath: string,
+  isDryRun: boolean,
 ): Promise<string[]> {
-  // There's an issue with how targetPath and default include in the configSettings
-  // is getting loaded.
-  // Maybe the command line path should point to what to include: file or directory
-  // Use a flag to set the configFile path to another directory
-  // If there's not configpath flag look in current directory
-  // if there's no configPath in current directory or directory set through flag
-  // go with default settings.
-
-  console.log('targetPath', targetPath);
   // Load settings
-  const { filter, extensionsMap } = await configureSettings(targetPath);
-  console.log('filter', filter);
-  // Setup list of files to inspect
-  const fileDTOs = await FileUtils.globSearch(
-    filter.include,
-    filter.exclude,
+  const configuredSettings = await configureSettings(
+    cwd,
     targetPath,
+    configFilePath,
   );
-  console.log('globSearch', fileDTOs);
+  // Setup list of files to inspect
+  let fileDTOs: File = [];
+  if (configuredSettings.targetFile === null) {
+    const { filter, targetDir } = configuredSettings;
+    const fileDTOs = await FileUtils.globSearch(
+      filter.include,
+      filter.exclude,
+      targetDir,
+    );
+  }
+
   // Insert code-dividers
   const updatedFiles: FileEditResult[] = await applyFormatting(
     fileDTOs,
-    extensionsMap,
+    configuredSettings.extensionsMap,
+    isDryRun,
   );
   // Return
   return updatedFiles.map((file) => file.fullPath);

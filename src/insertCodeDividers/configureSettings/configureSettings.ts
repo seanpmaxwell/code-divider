@@ -31,6 +31,17 @@ const Markers = {
 } as const;
 
 // ========================================================================= //
+//                                   TYPES                                   //
+// ========================================================================= //
+
+interface ConfiguredSettings {
+  filter: FilterSettings; 
+  extensionsMap: ExtensionsMap;
+  targetDir: string;
+  targetFile: string | null;
+}
+
+// ========================================================================= //
 //                                 FUNCTIONS                                 //
 // ========================================================================= //
 
@@ -39,37 +50,110 @@ const Markers = {
  * Returns the list of file paths that were updated.
  */
 async function configureSettings(
-  targetPath = process.cwd(),
-): Promise<{ filter: FilterSettings; extensionsMap: ExtensionsMap }> {
+  cwd: string,
+  targetPath: string,
+  configFilePath: string,
+): Promise<ConfiguredSettings> {
   // Load settings
-  const dirPath = await configDirFor(targetPath);
-  const { filter, All, ...other } = await loadConfig(dirPath);
+  const { targetDir, targetFile } = await getTargetPaths(cwd, targetPath);
+  const configFilePathNew = await getConfigFilePath(cwd, targetDir, configFilePath);
+  const initConfigSettings = await getInitialConfigSettings(configFilePathNew);
+  const { All, filter, ...other } = initConfigSettings;
   // Run validations for just the `All` settings
   validateSharedSettings('All', All);
-  // Configure Settings
-  const configuredLangSettings = Object.keys(other).map((lang) =>
+  // Configure extensions map
+  const finalConfigSettings = Object.keys(other).map((lang) =>
     configureLangEntry(lang, other[lang] as InitialLangSettings),
   );
-  // Configure extensions map
-  const extensionsMap = setupExtensionsMap(configuredLangSettings);
+  const extensionsMap = setupExtensionsMap(finalConfigSettings);
   // Return
   return {
     filter,
     extensionsMap,
+    targetDir,
+    targetFile,
   };
+}
+
+/**
+ * @private
+ * @see {configSettings}
+ * 
+ * Get the target directory and file (file may be falsey)
+ */
+async function getTargetPaths(
+  cwd: string,
+  targetPath: string,
+): Promise<{ targetDir: string; targetFile: string | null }> {
+  // Check exists
+  const exists = await FileUtils.exists(targetPath);
+  if (!exists) {
+    throw new Error(
+      `targetPath ${targetPath} must be an existing file or directory`,
+    );
+  }
+  // If directory
+  const isDir = await FileUtils.isDir(targetPath);
+  if (isDir) return { targetDir: targetPath, targetFile: null };
+  // If file
+  const targetFile = path.isAbsolute(targetPath)
+    ? targetPath
+    : path.join(cwd, targetPath);
+  const targetDir = path.dirname(targetFile);
+  return { targetDir, targetFile };
 }
 
 /**
  * @private
  * @see {configureSettings}
  *
- * Check if a configuration file exists. If it does, override settings from the
- * configuration file into the default file.
+ * Order of priority with loading the configuration file:
+ *   1. Explicitly set with flag: `--config`
+ *   2. Look in the target directory
+ *   3. Look in the current working directory
+ *   4. If no configuration file exists, later workflow will use in-memory
+ *     settings only.
  */
-async function loadConfig(cwd: string): Promise<InitalSettings> {
-  // -- Initialize -- //
-  // Set a starting point for the configuration object using the `DefaultConfig`
-  // object and pulling in `All` settings.
+async function getConfigFilePath(
+  cwd: string,
+  targetDir: string,
+  configFilePath: string,
+): Promise<string | null> {
+  // If the configuration file path was passed 
+  if (configFilePath) {
+    const exists = await FileUtils.exists(configFilePath);
+    if (!exists)
+      throw new Error(
+        `Configuration file ${configFilePath} was specified but was not found`,
+      );
+    return path.join(cwd, configFilePath);
+  }
+  // Look in the target directory
+  const localConfigFile = path.join(targetDir, CONFIG_FILE_NAME);
+  const exists = await FileUtils.exists(localConfigFile);
+  if (exists) return localConfigFile;
+  // Look in the current working directory
+  const cwdConfigFile = path.join(cwd, CONFIG_FILE_NAME);
+  const cwdConfigFileExists = await FileUtils.exists(cwdConfigFile);
+  if (cwdConfigFileExists) return cwdConfigFile;
+  // Use `null` if there's no configuration file anywhere.
+  return null;
+}
+
+/**
+ * @private
+ * @see {configureSettings}
+ *
+ * If the `configFilePath` param is not null, load it and combine it with the 
+ * in memory settings, else just return the in memory settings.
+ * 
+ * Don't need to do any file validation, previous workflow should only pass a 
+ * non-null value if the config file was found.
+ */
+async function getInitialConfigSettings(configFilePath: string | null): Promise<InitalSettings> {
+  // == Initialize == //
+  // Setup the in memory settings. All should be the filler for missing 
+  // individual language settings.
   const retVal: InitalSettings = {
     ...DefaultConfig,
     All: { ...DefaultConfig.All },
@@ -81,48 +165,22 @@ async function loadConfig(cwd: string): Promise<InitalSettings> {
       ...retVal[key],
     };
   });
+  if (configFilePath === null) return retVal;
 
-  // -- Apply Settings from Configuration File -- //
-  // Check Configuration File exists, otherwise use defaults
-  const fileConfigPath = path.join(cwd, CONFIG_FILE_NAME);
-  const hasConfigFile = await FileUtils.exists(fileConfigPath);
-  if (!hasConfigFile) return retVal;
-  // Load overrides from config file
-  let fileConfig: InitalSettings;
-  try {
-    fileConfig = await FileUtils.loadJsonFile<InitalSettings>(fileConfigPath);
-  } catch (err) {
-    const reason = err instanceof Error ? err.message : String(err);
-    const message = `invalid ${CONFIG_FILE_NAME}: ${reason}`;
-    throw new Error(message, { cause: err });
-  }
-  // Combine default settings with file settings.
-  Object.keys(fileConfig).forEach((key) => {
-    const overridesFromFile = fileConfig[key] as InitialLangSettings;
+  // == Apply Settings from Configuration File == //
+  // Note: `.loadJsonFile` will check that it's a valid .json file
+  const jsonFileSettings: InitalSettings = await FileUtils.loadJsonFile<InitalSettings>(configFilePath);
+  logger.info(`Using configuration overrides from: ${configFilePath}`);
+  Object.keys(jsonFileSettings).forEach((key) => {
+    const overridesFromFile = jsonFileSettings[key] as InitialLangSettings;
     retVal[key] = {
       ...retVal[key],
       ...overridesFromFile,
     };
   });
 
-  // -- Return -- //
-  logger.info(`Using config overrides from: ${fileConfigPath}`);
+  // == Return == //
   return retVal;
-}
-
-/**
- * @private
- * @see {configureSettings}
- *
- * Directory whose code-divider.config.json applies to a target path: the target's own
- * directory if it has one, otherwise the directory code-divider is being run from.
- */
-async function configDirFor(targetPath: string): Promise<string> {
-  const isTargetDir = await FileUtils.isDir(targetPath);
-  const targetPathFull = isTargetDir ? targetPath : path.dirname(targetPath);
-  const configFilePath = path.join(targetPathFull, CONFIG_FILE_NAME);
-  const exists = await FileUtils.exists(configFilePath);
-  return exists ? targetPathFull : process.cwd();
 }
 
 /**

@@ -1,21 +1,21 @@
 #!/usr/bin/env node
 
-import path from 'path';
 import fs from 'fs/promises';
+import path from 'path';
 import { fileURLToPath } from 'url';
 
-// import { onInit } from '../lib';
-// import insertCodeDividers, { parseCmdLineArgs, initializeDirectory } from '../lib/index.js';
 import insertCodeDividers from '../lib';
-import { onInit, parseCmdLineArgs } from '../lib/cli-helpers';
+import {
+  initializeDirectory,
+  onInit,
+  parseCmdLineArgs,
+} from '../lib/cli-helpers';
 
 // ========================================================================= //
-//                                   INIT                                    //
+//                                   DOCS                                    //
 // ========================================================================= //
 
 /**
- * Parsed command-line arguments for the `code-divider` CLI.
- *
  * @typedef {Object} ParsedCmdLineArgs
  * @property {boolean} help - Whether `--help`/`-h` was passed.
  * @property {boolean} version - Whether `--version`/`-v` was passed.
@@ -24,39 +24,48 @@ import { onInit, parseCmdLineArgs } from '../lib/cli-helpers';
  * @property {string} path - The target path to process.
  * @property {string} config - Path to the config file to use.
  */
+
+// ========================================================================= //
+//                                   INIT                                    //
+// ========================================================================= //
+
+/**
+ * Parsed command-line arguments for the `code-divider` CLI.
+ */
 await onInit(async () => {
   const args = process.argv.slice(2);
+  const cwd = process.cwd();
 
   // == Process Command-Line-Arguments == //
-  /** @see {ParsedCmdLineArgs} for `parsedArgs` type */
+  /** @see {ParsedCmdLineArgs} above for type */
   const parsedArgs = await parseCmdLineArgs(args);
-  console.log() // pick up here, before continuing, import FileUtils
   if (args.length === 1) {
+    const thisFilePath = fileURLToPath(import.meta.url);
+    const thisFileDir = path.dirname(thisFilePath);
     if (parsedArgs.help) {
-      const cliFilePath = fileURLToPath(import.meta.url);
-      const cliFileDir = path.dirname(cliFilePath);
-      return loadHelpArgContent(cliFileDir);
+      return loadHelpArgContent(thisFileDir);
+    } else if (parsedArgs.version) {
+      return readVersion(thisFileDir);
     }
   }
-  // Init
-  if (args.length <=2 && parsedArgs.init) {
-
+  // Add a configuration file to a directory
+  if ([1, 2].includes(args.length) && parsedArgs.init) {
+    return addConfigFileToDir(parsedArgs.init);
   }
 
-
-  // == Insert Code-Dividers ==
+  // == Insert Code-Dividers == //
   let numOfFilesChanged = 0;
   try {
-    const filesChanged = insertCodeDividers(p);
+    const { path, config, dryRun } = parsedArgs;
+    const filesChanged = insertCodeDividers(cwd, path, config, dryRun);
     numOfFilesChanged = filesChanged.length;
   } catch (err) {
     process.stderr.write(`code-divider: ${p}: ${err.message}\n`);
     process.exitCode = 1;
   }
 
-
   // == Print finished message == //
-  const verb = isDryRun ? 'would be updated' : 'updated';
+  const verb = parsedArgs.dryRun ? 'would be updated' : 'updated';
   const message = `code-divider: ${numOfFilesChanged} file/s ${verb}.\n`;
   process.stdout.write(message);
 })();
@@ -79,7 +88,6 @@ await onInit(async () => {
 //   // Get the directory of the the command-line-file
 //   const cliFilePath = fileURLToPath(import.meta.url);
 //   const cliFileDir = path.dirname(cliFilePath);
-
 
 //   //   if (args[0] === 'init') {
 //   //   try {
@@ -153,11 +161,26 @@ async function loadHelpArgContent(cliFileDir) {
  * Look at the package.json and return the version.
  *
  * @param {string} cliFileDir
- * @returns {string}
+ * @returns {Promise<string>}
  */
 async function readVersion(cliFileDir) {
   const filePath = path.join(cliFileDir, '..', 'package.json');
   const content = await fs.readFile(filePath);
   const packageJson = JSON.parse(content);
   return packageJson.version;
+}
+
+/**
+ * @private
+ *
+ * @param {string} targetDir
+ */
+async function addConfigFileToDir(targetDir) {
+  try {
+    const filePath = initializeDirectory(targetDir);
+    process.stdout.write(`code-divider: created ${filePath}\n`);
+  } catch (err) {
+    process.stderr.write(`code-divider: ${err.message}\n`);
+    process.exitCode = 1;
+  }
 }

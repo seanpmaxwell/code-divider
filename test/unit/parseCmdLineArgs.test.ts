@@ -2,6 +2,7 @@ import path from 'path';
 import { describe, expect, it } from 'vitest';
 
 import { parseCmdLineArgs, type ParsedCmdLineArgs } from '@src/cli-helpers';
+
 import { CONFIG_FILE_NAME } from '@common/constants/misc';
 
 // ========================================================================= //
@@ -40,7 +41,7 @@ const GetDefaultInitResult = (path = CWD): ParsedCmdLineArgs => ({
 // ========================================================================= //
 
 describe.only('parseCmdLineArgs', () => {
-  console.log() // pick up here, make sure existing tests still work
+  console.log(); // pick up here, make sure existing tests still work
   describe('help flag [-h, --help]', () => {
     it('should work as expected', async () => {
       const res1 = parseCmdLineArgs(['--help']);

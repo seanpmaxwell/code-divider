@@ -4,7 +4,7 @@ import path from 'path';
 //                                   TYPES                                   //
 // ========================================================================= //
 
-export interface FilePathMd {
+export interface FilePathDTO {
   absolutePath: string;
   parentPath: string;
   relativePath: string;
@@ -22,7 +22,7 @@ export interface FilePathMd {
  * Convert a filePath to a `FilePathMd` object. Note, if you don't pass
  * parentPath then filePath must be an absolute path.
  */
-function parse(filePath: string, parentPath?: string): FilePathMd {
+function parse(filePath: string, parentPath?: string): FilePathDTO {
   if (path.isAbsolute(filePath)) {
     return parseFromAbsolutePath(filePath);
   }
@@ -42,7 +42,7 @@ function parse(filePath: string, parentPath?: string): FilePathMd {
 function parseFromSplitPaths(
   relativePathParam: string,
   parentPath: string,
-): FilePathMd {
+): FilePathDTO {
   // Validate parent path
   if (!path.isAbsolute(parentPath)) {
     throw new Error('parentPath must be absolute');
@@ -67,7 +67,7 @@ function parseFromSplitPaths(
  * Get file path data from the absolute path and the relativePath from the
  * current working directory.
  */
-function parseFromAbsolutePath(absPath: string): FilePathMd {
+function parseFromAbsolutePath(absPath: string): FilePathDTO {
   // Make sure it's an absolute path
   if (!path.isAbsolute(absPath)) {
     throw new Error('.of must receive an absolute path');

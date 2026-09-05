@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { onInit, parseCmdLineArgs } from '@src/cli-helpers';
 import insertCodeDividers from '@src/index';
 
 import logger from '@logger';
-import { onInit, parseCmdLineArgs } from '@src/cli-helpers';
 
 // @reg run
 

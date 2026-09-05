@@ -8,7 +8,7 @@ import type {
 
 import logger from '@logger';
 
-import FileUtils, { FilePathMd } from '@FileUtils';
+import FileUtils, { FilePathDTO } from '@FileUtils';
 
 import formatLabel from './formatLabel';
 
@@ -20,16 +20,20 @@ import formatLabel from './formatLabel';
  * Look at file extension and load it if it matches the extension. Then
  */
 async function applyFormatting(
-  files: FilePathMd[],
+  files: FilePathDTO[],
   extensionsMap: ExtensionsMap,
+  isDryRun: boolean,
 ): Promise<FileEditResult[]> {
-  console.log('files', files);
   // Iterate the list of files
   const editFileJobs: Promise<FileEditResult | null>[] = [];
   for (const file of files) {
     const settingsObj = extensionsMap.get(file.ext);
     if (settingsObj) {
-      const job = applyFormattingToOneFile(file.absolutePath, settingsObj);
+      const job = applyFormattingToOneFile(
+        file.absolutePath,
+        settingsObj,
+        isDryRun,
+      );
       if (job) editFileJobs.push(job);
     }
   }
@@ -47,7 +51,7 @@ async function applyFormatting(
 async function applyFormattingToOneFile(
   fileFullPath: string,
   settingsObj: ConfiguredLangSettings,
-  isDryRun = false,
+  isDryRun: boolean,
 ): Promise<FileEditResult | null> {
   // -- Load content -- //
   const content = await FileUtils.read(fileFullPath);

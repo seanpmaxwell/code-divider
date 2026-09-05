@@ -7,9 +7,7 @@ import logger from '@common/utils/logger';
 /**
  * Default function.
  */
-async function onInit<T>(
-  cb: () => Promise<T>,
-): Promise<T | void> {
+async function onInit<T>(cb: () => Promise<T>): Promise<T | void> {
   try {
     const result = await cb();
     return result;

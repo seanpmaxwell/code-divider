@@ -6,7 +6,7 @@ import { asyncItrToArr, isUsingNode22orAbove } from '@common/utils/misc';
 
 import logger from '@logger';
 
-import parse, { FilePathMd } from './parse';
+import parse, { FilePathDTO } from './parse';
 
 // ========================================================================= //
 //                                 CONSTANTS                                 //
@@ -145,7 +145,7 @@ async function globSearch(
   include: string[] = [],
   exclude: string[] = [],
   targetPath: string,
-): Promise<FilePathMd[]> {
+): Promise<FilePathDTO[]> {
   // Check node version first
   if (!isUsingNode22orAbove()) {
     logger.warn(
@@ -175,7 +175,7 @@ async function basicSearch(
   include: string[] = [],
   exclude: string[] = [],
   targetPath: string,
-): Promise<FilePathMd[]> {
+): Promise<FilePathDTO[]> {
   let items = await listDirItemsDeep(targetPath);
   if (include.length > 0) {
     items = items.filter((item) => basicSearchHelper(item, include));
@@ -200,6 +200,10 @@ function basicSearchHelper(path: string, searchArr: string[]): boolean {
 async function loadJsonFile<T = Record<string, unknown>>(
   filePath: string,
 ): Promise<T> {
+  // Check extension
+  const ext = path.extname(filePath);
+  if (ext !== '.json') throw new Error('To load a JSON file, extension must be .json');
+  // Load file
   const fileContent = await fs.readFile(filePath, 'utf8');
   // Parse it
   let parsed: unknown;
@@ -248,7 +252,7 @@ function defaultStringify(value: unknown): string {
 /**
  * `fs.glob` returns a Dirent object instead of a string so we need to format
  */
-function parseDirent(dirent: Dirent<string>): FilePathMd {
+function parseDirent(dirent: Dirent<string>): FilePathDTO {
   const { name, parentPath } = dirent;
   const fullPath = path.join(parentPath, name);
   const mdObj = parse(fullPath);

@@ -7,12 +7,6 @@ import customStringifyObject from '@common/utils/customStringifyObject';
 import FileUtils from '@FileUtils';
 
 // ========================================================================= //
-//                                 CONSTANTS                                 //
-// ========================================================================= //
-
-const CONFIG_FILE_ALREADY_EXISTS_ERROR = `${CONFIG_FILE_NAME} already exists here, not overwriting`;
-
-// ========================================================================= //
 //                                 FUNCTIONS                                 //
 // ========================================================================= //
 
@@ -21,13 +15,16 @@ const CONFIG_FILE_ALREADY_EXISTS_ERROR = `${CONFIG_FILE_NAME} already exists her
  * code-divider is being run from) containing all the default settings. Refuses to
  * overwrite an existing config. Returns the path of the written file.
  */
-async function initializeDirectory(
-  dir: string = process.cwd(),
-): Promise<string> {
-  // Setup file path
-  const configPath = path.join(dir, CONFIG_FILE_NAME);
-  if (await FileUtils.exists(configPath)) {
-    throw new Error(CONFIG_FILE_ALREADY_EXISTS_ERROR);
+async function initializeDirectory(targetDir: string): Promise<string> {
+  // Get the directory
+  const targetDirNew = targetDir || process.cwd();
+  const isDir = await FileUtils.isDir(targetDirNew);
+  if (!isDir) throw new Error('target path is not a directory');
+  // Get the path for the configuration file
+  const configPath = path.join(targetDirNew, CONFIG_FILE_NAME);
+  const configAlreadyExists = await FileUtils.exists(configPath);
+  if (configAlreadyExists) {
+    throw new Error(`${CONFIG_FILE_NAME} already exists here, not overwriting`);
   }
   // Save file content to JSON file
   await FileUtils.saveJsonFile(

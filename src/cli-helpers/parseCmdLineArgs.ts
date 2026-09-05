@@ -22,6 +22,7 @@ const PARSE_ARG_OPTIONS = {
 //                                   TYPES                                   //
 // ========================================================================= //
 
+// Empty strings for falsey arguments
 export interface ParsedCmdLineArgs {
   help: boolean;
   version: boolean;

@@ -1,2 +1,2 @@
 export { default as default } from './FileUtils';
-export { type FilePathMd } from './parse';
+export { type FilePathDTO } from './parse';
