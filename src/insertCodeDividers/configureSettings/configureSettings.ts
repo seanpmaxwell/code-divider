@@ -35,7 +35,7 @@ const Markers = {
 // ========================================================================= //
 
 interface ConfiguredSettings {
-  filter: FilterSettings; 
+  filter: FilterSettings;
   extensionsMap: ExtensionsMap;
   targetDir: string;
   targetFile: string | null;
@@ -56,7 +56,11 @@ async function configureSettings(
 ): Promise<ConfiguredSettings> {
   // Load settings
   const { targetDir, targetFile } = await getTargetPaths(cwd, targetPath);
-  const configFilePathNew = await getConfigFilePath(cwd, targetDir, configFilePath);
+  const configFilePathNew = await getConfigFilePath(
+    cwd,
+    targetDir,
+    configFilePath,
+  );
   const initConfigSettings = await getInitialConfigSettings(configFilePathNew);
   const { All, filter, ...other } = initConfigSettings;
   // Run validations for just the `All` settings
@@ -78,7 +82,7 @@ async function configureSettings(
 /**
  * @private
  * @see {configSettings}
- * 
+ *
  * Get the target directory and file (file may be falsey)
  */
 async function getTargetPaths(
@@ -119,7 +123,7 @@ async function getConfigFilePath(
   targetDir: string,
   configFilePath: string,
 ): Promise<string | null> {
-  // If the configuration file path was passed 
+  // If the configuration file path was passed
   if (configFilePath) {
     const exists = await FileUtils.exists(configFilePath);
     if (!exists)
@@ -144,15 +148,17 @@ async function getConfigFilePath(
  * @private
  * @see {configureSettings}
  *
- * If the `configFilePath` param is not null, load it and combine it with the 
+ * If the `configFilePath` param is not null, load it and combine it with the
  * in memory settings, else just return the in memory settings.
- * 
- * Don't need to do any file validation, previous workflow should only pass a 
+ *
+ * Don't need to do any file validation, previous workflow should only pass a
  * non-null value if the config file was found.
  */
-async function getInitialConfigSettings(configFilePath: string | null): Promise<InitalSettings> {
+async function getInitialConfigSettings(
+  configFilePath: string | null,
+): Promise<InitalSettings> {
   // == Initialize == //
-  // Setup the in memory settings. All should be the filler for missing 
+  // Setup the in memory settings. All should be the filler for missing
   // individual language settings.
   const retVal: InitalSettings = {
     ...DefaultConfig,
@@ -169,7 +175,8 @@ async function getInitialConfigSettings(configFilePath: string | null): Promise<
 
   // == Apply Settings from Configuration File == //
   // Note: `.loadJsonFile` will check that it's a valid .json file
-  const jsonFileSettings: InitalSettings = await FileUtils.loadJsonFile<InitalSettings>(configFilePath);
+  const jsonFileSettings: InitalSettings =
+    await FileUtils.loadJsonFile<InitalSettings>(configFilePath);
   logger.info(`Using configuration overrides from: ${configFilePath}`);
   Object.keys(jsonFileSettings).forEach((key) => {
     const overridesFromFile = jsonFileSettings[key] as InitialLangSettings;

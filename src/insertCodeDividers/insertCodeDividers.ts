@@ -1,9 +1,6 @@
-import path from 'path';
+import { FileEditResult } from '@common/types/misc';
 
-import { CONFIG_FILE_NAME } from '@common/constants/misc';
-import { FileEditResult } from '@common/types/misc.js';
-
-import FileUtils from '@FileUtils';
+import FileUtils, { FilePathDTO } from '@FileUtils';
 
 import applyFormatting from './applyFormatting/applyFormatting';
 import configureSettings from './configureSettings/configureSettings';
@@ -28,15 +25,21 @@ async function insertCodeDividers(
     targetPath,
     configFilePath,
   );
-  // Setup list of files to inspect
-  let fileDTOs: File = [];
+
+  // Setup list of files to inspect, if targetFile is null then we need
+  // to search a directory for all the files it contains
+  let fileDTOs: FilePathDTO[];
   if (configuredSettings.targetFile === null) {
     const { filter, targetDir } = configuredSettings;
-    const fileDTOs = await FileUtils.globSearch(
+    fileDTOs = await FileUtils.globSearch(
       filter.include,
       filter.exclude,
       targetDir,
     );
+    // If it's just one file we don't need to search
+  } else {
+    const dto = FileUtils.parse(configuredSettings.targetFile);
+    fileDTOs = [dto];
   }
 
   // Insert code-dividers
@@ -45,6 +48,7 @@ async function insertCodeDividers(
     configuredSettings.extensionsMap,
     isDryRun,
   );
+
   // Return
   return updatedFiles.map((file) => file.fullPath);
 }

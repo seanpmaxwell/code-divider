@@ -7,7 +7,14 @@ import logger from '@common/utils/logger';
 /**
  * Default function.
  */
-async function onInit<T>(cb: () => Promise<T>): Promise<T | void> {
+async function onInit<T>(
+  cb: () => Promise<T>,
+  cbName?: string,
+): Promise<T | void> {
+  // Set the name for the callbackfunction if passed
+  if (cbName)
+    Object.defineProperty(cb, 'name', { value: cbName, configurable: true });
+  // Call the callback and catch errors
   try {
     const result = await cb();
     return result;
@@ -16,6 +23,7 @@ async function onInit<T>(cb: () => Promise<T>): Promise<T | void> {
   }
 }
 
+// Useful for temporarily disabling the callback (i.e. playgrounds)
 onInit.skip = function skip(_: () => void | unknown): void {};
 
 // ========================================================================= //

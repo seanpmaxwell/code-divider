@@ -202,7 +202,8 @@ async function loadJsonFile<T = Record<string, unknown>>(
 ): Promise<T> {
   // Check extension
   const ext = path.extname(filePath);
-  if (ext !== '.json') throw new Error('To load a JSON file, extension must be .json');
+  if (ext !== '.json')
+    throw new Error('To load a JSON file, extension must be .json');
   // Load file
   const fileContent = await fs.readFile(filePath, 'utf8');
   // Parse it
@@ -277,4 +278,5 @@ export default {
   globSearch,
   loadJsonFile,
   saveJsonFile,
+  parse,
 } as const;
