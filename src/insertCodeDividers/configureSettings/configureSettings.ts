@@ -81,7 +81,7 @@ async function configureSettings(
 
 /**
  * Get the target directory and file (file may be falsey)
- * 
+ *
  * @private
  * @see {configSettings}
  */
@@ -117,7 +117,7 @@ async function getTargetPaths(
  *   3. Look in the current working directory
  *   4. If no configuration file exists, later workflow will use in-memory
  *     settings only.
- * 
+ *
  * @private
  * @see {configureSettings}
  */
@@ -153,7 +153,7 @@ async function getConfigFilePath(
  *
  * Don't need to do any file validation, previous workflow should only pass a
  * non-null value if the config file was found.
- * 
+ *
  * @private
  * @see {configureSettings}
  */

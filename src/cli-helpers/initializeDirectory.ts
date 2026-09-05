@@ -17,9 +17,11 @@ import FileUtils from '@FileUtils';
  */
 async function initializeDirectory(targetDir: string): Promise<string> {
   // Get the directory
-  const targetDirNew = targetDir || process.cwd();
+  const targetDirNew = path.isAbsolute(targetDir)
+    ? targetDir
+    : path.join(process.cwd(), targetDir);
   const isDir = await FileUtils.isDir(targetDirNew);
-  if (!isDir) throw new Error('target path is not a directory');
+  if (!isDir) throw new Error('--init path is not a directory');
   // Get the path for the configuration file
   const configPath = path.join(targetDirNew, CONFIG_FILE_NAME);
   const configAlreadyExists = await FileUtils.exists(configPath);
