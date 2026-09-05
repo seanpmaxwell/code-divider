@@ -77,20 +77,20 @@ export function validateSharedSettings<T extends string>(
 }
 
 /**
+ * Check that a value is of type: `LabelFormats`
+ *
  * @private
  * @see {validateSharedSettings}
- *
- * Check that a value is of type: `LabelFormats`
  */
 function isLabelFormat(value: unknown): value is LabelFormats {
   return LabelFormatOptions.has(value);
 }
 
 /**
+ * Check a value is an integer of at least 1.
+ *
  * @private
  * @see {validateSharedSettings}
- *
- * Check a value is an integer of at least 1.
  */
 function isPositiveInt(value: unknown): value is number {
   return Number.isInteger(value) && (value as number) >= 1;
@@ -147,10 +147,10 @@ export function validateLangSpecificSettings(
 }
 
 /**
+ * Check that a value is of type: string[]
+ *
  * @private
  * @see {validateLangSpecificSettings}
- *
- * Check that a value is of type: string[]
  */
 function isStrArr(value: unknown): value is string[] {
   if (!Array.isArray(value)) return false;

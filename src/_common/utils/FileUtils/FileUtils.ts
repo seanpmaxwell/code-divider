@@ -242,9 +242,9 @@ async function saveJsonFile(
 }
 
 /**
- * @private
- *
  * Default serializer: pretty JSON with 2-space indentation.
+ *
+ * @private
  */
 function defaultStringify(value: unknown): string {
   return JSON.stringify(value, null, 2);

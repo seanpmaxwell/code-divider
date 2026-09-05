@@ -40,9 +40,9 @@ function customStringifyObject(value: unknown, indent = ''): string {
 }
 
 /**
- * @private
- *
  * Check if the value is not an object.
+ *
+ * @private
  */
 function isPrimitive(value: unknown): boolean {
   return value === null || typeof value !== 'object';

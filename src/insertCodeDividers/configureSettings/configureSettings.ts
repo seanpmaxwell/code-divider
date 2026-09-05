@@ -194,13 +194,13 @@ async function getInitialConfigSettings(
 }
 
 /**
- * @private
- * @see {configureSettings}
- *
  * Compile a declarative language entry into the matchers used while walking:
  * a FILE_EXT regex and REGION/SECTION marker regexes built from the comment
  * syntax around the fixed marker tokens. CharacterLimit/FillerCharacter fall
  * back to the shared "All" settings.
+ *
+ * @private
+ * @see {configureSettings}
  */
 function configureLangEntry(
   lang: string,
@@ -233,11 +233,11 @@ function configureLangEntry(
 }
 
 /**
- * @private
- * @see {configureLangEntry}
- *
  * Capture the label if present. A bare marker ("// @reg" with no label) still
  * matches, but is warned about and skipped rather than formatted.
+ *
+ * @private
+ * @see {configureLangEntry}
  */
 function getMarkerRegex(open: string, close: string, token: string): RegExp {
   const escape = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -246,10 +246,10 @@ function getMarkerRegex(open: string, close: string, token: string): RegExp {
 }
 
 /**
+ * Organize language settings by file extension
+ *
  * @private
  * @see {configureSettings}
- *
- * Organize language settings by file extension
  */
 function setupExtensionsMap(
   configuredLangSettings: ConfiguredLangSettings[],

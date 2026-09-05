@@ -64,13 +64,13 @@ function parseCmdLineArgs(args: string[]): ParsedCmdLineArgs {
 }
 
 /**
- * @private
- * @see {parseCmdLineArgs}
- *
  * `--init/-i` defaults to './' when omitted entirely, but if the flag is typed
  * with no following value (e.g. `--init` followed by nothing or another
  * flag), parseArgs still requires a string value and will throw. This
  * preprocessing step supplies './' in that bare-flag case before parsing.
+ *
+ * @private
+ * @see {parseCmdLineArgs}
  */
 function preprocessArgs(argv: string[]): string[] {
   const result: string[] = [];

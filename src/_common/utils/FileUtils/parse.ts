@@ -33,11 +33,11 @@ function parse(filePath: string, parentPath?: string): FilePathDTO {
 }
 
 /**
- * @private
- * @see {parse}
- *
  * Get the file path data but hardcode the parent path to something other
  * than the current working directory.
+ *
+ * @private
+ * @see {parse}
  */
 function parseFromSplitPaths(
   relativePathParam: string,
@@ -61,11 +61,11 @@ function parseFromSplitPaths(
 }
 
 /**
- * @private
- * @see {parse}
- *
  * Get file path data from the absolute path and the relativePath from the
  * current working directory.
+ *
+ * @private
+ * @see {parse}
  */
 function parseFromAbsolutePath(absPath: string): FilePathDTO {
   // Make sure it's an absolute path

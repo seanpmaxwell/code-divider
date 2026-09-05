@@ -30,11 +30,11 @@ function formatLabel(label: string, format: LabelFormats): string {
 }
 
 /**
- * @private
- * @see {formatLabel}
- *
  * Change a word to uppercase or capitalize depending on the `dividerType`
  * param.
+ *
+ * @private
+ * @see {formatLabel}
  */
 function applyFormatting(word: string, format: LabelFormats): string {
   const firstChar = word[0];

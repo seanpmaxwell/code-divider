@@ -6,15 +6,15 @@ import logger from '@logger';
 
 // @reg run
 
-await onInit.skip(async () => {
-  // const resp = await initializeDirectory();
-  // logger.info(resp);
-  // const resp2 = await insertCodeDividers('./playground/misc.ts');
-  // logger.info(resp);
-  // logger.info(resp);
-  // @sec Test the `formatLabel()` function
-  // printTestLabels();
-});
+// await onInit.skip(async () => {
+//   const resp = await initializeDirectory();
+//   logger.info(resp);
+//   const resp2 = await insertCodeDividers('./playground/misc.ts');
+//   logger.info(resp);
+//   logger.info(resp);
+//   // @sec Test the `formatLabel()` function
+//   printTestLabels();
+// });
 
 // @sec Process Command Line Arguments
 
@@ -26,4 +26,4 @@ await onInit(async () => {
   logger.info(parseCmdLineArgs(['-h']));
   logger.info(parseCmdLineArgs(['-h', 'horse']));
   logger.info(parseCmdLineArgs(['-h', 'horse']));
-});
+}, 'pg_parseCommandLineArgs');

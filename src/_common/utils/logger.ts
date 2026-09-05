@@ -27,10 +27,10 @@ function error(...args: unknown[]): string {
 }
 
 /**
- * @private
- *
  * Wrap the console function so we don't have to disable eslint repeatedly or
  * for the whole file.
+ *
+ * @private
  */
 function callConsoleFn(
   args: unknown[],
