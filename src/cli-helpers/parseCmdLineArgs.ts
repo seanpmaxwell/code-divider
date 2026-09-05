@@ -1,7 +1,4 @@
-import path from 'path';
 import util from 'util';
-
-import { CONFIG_FILE_NAME } from '@common/constants/misc';
 
 // ========================================================================= //
 //                                 CONSTANTS                                 //
@@ -55,18 +52,14 @@ function parseCmdLineArgs(args: string[]): ParsedCmdLineArgs {
       `Error: expected at most one path argument, got ${positionals.length}: ${positionals.join(', ')}`,
     );
   }
-  // Get the current working directory
-  const cwd = process.cwd();
   // Return
   return {
     help: !!values.help,
     version: !!values.version,
-    init: processPath(values.init),
+    init: values.init ?? '',
     dryRun: !!values.dryRun,
-    path: values.path
-      ? processPath(values.config)
-      : path.join(cwd, CONFIG_FILE_NAME),
-    config: processPath(values.config),
+    path: values.config ?? '',
+    config: values.config ?? '',
   };
 }
 
@@ -93,23 +86,6 @@ function preprocessArgs(argv: string[]): string[] {
     }
   }
   return result;
-}
-
-/**
- * @private
- * @see {parseCmdLineArgs}
- *
- * If a path is not an absolute path, join it to the current working directory.
- */
-function processPath(value: string | undefined): string {
-  if (value === undefined) {
-    return '';
-  } else if (path.isAbsolute(value)) {
-    return value;
-  } else {
-    const cwd = process.cwd();
-    return path.join(cwd, value);
-  }
 }
 
 // ========================================================================= //

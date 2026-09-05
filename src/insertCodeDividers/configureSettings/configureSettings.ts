@@ -80,15 +80,21 @@ async function configureSettings(
 }
 
 /**
+ * Get the target directory and file (file may be falsey)
+ * 
  * @private
  * @see {configSettings}
- *
- * Get the target directory and file (file may be falsey)
  */
 async function getTargetPaths(
   cwd: string,
   targetPath: string,
 ): Promise<{ targetDir: string; targetFile: string | null }> {
+  // Init
+  if (!targetPath) {
+    targetPath = cwd;
+  } else if (targetPath && !path.isAbsolute(targetPath)) {
+    targetPath = path.join(cwd, targetPath);
+  }
   // Check exists
   const exists = await FileUtils.exists(targetPath);
   if (!exists) {
@@ -100,23 +106,20 @@ async function getTargetPaths(
   const isDir = await FileUtils.isDir(targetPath);
   if (isDir) return { targetDir: targetPath, targetFile: null };
   // If file
-  const targetFile = path.isAbsolute(targetPath)
-    ? targetPath
-    : path.join(cwd, targetPath);
-  const targetDir = path.dirname(targetFile);
-  return { targetDir, targetFile };
+  const targetDir = path.dirname(targetPath);
+  return { targetDir, targetFile: targetPath };
 }
 
 /**
- * @private
- * @see {configureSettings}
- *
  * Order of priority with loading the configuration file:
  *   1. Explicitly set with flag: `--config`
  *   2. Look in the target directory
  *   3. Look in the current working directory
  *   4. If no configuration file exists, later workflow will use in-memory
  *     settings only.
+ * 
+ * @private
+ * @see {configureSettings}
  */
 async function getConfigFilePath(
   cwd: string,
@@ -145,14 +148,14 @@ async function getConfigFilePath(
 }
 
 /**
- * @private
- * @see {configureSettings}
- *
  * If the `configFilePath` param is not null, load it and combine it with the
  * in memory settings, else just return the in memory settings.
  *
  * Don't need to do any file validation, previous workflow should only pass a
  * non-null value if the config file was found.
+ * 
+ * @private
+ * @see {configureSettings}
  */
 async function getInitialConfigSettings(
   configFilePath: string | null,
