@@ -18,7 +18,7 @@ const PARSE_ARG_OPTIONS = {
   help: { type: 'boolean', short: 'h' },
   version: { type: 'boolean', short: 'v' },
   init: { type: 'string', short: 'i' }, // no default — stays undefined if omitted
-  dryRun: { type: 'boolean', short: 'd' },
+  ['dry-run']: { type: 'boolean', short: 'd' },
   path: { type: 'string', short: 'p' },
   config: { type: 'string', short: 'c' },
 } as const;
@@ -79,7 +79,7 @@ function parseCmdLineArgs(args: string[]): ParsedCmdLineArgs {
     help: !!pArgs.help,
     version: !!pArgs.version,
     init,
-    dryRun: !!pArgs.dryRun,
+    dryRun: !!pArgs['dry-run'],
     path: pArgs.path ?? '',
     config: pArgs.config ?? '',
   };
