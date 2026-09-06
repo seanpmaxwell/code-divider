@@ -179,9 +179,9 @@ async function globSearch(
     cwd: targetPath,
     withFileTypes: true,
   });
-  // Convert the `Dirent[]` to a `FilePathMd[]`
+  // Convert the `Dirent[]` to a `FilePathDTO[]`
   const dirents: Dirent<string>[] = await asyncItrToArr(iterable);
-  return dirents.map((dirent) => parseDirent(dirent));
+  return dirents.map((dirent) => parseDirent(dirent, targetPath));
 }
 
 /**
@@ -199,7 +199,7 @@ async function basicSearch(
   if (exclude.length > 0) {
     items = items.filter((item) => !basicSearchHelper(item, exclude));
   }
-  return items.map((item) => parse(item));
+  return items.map((item) => parse(item, targetPath));
 }
 
 /**
@@ -269,12 +269,14 @@ function defaultStringify(value: unknown): string {
 /**
  * `fs.glob` returns a Dirent object instead of a string so we need to format
  */
-function parseDirent(dirent: Dirent<string>): FilePathDTO {
-  const { name, parentPath } = dirent;
-  const fullPath = path.join(parentPath, name);
-  const mdObj = parse(fullPath);
+function parseDirent(dirent: Dirent<string>, targetPath: string): FilePathDTO {
+  const absPath= path.join(dirent.parentPath, dirent.name);
+  console.log(targetPath)
+    console.log(dirent)
+  const dto = parse(absPath, targetPath);
+  console.log(dto)
   return {
-    ...mdObj,
+    ...dto,
     isDir: dirent.isDirectory(),
   };
 }

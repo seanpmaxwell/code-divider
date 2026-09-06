@@ -8,8 +8,8 @@ export interface FilePathDTO {
   absolutePath: string;
   parentPath: string;
   relativePath: string;
-  filename: string; // `file name` with the extension
-  name: string; // `file name` without the extension
+  filename: string; // `filename` with the extension
+  name: string; // `filename` without the extension
   ext: string;
   isDir?: boolean;
 }
@@ -19,10 +19,21 @@ export interface FilePathDTO {
 // ========================================================================= //
 
 /**
- * Convert a filePath to a `FilePathMd` object. Note, if you don't pass
+ * Convert a filePath to a `FilePathDTO` object. Note, if you don't pass
  * parentPath then filePath must be an absolute path.
  */
-function parse(filePath: string, parentPath?: string): FilePathDTO {
+function parse(filePath: string, parentPath: string): FilePathDTO {
+  console.log() // pick up here, need an overall better approach, parentPath 
+  // needs to be required or else parentPath and relativePath will both be 
+  // blank
+}
+
+
+/**
+ * Convert a filePath to a `FilePathDTO` object. Note, if you don't pass
+ * parentPath then filePath must be an absolute path.
+ */
+function parsex(filePath: string, parentPath?: string): FilePathDTO {
   if (path.isAbsolute(filePath)) {
     return parseFromAbsolutePath(filePath);
   }
@@ -39,7 +50,7 @@ function parse(filePath: string, parentPath?: string): FilePathDTO {
  * @private
  * @see {parse}
  */
-function parseFromSplitPaths(
+function parseFromSplitPathsx(
   relativePathParam: string,
   parentPath: string,
 ): FilePathDTO {
@@ -67,7 +78,7 @@ function parseFromSplitPaths(
  * @private
  * @see {parse}
  */
-function parseFromAbsolutePath(absPath: string): FilePathDTO {
+function parseFromAbsolutePathx(absPath: string): FilePathDTO {
   // Make sure it's an absolute path
   if (!path.isAbsolute(absPath)) {
     throw new Error('.of must receive an absolute path');

@@ -27,6 +27,11 @@ const DIRECTORY_ITEMS_TO_TEST = [
   '.gitignore',
 ] as const;
 
+const FilePathDTOs = {
+  bar: FileUtils.parse(DIRECTORY_ITEMS_TO_TEST[4], TEMP_DIRECTORY),
+  foo: FileUtils.parse(DIRECTORY_ITEMS_TO_TEST[3], TEMP_DIRECTORY),
+} as const;
+
 // ========================================================================= //
 //                                  HELPERS                                  //
 // ========================================================================= //
@@ -36,17 +41,13 @@ const DIRECTORY_ITEMS_TO_TEST = [
  */
 async function makeDirItemsToTest(): Promise<void> {
   try {
-    const reqs = [];
     for (const item of DIRECTORY_ITEMS_TO_TEST) {
-      let req;
       if (item.endsWith('/')) {
-        req = FileUtils.mkDir(item, TEMP_DIRECTORY);
+        await FileUtils.mkDir(item, TEMP_DIRECTORY);
       } else {
-        req = FileUtils.mkFile(item, TEMP_DIRECTORY);
+        await FileUtils.mkFile(item, TEMP_DIRECTORY);
       }
-      reqs.push(req);
     }
-    await Promise.all(reqs);
   } catch (err) {
     logger.error(err);
     throw err;
@@ -70,17 +71,14 @@ describe('FileUtils', () => {
   });
 
   // Test: `.globSearch`
-  describe('.globSearch', () => {
+  describe.only('.globSearch', () => {
     it('should work as expected', async () => {
       const result = await FileUtils.globSearch(
         ['**/someLib/*'],
         ['**/bad*'],
         TEMP_DIRECTORY,
       );
-      const expectedResult = [
-        'node_modules/someLib/bar.py',
-        'node_modules/someLib/foo.py',
-      ];
+      const expectedResult = [ FilePathDTOs.bar, FilePathDTOs.foo ];
       expect(result).toEqual(expectedResult);
     });
   });
