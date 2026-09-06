@@ -45,10 +45,9 @@ function read(path: string): Promise<string> {
 }
 
 /**
- * If the path ends in '/' create a directory, else create a file with
- * an empty string as the only content.
+ * Generate a file with some default content if it does not exists.
  */
-async function create(
+async function mkFile(
   relativePath: string,
   startingDir?: string,
 ): Promise<void> {
@@ -59,38 +58,55 @@ async function create(
   }
   // Edge cases
   if (await exists(finalPath)) {
-    logger.info(`Item "${finalPath}" already exists: skipping ".createItem"`);
-  } else if (relativePath.endsWith('/')) {
-    await fs.mkdir(finalPath, { recursive: true });
-    return;
+    logger.info(`Item "${finalPath}" already exists: skipping "mkFile"`);
   }
   // Create file: `wx` means create only if doesn't exist
-  return fs.writeFile(finalPath, '', {
+  return fs.writeFile(finalPath, 'FILE_UTIL_GENERATED_FILE', {
     encoding: ENCODING,
     flag: 'wx',
   });
 }
 
 /**
- * Delete a file or a directory. This works even if the folder has content.
+ * Generate a file with some default content if it does not exist.
  */
-async function _delete(
+async function mkDir(
   relativePath: string,
   startingDir?: string,
 ): Promise<void> {
+  // Setup final path
   let finalPath = relativePath;
   if (startingDir && !path.isAbsolute(relativePath)) {
     finalPath = path.join(startingDir, relativePath);
   }
-  if (!exists(finalPath)) {
+  // Edge cases
+  if (await exists(finalPath)) {
+    logger.info(`Item "${finalPath}" already exists: skipping "mkDir"`);
+  }
+  await fs.mkdir(finalPath, { recursive: true });
+}
+
+/**
+ * Delete a file or a directory. This works even if the folder has content.
+ */
+async function remove(
+  relativePath: string,
+  startingDir?: string,
+): Promise<void> {
+  // Setup final path
+  let finalPath = relativePath;
+  if (startingDir && !path.isAbsolute(relativePath)) {
+    finalPath = path.join(startingDir, relativePath);
+  }
+  // Check if the path exists
+  const doesExist = await exists(finalPath);
+  if (!doesExist) {
     logger.info(
       `File or folder "${finalPath}" does not exist: skipping ".rmItem"`,
     );
-  } else if (await isDir(finalPath)) {
-    return fs.rm(finalPath, { recursive: true, force: true });
-  } else {
-    return fs.rm(finalPath);
   }
+  // Delete file/folder
+  return fs.rm(finalPath, { recursive: true, force: true });
 }
 
 /**
@@ -270,8 +286,9 @@ function parseDirent(dirent: Dirent<string>): FilePathDTO {
 export default {
   write,
   read,
-  create,
-  delete: _delete,
+  mkFile,
+  mkDir,
+  remove,
   exists,
   isDir,
   basicSearch,

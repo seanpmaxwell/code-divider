@@ -4,7 +4,6 @@ import util from 'util';
 //                                 CONSTANTS                                 //
 // ========================================================================= //
 
-const INIT_SAFETY = '<init_safety>';
 const ShouldBeFirstSet = new Set([
   '--init',
   '-i',
@@ -69,16 +68,11 @@ function parseCmdLineArgs(args: string[]): ParsedCmdLineArgs {
       `Error: expected at most one path argument, got ${positionals.length}: ${positionals.join(', ')}`,
     );
   }
-  // Setup `init`
-  let init = '';
-  if (pArgs.init) {
-    init = pArgs.init !== INIT_SAFETY ? pArgs.init : process.cwd();
-  }
   // Return
   return {
     help: !!pArgs.help,
     version: !!pArgs.version,
-    init,
+    init: pArgs.init ?? '',
     dryRun: !!pArgs['dry-run'],
     path: pArgs.path ?? '',
     config: pArgs.config ?? '',
@@ -86,10 +80,10 @@ function parseCmdLineArgs(args: string[]): ParsedCmdLineArgs {
 }
 
 /**
- * `--init/-i` defaults to './' when omitted entirely, but if the flag is typed
- * with no following value (e.g. `--init` followed by nothing or another
- * flag), parseArgs still requires a string value and will throw. This
- * preprocessing step supplies './' in that bare-flag case before parsing.
+ * `--init` if specified but no value is passed will default to process.cwd. 
+ * But `parseArgs` still requires a string value and will throw if there isn't
+ * one. This preprocessing step supplies the `process.cwd()` value in that 
+ * bare-flag case before parsing.
  *
  * @private
  * @see {parseCmdLineArgs}
@@ -102,9 +96,7 @@ function preprocessArgs(argv: string[]): string[] {
     if (arg === '--init' || arg === '-i') {
       const next = argv[i + 1];
       const hasValue = next !== undefined && !next.startsWith('-');
-      if (!hasValue) {
-        result.push(INIT_SAFETY);
-      }
+      if (!hasValue) result.push(process.cwd());
     }
   }
   return result;

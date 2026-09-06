@@ -37,6 +37,12 @@ const FLAG_DRY_RUN_RESULT = {
   dryRun: true,
 } as const satisfies ParsedCmdLineArgs;
 
+const GetPathConfigResult = (path = '', config = ''): ParsedCmdLineArgs => ({
+  ...DEFAULT_RESULT,
+  path,
+  config,
+});
+
 // ========================================================================= //
 //                                 RUN TESTS                                 //
 // ========================================================================= //
@@ -102,8 +108,8 @@ describe.only('parseCmdLineArgs', () => {
       expect(res2a).not.toEqual(FLAG_HELP_RESULT);
       const res3 = parseCmdLineArgs(['-d', 'horse']);
       expect(res3).toEqual(FLAG_DRY_RUN_RESULT);
-      const res4 = () => parseCmdLineArgs(['horse', '-d']);
-      expect(() => res4()).toThrow();
+      const res4 = parseCmdLineArgs(['horse', '-d']);
+      expect(res4).toEqual(FLAG_DRY_RUN_RESULT);
     });
   });
 
@@ -111,7 +117,49 @@ describe.only('parseCmdLineArgs', () => {
   describe('path + config [-p/--path, -c/--config]', () => {
 
     it('should work as expected', async () => {
-      // Claude pick up here,
+      // Each on its own
+      const res1 = parseCmdLineArgs(['--path', './src']);
+      expect(res1).toEqual(GetPathConfigResult('./src'));
+      const res2 = parseCmdLineArgs(['--config', './cfg.json']);
+      expect(res2).toEqual(GetPathConfigResult('', './cfg.json'));
+      // Short forms
+      const res3 = parseCmdLineArgs(['-p', './src']);
+      expect(res3).toEqual(GetPathConfigResult('./src'));
+      const res4 = parseCmdLineArgs(['-c', './cfg.json']);
+      expect(res4).toEqual(GetPathConfigResult('', './cfg.json'));
+      // Can be combined with the other option flags
+      const res5 = parseCmdLineArgs(['--path', './src', '--dry-run']);
+      expect(res5).toEqual({
+        ...GetPathConfigResult('./src'),
+        dryRun: true,
+      });
+    });
+
+    it('should not care which of the two comes first', async () => {
+      const expected = GetPathConfigResult('./src', './cfg.json');
+      // `path` first
+      const res1 = parseCmdLineArgs(['--path', './src', '--config', './cfg.json']);
+      expect(res1).toEqual(expected);
+      const res2 = parseCmdLineArgs(['-p', './src', '-c', './cfg.json']);
+      expect(res2).toEqual(expected);
+      // `config` first
+      const res3 = parseCmdLineArgs(['--config', './cfg.json', '--path', './src']);
+      expect(res3).toEqual(expected);
+      const res4 = parseCmdLineArgs(['-c', './cfg.json', '-p', './src']);
+      expect(res4).toEqual(expected);
+    });
+
+    it('should throw if the argument is missing', async () => {
+      // Nothing at all after the flag
+      expect(() => parseCmdLineArgs(['--path'])).toThrow();
+      expect(() => parseCmdLineArgs(['--config'])).toThrow();
+      expect(() => parseCmdLineArgs(['-p'])).toThrow();
+      expect(() => parseCmdLineArgs(['-c'])).toThrow();
+      // Another flag where the value should be
+      expect(() => parseCmdLineArgs(['--path', '--config'])).toThrow();
+      expect(() => parseCmdLineArgs(['--config', '--path'])).toThrow();
+      // Only the trailing flag is missing its value
+      expect(() => parseCmdLineArgs(['--path', './src', '--config'])).toThrow();
     });
   });
 });

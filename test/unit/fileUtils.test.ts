@@ -1,14 +1,17 @@
+import path from 'path';
+
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import FileUtils from '@FileUtils';
+import logger from '@logger';
 
 // ========================================================================= //
 //                                 CONSTANTS                                 //
 // ========================================================================= //
 
-const TEMP_DIRECTORY = import.meta.dirname + '/.tmp';
+const TEMP_DIRECTORY = path.join(import.meta.dirname, 'tmp');
 
-// Note: `FileUtils.create` will create folders for items ending in '/'.
+// Note: `makeDirItemsToTest` will create folders for items ending in '/'.
 const DIRECTORY_ITEMS_TO_TEST = [
   './node_modules/',
   './node_modules/cache.conf',
@@ -29,11 +32,24 @@ const DIRECTORY_ITEMS_TO_TEST = [
 // ========================================================================= //
 
 /**
- * To test directory and glob pattern functions
+ * Create files/folders for testing purposes.
  */
 async function makeDirItemsToTest(): Promise<void> {
-  for (const item of DIRECTORY_ITEMS_TO_TEST) {
-    await FileUtils.create(item, TEMP_DIRECTORY);
+  try {
+    const reqs = [];
+    for (const item of DIRECTORY_ITEMS_TO_TEST) {
+      let req;
+      if (item.endsWith('/')) {
+        req = FileUtils.mkDir(item, TEMP_DIRECTORY);
+      } else {
+        req = FileUtils.mkFile(item, TEMP_DIRECTORY);
+      }
+      reqs.push(req);
+    }
+    await Promise.all(reqs);
+  } catch (err) {
+    logger.error(err);
+    throw err;
   }
 }
 
@@ -42,18 +58,19 @@ async function makeDirItemsToTest(): Promise<void> {
 // ========================================================================= //
 
 describe('FileUtils', () => {
+  // `beforeAll` hook
   beforeAll(async () => {
-    await FileUtils.delete(TEMP_DIRECTORY);
+    await FileUtils.remove(TEMP_DIRECTORY);
     await makeDirItemsToTest();
   });
 
+  // `afterAll` hook
   afterAll(async () => {
-    await FileUtils.delete(TEMP_DIRECTORY);
+    await FileUtils.remove(TEMP_DIRECTORY);
   });
 
   // Test: `.globSearch`
   describe('.globSearch', () => {
-    // Normal
     it('should work as expected', async () => {
       const result = await FileUtils.globSearch(
         ['**/someLib/*'],
@@ -70,7 +87,6 @@ describe('FileUtils', () => {
 
   // Test: `.basicSearch`
   describe('.basicSearch`', () => {
-    // Normal
     it('should work as expected', async () => {
       const result = await FileUtils.basicSearch(
         [],

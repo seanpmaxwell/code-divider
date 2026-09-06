@@ -10,9 +10,9 @@ npm run build;
 cd ./playground;
 
 # Create a temp folder to preserve the originals
-rm -rf without-config-file.tmp/;
-cp -R without-config-file/. without-config-file.tmp/;
+rm -rf tmp/without-config-file;
+cp -R store/without-config-file/. tmp/without-config-file/;
 
 # Make the .tmp directory the current working directory
-cd without-config-file.tmp/;
+cd tmp/without-config-file;
 npx ../../;
