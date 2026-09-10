@@ -80,9 +80,9 @@ function parseCmdLineArgs(args: string[]): ParsedCmdLineArgs {
 }
 
 /**
- * `--init` if specified but no value is passed will default to process.cwd. 
+ * `--init` if specified but no value is passed will default to process.cwd.
  * But `parseArgs` still requires a string value and will throw if there isn't
- * one. This preprocessing step supplies the `process.cwd()` value in that 
+ * one. This preprocessing step supplies the `process.cwd()` value in that
  * bare-flag case before parsing.
  *
  * @private

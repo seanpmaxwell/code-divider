@@ -28,11 +28,7 @@ async function initializeDirectory(targetDir: string): Promise<string> {
     throw new Error(`${CONFIG_FILE_NAME} already exists here, not overwriting`);
   }
   // Save file content to JSON file
-  await FileUtils.saveJsonFile(
-    configPath,
-    DefaultConfig,
-    stringifyJsonObj,
-  );
+  await FileUtils.saveJsonFile(configPath, DefaultConfig, stringifyJsonObj);
   // Return filepath
   return configPath;
 }
@@ -42,8 +38,8 @@ async function initializeDirectory(targetDir: string): Promise<string> {
  * arrays whose elements are all primitives on a single line (e.g.
  * "Markers": ["@reg", "@sec"]). Arrays containing an object or nested array
  * are expanded one element per line, like objects.
- * 
- * @private 
+ *
+ * @private
  * @see {initializeDirectory}
  */
 function stringifyJsonObj(value: unknown, indent = ''): string {
@@ -86,7 +82,6 @@ function stringifyJsonObj(value: unknown, indent = ''): string {
 function isPrimitive(value: unknown): boolean {
   return value === null || typeof value !== 'object';
 }
-
 
 // ========================================================================= //
 //                                  EXPORT                                   //

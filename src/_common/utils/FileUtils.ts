@@ -6,8 +6,6 @@ import { asyncItrToArr, isUsingNode22orAbove } from '@common/utils/misc';
 
 import logger from '@logger';
 
-import parse, { FilePathDTO } from './parse';
-
 // ========================================================================= //
 //                                 CONSTANTS                                 //
 // ========================================================================= //
@@ -20,6 +18,16 @@ const ENCODING = 'utf8';
 // ========================================================================= //
 
 type Stringify = (value: unknown) => string;
+
+export interface FilePathDTO {
+  absolutePath: string;
+  parentPath: string;
+  relativePath: string;
+  filename: string; // `filename` with the extension
+  name: string; // `filename` without the extension
+  ext: string;
+  isDir: null | boolean;
+}
 
 // ========================================================================= //
 //                                 FUNCTIONS                                 //
@@ -158,8 +166,8 @@ async function listDirItemsDeep(
  * recursive pattern `/**` then the search will be recursive.
  */
 async function globSearch(
-  include: string[] = [],
-  exclude: string[] = [],
+  include: string[],
+  exclude: string[],
   targetPath: string,
 ): Promise<FilePathDTO[]> {
   // Check node version first
@@ -181,24 +189,39 @@ async function globSearch(
   });
   // Convert the `Dirent[]` to a `FilePathDTO[]`
   const dirents: Dirent<string>[] = await asyncItrToArr(iterable);
-  return dirents.map((dirent) => parseDirent(dirent, targetPath));
+  return dirents.map((dirent) => {
+    const absPath = path.join(dirent.parentPath, dirent.name);
+    const dto = parse(absPath, targetPath);
+    return {
+      ...dto,
+      isDir: dirent.isDirectory(),
+    };
+  });
 }
 
 /**
  * Filter directory items by using exact path match.
  */
 async function basicSearch(
-  include: string[] = [],
-  exclude: string[] = [],
+  include: string[],
+  exclude: string[],
   targetPath: string,
 ): Promise<FilePathDTO[]> {
-  let items = await listDirItemsDeep(targetPath);
+  // If include is empty, include everything that is not excluded
+  if (!include.length) {
+    include.push('./');
+  }
+  // Get items to include
+  console.log(include, exclude, targetPath); // pick up here
+  let items: string[] = await listDirItemsDeep(targetPath);
   if (include.length > 0) {
     items = items.filter((item) => basicSearchHelper(item, include));
   }
+  // Get items to exclude
   if (exclude.length > 0) {
     items = items.filter((item) => !basicSearchHelper(item, exclude));
   }
+  // Convert items to DTO[]
   return items.map((item) => parse(item, targetPath));
 }
 
@@ -267,17 +290,39 @@ function defaultStringify(value: unknown): string {
 }
 
 /**
- * `fs.glob` returns a Dirent object instead of a string so we need to format
+ * Convert a filePath to a `FilePathDTO` object.
+ *
+ * @param {string} filePath Needs to be an absolute path or a path relative to the parent.
+ * @param {string} parentPath Must be an absolute path.
  */
-function parseDirent(dirent: Dirent<string>, targetPath: string): FilePathDTO {
-  const absPath= path.join(dirent.parentPath, dirent.name);
-  console.log(targetPath)
-    console.log(dirent)
-  const dto = parse(absPath, targetPath);
-  console.log(dto)
+function parse(filePath: string, parentPath: string): FilePathDTO {
+  // Validate parent path
+  if (!path.isAbsolute(parentPath)) {
+    throw new Error('parentPath must be absolute');
+  }
+  // Get the relative/absolute paths
+  let relativePath;
+  let absolutePath;
+  if (path.isAbsolute(filePath)) {
+    relativePath = path.relative(parentPath, filePath);
+    absolutePath = filePath;
+  } else {
+    relativePath = filePath;
+    absolutePath = path.join(parentPath, filePath);
+  }
+  // File name stuff
+  const filename = path.basename(filePath);
+  const ext = path.extname(filename);
+  const name = path.basename(filename, ext);
+  // Setup dto
   return {
-    ...dto,
-    isDir: dirent.isDirectory(),
+    absolutePath: path.normalize(absolutePath),
+    parentPath: path.normalize(parentPath),
+    relativePath: path.normalize(relativePath),
+    filename,
+    name,
+    ext,
+    isDir: null,
   };
 }
 

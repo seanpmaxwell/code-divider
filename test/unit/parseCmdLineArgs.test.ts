@@ -98,7 +98,6 @@ describe.only('parseCmdLineArgs', () => {
 
   // DryRun
   describe('dry-run flag [-d, --dry-run]', () => {
-
     it('should work as expected', async () => {
       const res1 = parseCmdLineArgs(['--dry-run']);
       expect(res1).toEqual(FLAG_DRY_RUN_RESULT);
@@ -115,7 +114,6 @@ describe.only('parseCmdLineArgs', () => {
 
   // Path + Config
   describe('path + config [-p/--path, -c/--config]', () => {
-
     it('should work as expected', async () => {
       // Each on its own
       const res1 = parseCmdLineArgs(['--path', './src']);
@@ -138,12 +136,22 @@ describe.only('parseCmdLineArgs', () => {
     it('should not care which of the two comes first', async () => {
       const expected = GetPathConfigResult('./src', './cfg.json');
       // `path` first
-      const res1 = parseCmdLineArgs(['--path', './src', '--config', './cfg.json']);
+      const res1 = parseCmdLineArgs([
+        '--path',
+        './src',
+        '--config',
+        './cfg.json',
+      ]);
       expect(res1).toEqual(expected);
       const res2 = parseCmdLineArgs(['-p', './src', '-c', './cfg.json']);
       expect(res2).toEqual(expected);
       // `config` first
-      const res3 = parseCmdLineArgs(['--config', './cfg.json', '--path', './src']);
+      const res3 = parseCmdLineArgs([
+        '--config',
+        './cfg.json',
+        '--path',
+        './src',
+      ]);
       expect(res3).toEqual(expected);
       const res4 = parseCmdLineArgs(['-c', './cfg.json', '-p', './src']);
       expect(res4).toEqual(expected);

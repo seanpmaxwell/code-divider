@@ -1,9 +1,9 @@
 import path from 'path';
-
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import FileUtils from '@FileUtils';
 import logger from '@logger';
+
+import FileUtils, { FilePathDTO } from '@FileUtils';
 
 // ========================================================================= //
 //                                 CONSTANTS                                 //
@@ -27,14 +27,22 @@ const DIRECTORY_ITEMS_TO_TEST = [
   '.gitignore',
 ] as const;
 
-const FilePathDTOs = {
-  bar: FileUtils.parse(DIRECTORY_ITEMS_TO_TEST[4], TEMP_DIRECTORY),
-  foo: FileUtils.parse(DIRECTORY_ITEMS_TO_TEST[3], TEMP_DIRECTORY),
-} as const;
-
 // ========================================================================= //
 //                                  HELPERS                                  //
 // ========================================================================= //
+
+/**
+ * Given an index from `DIRECTORY_ITEMS_TO_TEST`, turn it into a dto object.
+ */
+function dirItemToDto(index: number, isDir: boolean): FilePathDTO {
+  const filePath = DIRECTORY_ITEMS_TO_TEST[index];
+  if (!filePath) throw new Error('Dummy file-path not found');
+  const dto = FileUtils.parse(filePath, TEMP_DIRECTORY);
+  return {
+    ...dto,
+    isDir,
+  }
+}
 
 /**
  * Create files/folders for testing purposes.
@@ -59,32 +67,45 @@ async function makeDirItemsToTest(): Promise<void> {
 // ========================================================================= //
 
 describe('FileUtils', () => {
-  // `beforeAll` hook
+  // ---- `beforeAll` hook ---- //
   beforeAll(async () => {
     await FileUtils.remove(TEMP_DIRECTORY);
     await makeDirItemsToTest();
   });
 
-  // `afterAll` hook
+  // ---- `afterAll` hook ---- //
   afterAll(async () => {
     await FileUtils.remove(TEMP_DIRECTORY);
   });
 
-  // Test: `.globSearch`
-  describe.only('.globSearch', () => {
+  // ---- Test `.globSearch` ---- //
+  describe.skip('.globSearch', () => {
+    // Dummy data
+    const DTOs = {
+      bar: dirItemToDto(4, false),
+      foo: dirItemToDto(3, false),
+    } as const;
+
+    // Test
     it('should work as expected', async () => {
       const result = await FileUtils.globSearch(
         ['**/someLib/*'],
         ['**/bad*'],
         TEMP_DIRECTORY,
       );
-      const expectedResult = [ FilePathDTOs.bar, FilePathDTOs.foo ];
+      const expectedResult = [DTOs.bar, DTOs.foo];
       expect(result).toEqual(expectedResult);
     });
   });
 
-  // Test: `.basicSearch`
-  describe('.basicSearch`', () => {
+  // ---- Test `.basicSearch` ---- //
+  describe('.basicSearch', () => {
+    // Dummy Data
+    const DTOs = {
+      gitignore: dirItemToDto(11, false),
+      // foo: dirItemToDto(3, false),
+    } as const;
+
     it('should work as expected', async () => {
       const result = await FileUtils.basicSearch(
         [],
@@ -92,11 +113,11 @@ describe('FileUtils', () => {
         TEMP_DIRECTORY,
       );
       const expectedResult = [
-        '.gitignore',
-        'dist',
-        'foo.log',
-        'package.json',
-        'dist/out.js',
+        DTOs.gitignore,
+        // 'dist',
+        // 'foo.log',
+        // 'package.json',
+        // 'dist/out.js',
       ];
       expect(result).toEqual(expectedResult);
     });

@@ -19,13 +19,14 @@ async function insertCodeDividers(
   configFilePath: string,
   isDryRun: boolean,
 ): Promise<string[]> {
-  // Load settings
+  // ---- Load settings ----
   const configuredSettings = await configureSettings(
     cwd,
     targetPath,
     configFilePath,
   );
 
+  // ---- Get Files ----
   // Setup list of files to inspect, if targetFile is null then we need
   // to search a directory for all the files it contains
   let fileDTOs: FilePathDTO[];
@@ -38,18 +39,18 @@ async function insertCodeDividers(
     );
     // If it's just one file we don't need to search
   } else {
-    const dto = FileUtils.parse(configuredSettings.targetFile);
+    const dto = FileUtils.parse(configuredSettings.targetFile, cwd);
     fileDTOs = [dto];
   }
 
-  // Insert code-dividers
+  // ---- Insert code-dividers ----
   const updatedFiles: FileEditResult[] = await applyFormatting(
     fileDTOs,
     configuredSettings.extensionsMap,
     isDryRun,
   );
 
-  // Return
+  // ---- Return ----
   return updatedFiles.map((file) => file.fullPath);
 }
 
