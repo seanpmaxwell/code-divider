@@ -65,10 +65,10 @@ npx code-divider --path ./src --dry-run
 
 There are two kinds of dividers:
 
-| Marker | Creates | Handy for |
-| --- | --- | --- |
+| Marker          | Creates                               | Handy for                                           |
+| --------------- | ------------------------------------- | --------------------------------------------------- |
 | `// @reg Label` | A three-line boxed **region** header. | Major groups, such as imports, types, or functions. |
-| `// @sec Label` | A single-line **section** header. | Smaller groups within a region. |
+| `// @sec Label` | A single-line **section** header.     | Smaller groups within a region.                     |
 
 Use your language’s comment syntax:
 
@@ -96,15 +96,15 @@ npx code-divider [options]
 
 With no options, `code-divider` processes the current directory.
 
-| Option | What it does |
-| --- | --- |
-| `-p`, `--path <path>` | Process a file or directory. Defaults to the current directory. |
-| `-c`, `--config <file>` | Use a specific config file. Its settings override the built-in defaults. |
-| `-d`, `--dry-run` | List the files that would change without writing anything. |
-| `--check` | Like `--dry-run`, but exit with code `1` if any file would change. Useful for CI and pre-commit hooks. |
-| `-i`, `--init [dir]` | Create a default `code-divider.config.json` in the given directory, or the current directory if omitted. Runs on its own without processing source files. |
-| `-h`, `--help` | Show help. |
-| `-v`, `--version` | Show the version. |
+| Option                  | What it does                                                                                                                                              |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `-p`, `--path <path>`   | Process a file or directory. Defaults to the current directory.                                                                                           |
+| `-c`, `--config <file>` | Use a specific config file. Its settings override the built-in defaults.                                                                                  |
+| `-d`, `--dry-run`       | List the files that would change without writing anything.                                                                                                |
+| `--check`               | Like `--dry-run`, but exit with code `1` if any file would change. Useful for CI and pre-commit hooks.                                                    |
+| `-i`, `--init [dir]`    | Create a default `code-divider.config.json` in the given directory, or the current directory if omitted. Runs on its own without processing source files. |
+| `-h`, `--help`          | Show help.                                                                                                                                                |
+| `-v`, `--version`       | Show the version.                                                                                                                                         |
 
 A few examples:
 
@@ -157,13 +157,13 @@ Here’s a section divider, shortened for readability:
 
 These are the names used throughout the configuration:
 
-| Term | Meaning |
-| --- | --- |
-| **Marker** | The token that requests a divider: `@reg` or `@sec`. |
-| **Comment** | The comment syntax used to write the marker, such as `//`, `#`, or `/* ... */`. |
-| **Label** | The title after the marker, such as `My Section`. |
-| **Filler character** | The repeated character that fills the available space: `=` in this example. |
-| **Bookends** | The strings at the start and end of each generated line: `"// "` and `" //"` here. |
+| Term                 | Meaning                                                                            |
+| -------------------- | ---------------------------------------------------------------------------------- |
+| **Marker**           | The token that requests a divider: `@reg` or `@sec`.                               |
+| **Comment**          | The comment syntax used to write the marker, such as `//`, `#`, or `/* ... */`.    |
+| **Label**            | The title after the marker, such as `My Section`.                                  |
+| **Filler character** | The repeated character that fills the available space: `=` in this example.        |
+| **Bookends**         | The strings at the start and end of each generated line: `"// "` and `" //"` here. |
 
 ## 🔧 Configuration
 
@@ -202,21 +202,21 @@ Settings in the selected config override the built-in defaults. Anything you lea
 
 The `All` key contains settings shared by every language:
 
-| Setting | What it controls | Default |
-| --- | --- | --- |
-| `CharacterLimit` | The column that generated header lines extend to. | `79` |
-| `FillerCharacter` | The character used to fill the header lines. | `"="` |
-| `RegionLabelFormat` | How region labels are capitalized. | `"uppercase"` |
-| `SectionLabelFormat` | How section labels are capitalized. | `"capitalize"` |
+| Setting              | What it controls                                  | Default        |
+| -------------------- | ------------------------------------------------- | -------------- |
+| `CharacterLimit`     | The column that generated header lines extend to. | `79`           |
+| `FillerCharacter`    | The character used to fill the header lines.      | `"="`          |
+| `RegionLabelFormat`  | How region labels are capitalized.                | `"uppercase"`  |
+| `SectionLabelFormat` | How section labels are capitalized.               | `"capitalize"` |
 
 Both label-format settings accept:
 
-| Value | Example |
-| --- | --- |
-| `"uppercase"` | `my cool section` → `MY COOL SECTION` |
-| `"lowercase"` | `My Cool Section` → `my cool section` |
+| Value          | Example                               |
+| -------------- | ------------------------------------- |
+| `"uppercase"`  | `my cool section` → `MY COOL SECTION` |
+| `"lowercase"`  | `My Cool Section` → `my cool section` |
 | `"capitalize"` | `my COOL section` → `My Cool Section` |
-| `"none"` | Leave the label exactly as written. |
+| `"none"`       | Leave the label exactly as written.   |
 
 `"capitalize"` uppercases the first letter of each word and lowercases the rest.
 
@@ -228,15 +228,15 @@ Want Python headers to look different from Java headers? Give each language its 
 
 Other than `All` and `filter`, top-level config keys are language names. Use a built-in key to customize that language, or a new key to add your own.
 
-| Setting | What it controls |
-| --- | --- |
-| `Extensions` | File extensions to match, without the leading dot. For example, `["py"]`. |
-| `Comment` | A `[start, end]` pair describing the comment syntax used for markers. Use `""` as the end for line comments. |
-| `Bookends` | Optional `[start, end]` strings for generated header lines. Defaults to `Comment`; for line comments, the opener is mirrored on the right. For example, `"# "` becomes `["# ", " #"]`. |
-| `CharacterLimit` | Override `All.CharacterLimit` for this language. |
-| `FillerCharacter` | Override `All.FillerCharacter` for this language. |
-| `RegionLabelFormat` | Override `All.RegionLabelFormat` for this language. |
-| `SectionLabelFormat` | Override `All.SectionLabelFormat` for this language. |
+| Setting              | What it controls                                                                                                                                                                       |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Extensions`         | File extensions to match, without the leading dot. For example, `["py"]`.                                                                                                              |
+| `Comment`            | A `[start, end]` pair describing the comment syntax used for markers. Use `""` as the end for line comments.                                                                           |
+| `Bookends`           | Optional `[start, end]` strings for generated header lines. Defaults to `Comment`; for line comments, the opener is mirrored on the right. For example, `"# "` becomes `["# ", " #"]`. |
+| `CharacterLimit`     | Override `All.CharacterLimit` for this language.                                                                                                                                       |
+| `FillerCharacter`    | Override `All.FillerCharacter` for this language.                                                                                                                                      |
+| `RegionLabelFormat`  | Override `All.RegionLabelFormat` for this language.                                                                                                                                    |
+| `SectionLabelFormat` | Override `All.SectionLabelFormat` for this language.                                                                                                                                   |
 
 For example:
 
@@ -268,20 +268,20 @@ With these settings, `# @reg Label` in a `.py` file becomes a boxed **LABEL** he
 
 These are the language keys, file extensions, and comment styles available by default. The marker examples use `@reg`, but `@sec` uses the same syntax.
 
-| Config key | File extensions | Marker example | Generated bookends |
-| --- | --- | --- | --- |
-| `JavaScript` | `.js .jsx .ts .tsx .mjs .cjs` | `// @reg Label` | `"// "` … `" //"` |
-| `Java` | `.java` | `// @reg Label` | `"// "` … `" //"` |
-| `Css` | `.css .scss` | `/* @reg Label */` | `"/* "` … `" */"` |
-| `C` | `.c .h` | `// @reg Label` | `"// "` … `" //"` |
-| `Cpp` | `.cpp .cc .cxx .hpp .hh .hxx` | `// @reg Label` | `"// "` … `" //"` |
-| `Go` | `.go` | `// @reg Label` | `"// "` … `" //"` |
-| `Rust` | `.rs` | `// @reg Label` | `"// "` … `" //"` |
-| `Php` | `.php` | `// @reg Label` | `"// "` … `" //"` |
-| `Ruby` | `.rb` | `# @reg Label` | `"# "` … `" #"` |
-| `Python` | `.py .pyi .pyw` | `# @reg Label` | `"# "` … `" #"` |
-| `Bash` | `.sh` | `# @reg Label` | `"# "` … `" #"` |
-| `Sql` | `.sql` | `-- @reg Label` | `"-- "` … `" --"` |
+| Config key   | File extensions               | Marker example     | Generated bookends |
+| ------------ | ----------------------------- | ------------------ | ------------------ |
+| `JavaScript` | `.js .jsx .ts .tsx .mjs .cjs` | `// @reg Label`    | `"// "` … `" //"`  |
+| `Java`       | `.java`                       | `// @reg Label`    | `"// "` … `" //"`  |
+| `Css`        | `.css .scss`                  | `/* @reg Label */` | `"/* "` … `" */"`  |
+| `C`          | `.c .h`                       | `// @reg Label`    | `"// "` … `" //"`  |
+| `Cpp`        | `.cpp .cc .cxx .hpp .hh .hxx` | `// @reg Label`    | `"// "` … `" //"`  |
+| `Go`         | `.go`                         | `// @reg Label`    | `"// "` … `" //"`  |
+| `Rust`       | `.rs`                         | `// @reg Label`    | `"// "` … `" //"`  |
+| `Php`        | `.php`                        | `// @reg Label`    | `"// "` … `" //"`  |
+| `Ruby`       | `.rb`                         | `# @reg Label`     | `"# "` … `" #"`    |
+| `Python`     | `.py .pyi .pyw`               | `# @reg Label`     | `"# "` … `" #"`    |
+| `Bash`       | `.sh`                         | `# @reg Label`     | `"# "` … `" #"`    |
+| `Sql`        | `.sql`                        | `-- @reg Label`    | `"-- "` … `" --"`  |
 
 ### Filtering files
 
@@ -289,9 +289,9 @@ Use the top-level `filter` key to choose which files get processed.
 
 Patterns work like `include` and `exclude` in a [`tsconfig.json`](https://www.typescriptlang.org/tsconfig/#include). They are relative to the folder being processed.
 
-| Setting | What it does |
-| --- | --- |
-| `include` | Process only matching files. Defaults to `[]`, which uses the default recursive search. |
+| Setting   | What it does                                                                                              |
+| --------- | --------------------------------------------------------------------------------------------------------- |
+| `include` | Process only matching files. Defaults to `[]`, which uses the default recursive search.                   |
 | `exclude` | Skip matching files and folders. Your list replaces the built-in exclusions. Use `[]` to exclude nothing. |
 
 File filters select candidates; files still need to match a configured language extension.
@@ -326,14 +326,14 @@ Here’s the default filter configuration:
 
 #### Pattern cheat sheet
 
-| Pattern | Meaning |
-| --- | --- |
-| `*` | Zero or more characters within a single file or folder name. |
-| `?` | One character within a name. |
-| `**` | Any number of folder levels. Must be a whole path segment. |
-| `src` in `include` | Recursively include `src`, just like `src/**/*`. |
-| `node_modules` in `exclude` | Skip the top-level `node_modules` folder. |
-| `**/node_modules` in `exclude` | Skip `node_modules` folders at any depth. |
+| Pattern                        | Meaning                                                      |
+| ------------------------------ | ------------------------------------------------------------ |
+| `*`                            | Zero or more characters within a single file or folder name. |
+| `?`                            | One character within a name.                                 |
+| `**`                           | Any number of folder levels. Must be a whole path segment.   |
+| `src` in `include`             | Recursively include `src`, just like `src/**/*`.             |
+| `node_modules` in `exclude`    | Skip the top-level `node_modules` folder.                    |
+| `**/node_modules` in `exclude` | Skip `node_modules` folders at any depth.                    |
 
 A few rules worth knowing:
 
@@ -386,13 +386,13 @@ insertdividers(targetPath, options?)
 
 All options are optional:
 
-| Option | What it does | Default |
-| --- | --- | --- |
-| `cwd` | Base directory for resolving relative paths. | `process.cwd()` |
-| `configFilePath` | Use a specific config file. If empty, check the target directory, then `cwd`, then use the built-in defaults. | `''` |
-| `isDryRun` | Return the files that would change without writing them. | `false` |
-| `logger` | Handle messages with an object exposing `info` and `warn` methods, such as `console`. | Console output |
-| `silent` | Suppress all messages. Takes priority over `logger`. | `false` |
+| Option           | What it does                                                                                                  | Default         |
+| ---------------- | ------------------------------------------------------------------------------------------------------------- | --------------- |
+| `cwd`            | Base directory for resolving relative paths.                                                                  | `process.cwd()` |
+| `configFilePath` | Use a specific config file. If empty, check the target directory, then `cwd`, then use the built-in defaults. | `''`            |
+| `isDryRun`       | Return the files that would change without writing them.                                                      | `false`         |
+| `logger`         | Handle messages with an object exposing `info` and `warn` methods, such as `console`.                         | Console output  |
+| `silent`         | Suppress all messages. Takes priority over `logger`.                                                          | `false`         |
 
 The logger receives:
 
