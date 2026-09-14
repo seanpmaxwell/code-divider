@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main, development]
+  pull_request:
+
+# A new push to the same branch/PR cancels the run that's still going.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Node ${{ matrix.node }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        node: [20, 22, 24]
+        include:
+          # macOS has a case-insensitive filesystem, which the glob matcher
+          # handles differently, so cover it once on the newest Node.
+          - os: macos-latest
+            node: 24
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      # `--ignore-scripts` skips the `prepare` hook so the build below is its
+      # own step with its own failure message.
+      - run: npm ci --ignore-scripts
+
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
+      # Build before testing so the smoke tests can run the bundled CLI
+      - run: npm run build
+      - run: npm test
