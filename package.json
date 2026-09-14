@@ -35,8 +35,7 @@
     "format:check": "prettier --check .",
     "readme:swap": "mv README.md ./assets/README.tmp.md && mv ./assets/README-npm.md README.md",
     "readme:restore": "mv README.md ./assets/README-npm.md && mv ./assets/README.tmp.md README.md",
-    "prepare": "npm run build",
-    "prepublishOnly": "tsc && npm run lint && npm run format:check && npm test && npm run readme:swap",
+    "prepublishOnly": "npm run build && tsc && npm run lint && npm run format:check && npm test && npm run readme:swap",
     "postpack": "npm run readme:restore",
     "start": "node lib/cli.js",
     "start:build": "npm run build && npm run start --",
@@ -64,7 +63,6 @@
     "region",
     "section",
     "banner",
-    "divider",
     "code-formatting",
     "source-code"
   ],
