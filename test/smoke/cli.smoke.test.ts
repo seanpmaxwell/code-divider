@@ -71,7 +71,7 @@ describe.skipIf(!HAS_BUILD)('built CLI (lib/cli.js)', () => {
 
   it('should rewrite markers on disk', async () => {
     const a = await writeFile('src/a.ts', '// @reg hello\nconst x = 1;\n');
-    const { status } = run('src');
+    const { status } = run('--path', 'src');
     expect(status).toBe(0);
     const content = await fs.readFile(a, 'utf8');
     expect(content.split('\n')[0]).toBe(RULE);
@@ -94,8 +94,16 @@ describe.skipIf(!HAS_BUILD)('built CLI (lib/cli.js)', () => {
   });
 
   it('should exit 1 with an error for invalid arguments', () => {
-    const { status, out } = run('-h', 'extra');
+    const { status, out } = run('-h', '--dry-run');
     expect(status).toBe(1);
     expect(out).toContain('Invalid command-line arguments');
+  });
+
+  it('should exit 1 and point to --path for a bare path', async () => {
+    const a = await writeFile('src/a.ts', '// @reg hello\n');
+    const { status, out } = run('src');
+    expect(status).toBe(1);
+    expect(out).toContain('Pass the path with --path');
+    expect(await fs.readFile(a, 'utf8')).toBe('// @reg hello\n');
   });
 });

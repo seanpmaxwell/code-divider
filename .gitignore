@@ -40,3 +40,5 @@ README-tmp
 # Symlink to my-tools' workflows (root only, so .github/workflows is kept)
 /workflows
 code-divider.config.json
+/demo-studio
+/assets/private-notes.md

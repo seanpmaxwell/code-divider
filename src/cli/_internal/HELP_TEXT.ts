@@ -1,14 +1,7 @@
 const HELP_TEXT = `code-divider - format separator / header comment markers
 
 Usage:
-  code-divider [options] [path]
-
-Arguments:
-  path               File or directory to process (default: current
-                      directory). Directories are walked recursively; the
-                      default config skips node_modules, .vscode, .idea,
-                      .claude, and *.log/*.json files at any depth, plus bin,
-                      lib, and dist at the top level. Same as --path.
+  code-divider [options]
 
 Options:
   -i, --init [dir]      Write a code-divider.config.json with the default
@@ -17,7 +10,11 @@ Options:
   -d, --dry-run         Show what would change without writing any files.
       --check           Like --dry-run, but exit with code 1 if any file
                         would change (for CI and pre-commit hooks).
-  -p, --path <value>    File or directory to process.
+  -p, --path <value>    File or directory to process (default: current
+                        directory). Directories are walked recursively; the
+                        default config skips node_modules, .vscode, .idea,
+                        .claude, and *.log/*.json files at any depth, plus
+                        bin, lib, and dist at the top level.
   -c, --config <value>  Config file to use.
   -v, --version         Show the version.
 

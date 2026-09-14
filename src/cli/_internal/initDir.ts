@@ -1,6 +1,6 @@
 import path from 'path';
 
-import FileUtils from '@modules/FileUtils';
+import uFile from '@utilm/uFile';
 
 import { CONFIG_FILE_NAME } from '@common/constants/misc.js';
 import { InitialSettings } from '@common/types/settings';
@@ -22,16 +22,16 @@ async function initDir(
   const targetDirNew = path.isAbsolute(targetDir)
     ? targetDir
     : path.join(process.cwd(), targetDir);
-  const isDir = await FileUtils.isDir(targetDirNew);
+  const isDir = await uFile.isDir(targetDirNew);
   if (!isDir) throw new Error('--init value must be a directory');
   // Get the path for the configuration file
   const configPath = path.join(targetDirNew, CONFIG_FILE_NAME);
-  const configAlreadyExists = await FileUtils.exists(configPath);
+  const configAlreadyExists = await uFile.exists(configPath);
   if (configAlreadyExists) {
     throw new Error(`${CONFIG_FILE_NAME} already exists here, not overwriting`);
   }
   // Save file content to JSON file
-  await FileUtils.saveJsonFile(configPath, initLangSettings, stringifyJsonObj);
+  await uFile.saveJsonFile(configPath, initLangSettings, stringifyJsonObj);
   // Return filepath
   return configPath;
 }

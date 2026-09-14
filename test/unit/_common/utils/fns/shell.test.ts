@@ -1,6 +1,5 @@
+import shell from '@shell';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
-import shell from '@common/utils/shell';
 
 // ========================================================================= //
 //                                  HELPERS                                  //

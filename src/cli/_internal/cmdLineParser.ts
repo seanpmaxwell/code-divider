@@ -84,18 +84,14 @@ function cmdLineParser(args: string[]): ParsedCmdLineArgs {
     }
   }
 
-  // ---- A bare path argument is the same as `--path`, but only one is allowed
-  if (positionals.length > 1) {
+  // ---- Bare arguments aren't accepted: the path must be given with `--path`.
+  // Positionals are still allowed by `parseArgs` so this error can say so.
+  if (positionals.length > 0) {
     throw new Error(
-      `Expected at most one path argument, got ${positionals.length}: ${positionals.join(', ')}`,
+      `Unexpected argument "${positionals[0]}". Pass the path with --path (e.g. --path ${positionals[0]})`,
     );
   }
-  if (positionals.length === 1 && pArgs.path) {
-    throw new Error(
-      `Pass the path either as an argument or with --path, not both: "${positionals[0]}" and "${pArgs.path}"`,
-    );
-  }
-  const targetPath = pArgs.path ?? positionals[0];
+  const targetPath = pArgs.path;
 
   // ---- Return
   return {

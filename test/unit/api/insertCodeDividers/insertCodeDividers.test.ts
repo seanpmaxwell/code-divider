@@ -1,3 +1,4 @@
+import logger from '@logger';
 import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
@@ -5,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import insertCodeDividers from '@src/api/insertCodeDividers/insertCodeDividers';
 
-import FileUtils from '@modules/FileUtils';
+import uFile from '@utilm/uFile';
 
 // ========================================================================= //
 //                                  HELPERS                                  //
@@ -33,8 +34,8 @@ describe('insertCodeDividers', () => {
     cwd = await fs.realpath(
       await fs.mkdtemp(path.join(os.tmpdir(), 'code-divider-icd-')),
     );
-    // `FileUtils.write` is a no-op under the unit-test env; capture instead.
-    write = vi.spyOn(FileUtils, 'write').mockResolvedValue(undefined);
+    // `uFile.write` is a no-op under the unit-test env; capture instead.
+    write = vi.spyOn(uFile, 'write').mockResolvedValue(undefined);
   });
 
   afterEach(async () => {
@@ -84,7 +85,7 @@ describe('insertCodeDividers', () => {
 
   it('should honor a config file found in the target directory', async () => {
     await writeFile('src/a.ts', '// @sec x\n');
-    await FileUtils.saveJsonFile(
+    await uFile.saveJsonFile(
       path.join(cwd, 'src', 'code-divider.config.json'),
       {
         All: { CharacterLimit: 40 },
@@ -97,11 +98,11 @@ describe('insertCodeDividers', () => {
 
   it('should use an explicit `configFilePath` over the automatic lookup', async () => {
     await writeFile('src/a.ts', '// @sec x\n');
-    await FileUtils.saveJsonFile(
+    await uFile.saveJsonFile(
       path.join(cwd, 'src', 'code-divider.config.json'),
       { All: { CharacterLimit: 40 } },
     );
-    await FileUtils.saveJsonFile(path.join(cwd, 'custom.json'), {
+    await uFile.saveJsonFile(path.join(cwd, 'custom.json'), {
       All: { CharacterLimit: 50 },
     });
     await insertCodeDividers('src', { cwd, configFilePath: 'custom.json' });
@@ -130,5 +131,64 @@ describe('insertCodeDividers', () => {
     await expect(
       insertCodeDividers('', { cwd, configFilePath: 'missing.json' }),
     ).rejects.toThrow(/was not found/);
+  });
+
+  // ---- Logger
+  describe('logger', () => {
+    it('should print to the console by default', async () => {
+      const config = await writeFile('code-divider.config.json', '{}');
+      const file = await writeFile('a.ts', '// @reg\n');
+      const info = vi.spyOn(console, 'info').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      await insertCodeDividers('', { cwd });
+      expect(info).toHaveBeenCalledWith(
+        `Using configuration overrides from: ${config}`,
+      );
+      expect(warn).toHaveBeenCalledWith(
+        `Warning: ${file}:1: code-divider marker has no label, skipping`,
+      );
+    });
+
+    it('should accept `console` as the logger', async () => {
+      const config = await writeFile('code-divider.config.json', '{}');
+      await writeFile('a.ts', '// @reg one\n');
+      const info = vi.spyOn(console, 'info').mockImplementation(() => {});
+      await insertCodeDividers('', { cwd, logger: console });
+      expect(info).toHaveBeenCalledWith(
+        `Using configuration overrides from: ${config}`,
+      );
+    });
+
+    it('should print nothing when `silent` is true', async () => {
+      await writeFile('code-divider.config.json', '{}');
+      await writeFile('a.ts', '// @reg\n');
+      const info = vi.spyOn(console, 'info').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      await insertCodeDividers('', { cwd, silent: true });
+      expect(info).not.toHaveBeenCalled();
+      expect(warn).not.toHaveBeenCalled();
+    });
+
+    it('should let `silent` override a given logger', async () => {
+      await writeFile('code-divider.config.json', '{}');
+      await writeFile('a.ts', '// @reg\n');
+      const mockLogger = logger.create({ info: vi.fn(), warn: vi.fn() });
+      await insertCodeDividers('', { cwd, logger: mockLogger, silent: true });
+      expect(mockLogger.info).not.toHaveBeenCalled();
+      expect(mockLogger.warn).not.toHaveBeenCalled();
+    });
+
+    it('should send the config file and warnings to a given logger', async () => {
+      const config = await writeFile('code-divider.config.json', '{}');
+      const file = await writeFile('a.ts', '// @reg\n');
+      const mockLogger = logger.create({ info: vi.fn(), warn: vi.fn() });
+      await insertCodeDividers('', { cwd, logger: mockLogger });
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        `Using configuration overrides from: ${config}`,
+      );
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        `Warning: ${file}:1: code-divider marker has no label, skipping`,
+      );
+    });
   });
 });

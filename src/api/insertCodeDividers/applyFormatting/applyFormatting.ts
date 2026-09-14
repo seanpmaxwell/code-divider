@@ -1,10 +1,9 @@
-import FileUtils, { FilePathDTO } from '@modules/FileUtils';
-import logger from '@modules/logger';
+import type { ILogger } from '@logger';
 
-import type {
-  ConfiguredLangSettings,
-  ExtensionsMap,
-} from '@common/types/settings';
+import uFile, { FilePathDTO } from '@utilm/uFile';
+
+import type { ConfiguredLangSettings } from '@common/types/settings';
+import type { IRunContext } from '@common/utils/fns/RunContext';
 
 import formatLabel from './formatLabel';
 
@@ -28,16 +27,16 @@ const MAX_OPEN_FILES = 50;
  */
 async function applyFormatting(
   dtos: FilePathDTO[],
-  extensionsMap: ExtensionsMap,
-  isDryRun: boolean,
+  ctx: IRunContext,
 ): Promise<string[]> {
   // Collect a job per file, but don't start any yet
+  const { extensionsMap } = ctx.configuredSettings;
   const jobs: (() => Promise<string | null>)[] = [];
   for (const dto of dtos) {
     const settingsObj = extensionsMap.get(dto.ext);
     if (settingsObj) {
       jobs.push(() =>
-        applyFormattingToOneFile(dto.absolutePath, settingsObj, isDryRun),
+        applyFormattingToOneFile(dto.absolutePath, settingsObj, ctx),
       );
     }
   }
@@ -60,11 +59,11 @@ async function applyFormatting(
 async function applyFormattingToOneFile(
   fileFullPath: string,
   settingsObj: ConfiguredLangSettings,
-  isDryRun: boolean,
+  ctx: IRunContext,
 ): Promise<string | null> {
   // -- Load content -- //
   // Keep the file's own line endings (CRLF files stay CRLF).
-  const content = await FileUtils.read(fileFullPath);
+  const content = await uFile.read(fileFullPath);
   const eol = content.includes('\r\n') ? '\r\n' : '\n';
   const lines = content.split(eol);
 
@@ -76,7 +75,7 @@ async function applyFormattingToOneFile(
     // Check if inserting `section`
     const sectionMatch = line.match(settingsObj.SECTION_MARKER);
     if (sectionMatch) {
-      let label = validateLabel(sectionMatch[1], fileFullPath, i);
+      let label = validateLabel(sectionMatch[1], fileFullPath, i, ctx.logger);
       if (!label) continue;
       label = formatLabel(label, settingsObj.SECTION_LABEL_FORMAT);
       lines[i] = insertSection(label, settingsObj, indent);
@@ -86,7 +85,7 @@ async function applyFormattingToOneFile(
     // Check if inserting `region`
     const regionMatch = line.match(settingsObj.REGION_MARKER);
     if (regionMatch) {
-      let label = validateLabel(regionMatch[1], fileFullPath, i);
+      let label = validateLabel(regionMatch[1], fileFullPath, i, ctx.logger);
       if (!label) continue;
       label = formatLabel(label, settingsObj.REGION_LABEL_FORMAT);
       lines[i] = insertRegion(label, settingsObj, indent, eol);
@@ -98,9 +97,9 @@ async function applyFormattingToOneFile(
   // -- Return -- //
   // Return an object if a file WAS edited
   if (insertions) {
-    if (!isDryRun) {
+    if (!ctx.isDryRun) {
       const newContent = lines.join(eol);
-      await FileUtils.write(fileFullPath, newContent);
+      await uFile.write(fileFullPath, newContent);
     }
     return fileFullPath;
   }
@@ -117,6 +116,7 @@ function validateLabel(
   label: string,
   filePath: string,
   lineNum: number,
+  logger: ILogger,
 ): string {
   const labelNew = label?.trim() ?? '';
   if (!labelNew) {

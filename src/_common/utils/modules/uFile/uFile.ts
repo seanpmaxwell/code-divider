@@ -1,8 +1,7 @@
+import logger from '@logger';
 import { Dirent } from 'fs';
 import fs from 'fs/promises';
 import path from 'path';
-
-import logger from '@modules/logger';
 
 import { IS_UNIT_TEST_ENV } from '@common/constants/misc';
 
