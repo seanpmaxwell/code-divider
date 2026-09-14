@@ -6,16 +6,23 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import HELP_TEXT from '@src/cli/_internal/HELP_TEXT';
 import cli from '@src/cli/cli';
 
-import FileUtils from '@modules/FileUtils';
-import logger from '@modules/logger';
-
 import { CONFIG_FILE_NAME } from '@common/constants/misc';
+
+import uFile from '@utilm/uFile';
+
+import logger from '@logger';
 
 // ========================================================================= //
 //                                  HELPERS                                  //
 // ========================================================================= //
 
-const PACKAGE_JSON = path.join(import.meta.dirname, '..', '..', 'package.json');
+const PACKAGE_JSON = path.join(
+  import.meta.dirname,
+  '..',
+  '..',
+  '..',
+  'package.json',
+);
 
 let cwd: string;
 let write: ReturnType<typeof vi.spyOn>;
@@ -47,8 +54,8 @@ describe('cli', () => {
     cwd = await fs.realpath(
       await fs.mkdtemp(path.join(os.tmpdir(), 'code-divider-cli-')),
     );
-    // `FileUtils.write` is a no-op under the unit-test env; capture instead.
-    write = vi.spyOn(FileUtils, 'write').mockResolvedValue(undefined);
+    // `uFile.write` is a no-op under the unit-test env; capture instead.
+    write = vi.spyOn(uFile, 'write').mockResolvedValue(undefined);
     info = vi.spyOn(logger, 'info').mockImplementation(() => '');
     vi.spyOn(logger, 'line').mockImplementation(() => undefined);
     vi.spyOn(logger, 'warn').mockImplementation(() => '');
@@ -78,7 +85,7 @@ describe('cli', () => {
     });
 
     it('should reject help or version combined with anything else', async () => {
-      await expect(cli(['-h', 'src'], cwd)).rejects.toThrow(
+      await expect(cli(['-h', '--path', 'src'], cwd)).rejects.toThrow(
         /Invalid command-line arguments/,
       );
       await expect(cli(['-v', '-d'], cwd)).rejects.toThrow(
@@ -97,7 +104,7 @@ describe('cli', () => {
     it('should write a config file into the given directory', async () => {
       await cli(['--init', cwd], cwd);
       const configPath = path.join(cwd, CONFIG_FILE_NAME);
-      expect(await FileUtils.exists(configPath)).toBe(true);
+      expect(await uFile.exists(configPath)).toBe(true);
       expect(printed()).toContain(`created ${configPath}`);
     });
 
@@ -105,9 +112,7 @@ describe('cli', () => {
       await expect(cli(['--init', cwd, '-d'], cwd)).rejects.toThrow(
         /--init takes at most one argument/,
       );
-      expect(await FileUtils.exists(path.join(cwd, CONFIG_FILE_NAME))).toBe(
-        false,
-      );
+      expect(await uFile.exists(path.join(cwd, CONFIG_FILE_NAME))).toBe(false);
     });
   });
 
@@ -118,14 +123,22 @@ describe('cli', () => {
       await cli([], cwd);
       expect(write).toHaveBeenCalledTimes(1);
       expect(write.mock.calls[0][0]).toBe(a);
-      expect(printed()).toContain('code-divider: 1 file/s updated');
+      expect(printed()).toContain('code-divider CLI: 1 file/s updated');
     });
 
-    it('should only process a positional path', async () => {
+    it('should only process the directory given with --path', async () => {
       const a = await writeFile('src/a.ts', '// @reg one\n');
       await writeFile('other/b.ts', '// @reg two\n');
-      await cli(['src'], cwd);
+      await cli(['--path', 'src'], cwd);
       expect(write.mock.calls.map((c: unknown[]) => c[0])).toEqual([a]);
+    });
+
+    it('should reject a bare path without writing anything', async () => {
+      await writeFile('src/a.ts', '// @reg one\n');
+      await expect(cli(['src'], cwd)).rejects.toThrow(
+        /Unexpected argument "src"\. Pass the path with --path/,
+      );
+      expect(write).not.toHaveBeenCalled();
     });
 
     it('should process a single file given with --path', async () => {
@@ -137,12 +150,16 @@ describe('cli', () => {
 
     it('should use the config file given with --config', async () => {
       await writeFile('src/a.ts', '// @sec x\n');
-      await FileUtils.saveJsonFile(path.join(cwd, 'custom.json'), {
+      await uFile.saveJsonFile(path.join(cwd, 'custom.json'), {
         All: { CharacterLimit: 40 },
       });
-      await cli(['-c', 'custom.json', 'src'], cwd);
+      await cli(['-c', 'custom.json', '-p', 'src'], cwd);
       const written = write.mock.calls[0][1] as string;
       expect(written.trimEnd()).toHaveLength(40);
+      // The CLI passes its logger to the API, so the config file is reported
+      expect(printed()).toContain(
+        `Using configuration overrides from: ${path.join(cwd, 'custom.json')}`,
+      );
     });
 
     it('should list the files but not write them on a dry run', async () => {
@@ -151,7 +168,7 @@ describe('cli', () => {
       expect(write).not.toHaveBeenCalled();
       expect(printed()).toContain(a);
       expect(printed()).toContain(
-        '[Dry Run] code-divider: 1 file/s would have been updated',
+        '[Dry Run] code-divider CLI: 1 file/s would have been updated',
       );
       expect(process.exitCode).toBeUndefined();
     });

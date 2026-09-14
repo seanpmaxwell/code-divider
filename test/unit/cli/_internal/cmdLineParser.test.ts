@@ -58,9 +58,9 @@ describe('cmdLineParser', () => {
       expect(res1).toEqual(FLAG_HELP_RESULT);
       const res2 = cmdLineParser(['-h']);
       expect(res2).toEqual(FLAG_HELP_RESULT);
-      // A trailing positional is parsed as the path; `cli` rejects the combo
-      const res3 = cmdLineParser(['-h', 'horse']);
-      expect(res3).toEqual({ ...FLAG_HELP_RESULT, path: 'horse' });
+      // Bare arguments are rejected, wherever they appear
+      const res3 = () => cmdLineParser(['-h', 'horse']);
+      expect(() => res3()).toThrow(/Unexpected argument "horse"/);
       const res4 = () => cmdLineParser(['horse', '-h']);
       expect(() => res4()).toThrow();
     });
@@ -75,8 +75,8 @@ describe('cmdLineParser', () => {
       expect(res2).toEqual(FLAG_VERSION_RESULT);
       const res2a = cmdLineParser(['-v']);
       expect(res2a).not.toEqual(FLAG_HELP_RESULT);
-      const res3 = cmdLineParser(['-v', 'horse']);
-      expect(res3).toEqual({ ...FLAG_VERSION_RESULT, path: 'horse' });
+      const res3 = () => cmdLineParser(['-v', 'horse']);
+      expect(() => res3()).toThrow(/Unexpected argument "horse"/);
       const res4 = () => cmdLineParser(['horse', '-v']);
       expect(() => res4()).toThrow();
     });
@@ -124,10 +124,10 @@ describe('cmdLineParser', () => {
       expect(res2).toEqual(FLAG_DRY_RUN_RESULT);
       const res2a = cmdLineParser(['-d']);
       expect(res2a).not.toEqual(FLAG_HELP_RESULT);
-      // Order doesn't matter for options; the positional becomes the path
-      const res3 = cmdLineParser(['-d', 'horse']);
+      // Order doesn't matter for options
+      const res3 = cmdLineParser(['-d', '-p', 'horse']);
       expect(res3).toEqual({ ...FLAG_DRY_RUN_RESULT, path: 'horse' });
-      const res4 = cmdLineParser(['horse', '-d']);
+      const res4 = cmdLineParser(['-p', 'horse', '-d']);
       expect(res4).toEqual({ ...FLAG_DRY_RUN_RESULT, path: 'horse' });
     });
   });
@@ -139,7 +139,7 @@ describe('cmdLineParser', () => {
         ...DEFAULT_RESULT,
         check: true,
       });
-      expect(cmdLineParser(['--check', 'src'])).toEqual({
+      expect(cmdLineParser(['--check', '--path', 'src'])).toEqual({
         ...GetPathConfigResult('src'),
         check: true,
       });
@@ -156,20 +156,24 @@ describe('cmdLineParser', () => {
     });
   });
 
-  // Positional path
-  describe('positional path', () => {
-    it('should treat a bare argument as the path', async () => {
-      expect(cmdLineParser(['src'])).toEqual(GetPathConfigResult('src'));
-      expect(cmdLineParser(['./src/'])).toEqual(GetPathConfigResult('src/'));
+  // Bare arguments
+  describe('bare arguments', () => {
+    it('should reject a bare path and point to --path', async () => {
+      expect(() => cmdLineParser(['src'])).toThrow(
+        'Unexpected argument "src". Pass the path with --path (e.g. --path src)',
+      );
     });
 
-    it('should reject a positional combined with --path', async () => {
-      expect(() => cmdLineParser(['src', '--path', 'lib'])).toThrow(/not both/);
-      expect(() => cmdLineParser(['--path', 'lib', 'src'])).toThrow(/not both/);
+    it('should reject a bare argument alongside --path', async () => {
+      const re = /Unexpected argument "src"/;
+      expect(() => cmdLineParser(['src', '--path', 'lib'])).toThrow(re);
+      expect(() => cmdLineParser(['--path', 'lib', 'src'])).toThrow(re);
     });
 
-    it('should reject more than one positional', async () => {
-      expect(() => cmdLineParser(['src', 'lib'])).toThrow(/at most one/);
+    it('should reject more than one bare argument', async () => {
+      expect(() => cmdLineParser(['src', 'lib'])).toThrow(
+        /Unexpected argument "src"/,
+      );
     });
   });
 

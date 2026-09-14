@@ -9,19 +9,22 @@ import {
   describe,
   expect,
   it,
+  type Mock,
   vi,
 } from 'vitest';
 
 import applyFormatting from '@src/api/insertCodeDividers/applyFormatting/applyFormatting';
 import configureSettings from '@src/api/insertCodeDividers/configureSettings/configureSettings';
 
-import FileUtils, { FilePathDTO } from '@modules/FileUtils';
-import logger from '@modules/logger';
-
 import type {
   ConfiguredLangSettings,
   ExtensionsMap,
 } from '@common/types/settings';
+import RunContext from '@common/utils/fns/RunContext';
+
+import uFile, { FilePathDTO } from '@utilm/uFile';
+
+import logger, { type ILogger } from '@logger';
 
 // ========================================================================= //
 //                                 CONSTANTS                                 //
@@ -38,7 +41,7 @@ let base: string; // holds the default settings lookup
 let tmp: string; // fresh per test
 let defaultMap: ExtensionsMap;
 let write: ReturnType<typeof vi.spyOn>;
-let warn: ReturnType<typeof vi.spyOn>;
+let warn: Mock<ILogger['warn']>;
 
 interface RunOptions {
   isDryRun?: boolean;
@@ -56,14 +59,19 @@ async function run(files: Record<string, string>, opts: RunOptions = {}) {
     const abs = path.join(tmp, rel);
     await fs.mkdir(path.dirname(abs), { recursive: true });
     await fs.writeFile(abs, content, 'utf8');
-    dtos.push(FileUtils.parse(rel, tmp));
+    dtos.push(uFile.parse(rel, tmp));
   }
   let map = defaultMap;
   if (opts.ts) {
     map = new Map(defaultMap);
     map.set('.ts', { ...defaultMap.get('.ts')!, ...opts.ts });
   }
-  const result = await applyFormatting(dtos, map, opts.isDryRun ?? false);
+  const ctx = RunContext({
+    isDryRun: opts.isDryRun ?? false,
+    logger: logger.create({ warn }),
+  });
+  ctx.configuredSettings.extensionsMap = map;
+  const result = await applyFormatting(dtos, ctx);
   const written = new Map<string, string>();
   for (const [file, content] of write.mock.calls as [string, string][]) {
     written.set(path.relative(tmp, file), content);
@@ -94,7 +102,9 @@ async function sectionLabel(src: string, opts?: RunOptions): Promise<string> {
 describe('applyFormatting', () => {
   beforeAll(async () => {
     base = await fs.mkdtemp(path.join(os.tmpdir(), 'code-divider-af-'));
-    defaultMap = (await configureSettings(base, '', '')).extensionsMap;
+    const ctx = RunContext({ cwd: base });
+    await configureSettings(ctx);
+    defaultMap = ctx.configuredSettings.extensionsMap;
   });
 
   afterAll(async () => {
@@ -103,10 +113,10 @@ describe('applyFormatting', () => {
 
   beforeEach(async () => {
     tmp = await fs.mkdtemp(path.join(base, 'case-'));
-    // `FileUtils.write` is a no-op under the unit-test env, so capture what
+    // `uFile.write` is a no-op under the unit-test env, so capture what
     // would be written instead of reading it back from disk.
-    write = vi.spyOn(FileUtils, 'write').mockResolvedValue(undefined);
-    warn = vi.spyOn(logger, 'warn').mockImplementation(() => '');
+    write = vi.spyOn(uFile, 'write').mockResolvedValue(undefined);
+    warn = vi.fn<ILogger['warn']>();
   });
 
   afterEach(async () => {
@@ -157,10 +167,10 @@ describe('applyFormatting', () => {
     });
 
     it('should never have more than 50 files open at once', async () => {
-      const realRead = FileUtils.read;
+      const realRead = uFile.read;
       let inFlight = 0;
       let maxInFlight = 0;
-      vi.spyOn(FileUtils, 'read').mockImplementation(async (file: string) => {
+      vi.spyOn(uFile, 'read').mockImplementation(async (file: string) => {
         inFlight++;
         maxInFlight = Math.max(maxInFlight, inFlight);
         try {

@@ -5,12 +5,12 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import initDir from '@src/cli/_internal/initDir';
 
-import FileUtils from '@modules/FileUtils';
-
 import DefaultConfig from '@common/constants/DefaultConfig';
 import { CONFIG_FILE_NAME } from '@common/constants/misc';
 
-import EdgeCaseConfig from '../_common/constants/EdgeCaseConfig';
+import uFile from '@utilm/uFile';
+
+import EdgeCaseConfig from '@test/_common/constants/EdgeCaseConfig';
 
 // ========================================================================= //
 //                                 CONSTANTS                                 //
@@ -69,7 +69,7 @@ const ORIGINAL_CWD = process.cwd();
  * Read the generated config file as text.
  */
 function readConfig(dir: string): Promise<string> {
-  return FileUtils.read(path.join(dir, CONFIG_FILE_NAME));
+  return uFile.read(path.join(dir, CONFIG_FILE_NAME));
 }
 
 // ========================================================================= //
@@ -95,12 +95,12 @@ describe('initDir', () => {
     it('should write the config file into an absolute directory and return its path', async () => {
       const result = await initDir(tmp, DefaultConfig);
       expect(result).toBe(path.join(tmp, CONFIG_FILE_NAME));
-      expect(await FileUtils.exists(result)).toBe(true);
+      expect(await uFile.exists(result)).toBe(true);
     });
 
     it('should write every default setting', async () => {
       const result = await initDir(tmp, DefaultConfig);
-      expect(await FileUtils.loadJsonFile(result)).toEqual(DefaultConfig);
+      expect(await uFile.loadJsonFile(result)).toEqual(DefaultConfig);
     });
 
     it('should end the file with a single newline', async () => {
@@ -114,11 +114,11 @@ describe('initDir', () => {
   // ---- Relative paths
   describe('relative paths', () => {
     it('should resolve a relative directory against process.cwd()', async () => {
-      await FileUtils.mkDir(path.join(tmp, 'sub'));
+      await uFile.mkDir(path.join(tmp, 'sub'));
       process.chdir(tmp);
       const result = await initDir('sub', DefaultConfig);
       expect(result).toBe(path.join(tmp, 'sub', CONFIG_FILE_NAME));
-      expect(await FileUtils.exists(result)).toBe(true);
+      expect(await uFile.exists(result)).toBe(true);
     });
 
     it('should accept "." for the current directory', async () => {
@@ -172,7 +172,7 @@ describe('initDir', () => {
 
     it('should keep the default config’s key order', async () => {
       await initDir(tmp, DefaultConfig);
-      const written = await FileUtils.loadJsonFile(
+      const written = await uFile.loadJsonFile(
         path.join(tmp, CONFIG_FILE_NAME),
       );
       expect(Object.keys(written)).toEqual(Object.keys(DefaultConfig));
@@ -219,7 +219,7 @@ describe('initDir', () => {
 
     it('should still be valid JSON that round-trips', async () => {
       const result = await initDir(tmp, EdgeCaseConfig);
-      expect(await FileUtils.loadJsonFile(result)).toEqual(EdgeCaseConfig);
+      expect(await uFile.loadJsonFile(result)).toEqual(EdgeCaseConfig);
     });
   });
 
@@ -233,7 +233,7 @@ describe('initDir', () => {
 
     it('should throw when the target is a file', async () => {
       const file = path.join(tmp, 'a.txt');
-      await FileUtils.testOnly.mkFile(file);
+      await uFile.testOnly.mkFile(file);
       await expect(initDir(file, DefaultConfig)).rejects.toThrow(
         /must be a directory/,
       );
@@ -245,16 +245,16 @@ describe('initDir', () => {
       await expect(initDir(tmp, DefaultConfig)).rejects.toThrow(
         /already exists/,
       );
-      expect(await FileUtils.read(configPath)).toBe('{ "custom": true }\n');
+      expect(await uFile.read(configPath)).toBe('{ "custom": true }\n');
     });
 
     it('should not create the file when it throws', async () => {
       await expect(
         initDir(path.join(tmp, 'nope'), DefaultConfig),
       ).rejects.toThrow();
-      expect(
-        await FileUtils.exists(path.join(tmp, 'nope', CONFIG_FILE_NAME)),
-      ).toBe(false);
+      expect(await uFile.exists(path.join(tmp, 'nope', CONFIG_FILE_NAME))).toBe(
+        false,
+      );
     });
   });
 });

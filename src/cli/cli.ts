@@ -4,9 +4,9 @@ import { fileURLToPath } from 'url';
 
 import insertCodeDividers from '@src/api';
 
-import logger from '@modules/logger';
-
 import DefaultConfig from '@common/constants/DefaultConfig';
+
+import logger from '@logger';
 
 import cmdLineParser from './_internal/cmdLineParser';
 import HELP_TEXT from './_internal/HELP_TEXT';
@@ -51,6 +51,7 @@ async function cli(args: string[], cwd: string): Promise<unknown> {
     cwd,
     configFilePath: pArgs.config,
     isDryRun: pArgs.dryRun || pArgs.check,
+    logger,
   });
   const count = filesChanged.length;
 
@@ -70,10 +71,10 @@ async function cli(args: string[], cwd: string): Promise<unknown> {
       // Fail the process (CI, pre-commit) when something would change
       if (count > 0) process.exitCode = 1;
     } else {
-      finalMessage = `[Dry Run] code-divider: ${count} file/s would have been updated`;
+      finalMessage = `[Dry Run] code-divider CLI: ${count} file/s would have been updated`;
     }
   } else {
-    finalMessage = `code-divider: ${count} file/s updated`;
+    finalMessage = `code-divider CLI: ${count} file/s updated`;
   }
 
   // ---- Finish

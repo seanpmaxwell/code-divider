@@ -1,17 +1,16 @@
 import path from 'path';
 
-import FileUtils from '@modules/FileUtils';
-import logger from '@modules/logger';
-
 import DefaultConfig from '@common/constants/DefaultConfig.js';
 import { CONFIG_FILE_NAME } from '@common/constants/misc.js';
 import type {
   ConfiguredLangSettings,
   ExtensionsMap,
-  FilterSettings,
   InitialLangSettings,
   InitialSettings,
-} from '@common/types/settings.js';
+} from '@common/types/settings';
+import { type IRunContext } from '@common/utils/fns/RunContext';
+
+import uFile from '@utilm/uFile';
 
 import {
   validateFilterSettings,
@@ -31,54 +30,30 @@ const Markers = {
 } as const;
 
 // ========================================================================= //
-//                                   TYPES                                   //
-// ========================================================================= //
-
-interface ConfiguredSettings {
-  filter: FilterSettings;
-  extensionsMap: ExtensionsMap;
-  targetDir: string;
-  targetFile: string | null;
-}
-
-// ========================================================================= //
 //                                 FUNCTIONS                                 //
 // ========================================================================= //
 
 /**
  * Resolve the target path, find and load the config file (if any), validate
  * everything, and compile the per-language settings into the matchers used
- * while formatting.
+ * while formatting. Fills in `targetDir`, `targetFile`, `configFilePath`, and
+ * `configuredSettings` on the `ctx` it's given.
  */
-async function configureSettings(
-  cwd: string,
-  targetPath: string,
-  configFilePath: string,
-): Promise<ConfiguredSettings> {
+async function configureSettings(ctx: IRunContext): Promise<void> {
   // Load settings
-  const { targetDir, targetFile } = await getTargetPaths(cwd, targetPath);
-  const configFilePathNew = await getConfigFilePath(
-    cwd,
-    targetDir,
-    configFilePath,
-  );
-  const initConfigSettings = await getInitConfigSettings(configFilePathNew);
+  await setTargetPaths(ctx);
+  await setConfigFilePath(ctx);
+  const initConfigSettings = await getInitConfigSettings(ctx);
   const { All, filter: filterRaw, ...other } = initConfigSettings;
   // Run validations for the `All` and `filter` settings
   validateSharedSettings('All', All);
-  const filter = validateFilterSettings(filterRaw);
+  ctx.configuredSettings.filter = validateFilterSettings(filterRaw);
   // Configure extensions map
   const finalConfigSettings = Object.keys(other).map((lang) =>
     configureLangEntry(lang, other[lang] as InitialLangSettings),
   );
-  const extensionsMap = setupExtensionsMap(finalConfigSettings);
-  // Return
-  return {
-    filter,
-    extensionsMap,
-    targetDir,
-    targetFile,
-  };
+  ctx.configuredSettings.extensionsMap =
+    setupExtensionsMap(finalConfigSettings);
 }
 
 /**
@@ -86,29 +61,30 @@ async function configureSettings(
  *
  * @private {@link configureSettings}
  */
-async function getTargetPaths(
-  cwd: string,
-  targetPath: string,
-): Promise<{ targetDir: string; targetFile: string | null }> {
+async function setTargetPaths(ctx: IRunContext): Promise<void> {
   // Init
+  let targetPath = ctx.targetPathRaw;
   if (!targetPath) {
-    targetPath = cwd;
+    targetPath = ctx.cwd;
   } else if (targetPath && !path.isAbsolute(targetPath)) {
-    targetPath = path.join(cwd, targetPath);
+    targetPath = path.join(ctx.cwd, targetPath);
   }
   // Check exists
-  const exists = await FileUtils.exists(targetPath);
+  const exists = await uFile.exists(targetPath);
   if (!exists) {
     throw new Error(
       `targetPath ${targetPath} must be an existing file or directory`,
     );
   }
   // If directory
-  const isDir = await FileUtils.isDir(targetPath);
-  if (isDir) return { targetDir: targetPath, targetFile: null };
+  if (await uFile.isDir(targetPath)) {
+    ctx.targetDir = targetPath;
+    ctx.targetFile = null;
+    return;
+  }
   // If file
-  const targetDir = path.dirname(targetPath);
-  return { targetDir, targetFile: targetPath };
+  ctx.targetDir = path.dirname(targetPath);
+  ctx.targetFile = targetPath;
 }
 
 /**
@@ -121,32 +97,35 @@ async function getTargetPaths(
  *
  * @private {@link configureSettings}
  */
-async function getConfigFilePath(
-  cwd: string,
-  targetDir: string,
-  configFilePath: string,
-): Promise<string | null> {
+async function setConfigFilePath(ctx: IRunContext): Promise<void> {
   // If the configuration file path was passed (relative paths are resolved
   // against `cwd`, absolute paths are used as-is)
-  if (configFilePath) {
-    const fullPath = path.resolve(cwd, configFilePath);
-    const exists = await FileUtils.exists(fullPath);
+  if (ctx.configFilePath) {
+    const fullPath = path.resolve(ctx.cwd, ctx.configFilePath);
+    const exists = await uFile.exists(fullPath);
     if (!exists)
       throw new Error(
-        `Configuration file ${configFilePath} was specified but was not found`,
+        `Configuration file ${ctx.configFilePath} was specified but was not found`,
       );
-    return fullPath;
+    ctx.configFilePath = fullPath;
+    return;
   }
   // Look in the target directory
-  const localConfigFile = path.join(targetDir, CONFIG_FILE_NAME);
-  const exists = await FileUtils.exists(localConfigFile);
-  if (exists) return localConfigFile;
+  const localConfigFile = path.join(ctx.targetDir, CONFIG_FILE_NAME);
+  const exists = await uFile.exists(localConfigFile);
+  if (exists) {
+    ctx.configFilePath = localConfigFile;
+    return;
+  }
   // Look in the current working directory
-  const cwdConfigFile = path.join(cwd, CONFIG_FILE_NAME);
-  const cwdConfigFileExists = await FileUtils.exists(cwdConfigFile);
-  if (cwdConfigFileExists) return cwdConfigFile;
+  const cwdConfigFile = path.join(ctx.cwd, CONFIG_FILE_NAME);
+  const cwdConfigFileExists = await uFile.exists(cwdConfigFile);
+  if (cwdConfigFileExists) {
+    ctx.configFilePath = cwdConfigFile;
+    return;
+  }
   // Use `null` if there's no configuration file anywhere.
-  return null;
+  ctx.configFilePath = null;
 }
 
 /**
@@ -160,7 +139,7 @@ async function getConfigFilePath(
  * @private {@link configureSettings}
  */
 async function getInitConfigSettings(
-  configFilePath: string | null,
+  ctx: IRunContext,
 ): Promise<InitialSettings> {
   // ---- Initialize
   const retVal: InitialSettings = {
@@ -171,10 +150,12 @@ async function getInitConfigSettings(
 
   // ---- Apply Settings from Configuration File
   // Note: `.loadJsonFile` will check that it's a valid .json file
-  if (configFilePath !== null) {
+  if (ctx.configFilePath !== null) {
     const jsonFileSettings: InitialSettings =
-      await FileUtils.loadJsonFile<InitialSettings>(configFilePath);
-    logger.info(`Using configuration overrides from: ${configFilePath}`);
+      await uFile.loadJsonFile<InitialSettings>(ctx.configFilePath);
+    ctx.logger.info(
+      `Using configuration overrides from: ${ctx.configFilePath}`,
+    );
     Object.keys(jsonFileSettings).forEach((key) => {
       const overridesFromFile = jsonFileSettings[key] as InitialLangSettings;
       // Spreading a string/array/null would silently produce garbage

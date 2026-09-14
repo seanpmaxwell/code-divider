@@ -2,10 +2,10 @@ import cmdLineParser from '@src/cli/_internal/cmdLineParser';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import insertCodeDividers from '@src/index';
 
-import logger from '@modules/logger';
+import onInit from '@common/utils/fns/onInit';
 
-import onInit from '@common/utils/onInit';
-import shell from '@common/utils/shell';
+import ulog from '@logger';
+import shell from '@shell';
 
 // ========================================================================= //
 //                                    RUN                                    //
@@ -23,18 +23,18 @@ import shell from '@common/utils/shell';
 
 // ===================== Process Command Line Arguments ==================== //
 
-logger.info('horse');
+ulog.info('horse');
 
 await onInit.skip(async () => {
-  logger.info('horse');
-  logger.info(cmdLineParser(['--help']));
-  logger.info(cmdLineParser(['-h']));
-  logger.info(cmdLineParser(['-h', 'horse']));
-  logger.info(cmdLineParser(['-h', 'horse']));
+  ulog.info('horse');
+  ulog.info(cmdLineParser(['--help']));
+  ulog.info(cmdLineParser(['-h']));
+  ulog.info(cmdLineParser(['-h', 'horse']));
+  ulog.info(cmdLineParser(['-h', 'horse']));
 }, 'pg_parseCommandLineArgs');
 
 // Display the version
 await onInit(async () => {
   const stdout = await shell('npm', ['run', 'start', '--', '--version']);
-  logger.info(stdout);
+  ulog.info(stdout);
 }, 'pg_version');

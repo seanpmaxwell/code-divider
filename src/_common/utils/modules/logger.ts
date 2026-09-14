@@ -1,6 +1,45 @@
 // ========================================================================= //
+//                                 CONSTANTS                                 //
+// ========================================================================= //
+
+// A logger that ignores every message. The API uses it when the `silent`
+// option is true.
+export const SilentLogger = {
+  info: () => {},
+  warn: () => {},
+} as const satisfies ILogger;
+
+// ========================================================================= //
+//                                   TYPES                                   //
+// ========================================================================= //
+
+/**
+ * Where the API sends its messages: `info` for the config file it uses and
+ * `warn` for problems such as a marker with no label. By default they're
+ * printed to the console; pass your own logger to send them elsewhere, or set
+ * the `silent` option to turn them off. Only `info` and `warn` are required,
+ * so `console` works too.
+ */
+export interface ILogger {
+  info(...args: unknown[]): void;
+  warn(...args: unknown[]): void;
+}
+
+// ========================================================================= //
 //                                 FUNCTIONS                                 //
 // ========================================================================= //
+
+/**
+ * Create a new logger from a partial. Note that SilentLogger sets the defaults.
+ *
+ * @testOnly
+ */
+function create(partial: Partial<ILogger>): ILogger {
+  return {
+    ...SilentLogger,
+    ...partial,
+  };
+}
 
 /**
  * Print info. Return content
@@ -58,4 +97,5 @@ export default {
   warn,
   error,
   line,
+  create,
 } as const;

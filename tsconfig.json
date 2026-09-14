@@ -19,10 +19,20 @@
     "paths": {
       "@src/*": ["./src/*"],
       "@common/*": ["./src/_common/*"],
-      "@modules/*": ["./src/_common/modules/*"]
+      "@utilm/*": ["./src/_common/utils/modules/*"],
+      "@logger": ["./src/_common/utils/modules/logger"],
+      "@shell": ["./src/_common/utils/fns/shell"],
+      "@test/*": ["./test/*"]
     }
   },
-  "include": ["src", "test", "*.config.ts", "playground", "scripts"],
+  "include": [
+    "src",
+    "test",
+    "*.config.ts",
+    "playground",
+    "scripts",
+    "demo-studio"
+  ],
   "exclude": [
     "node_modules",
     "lib",
