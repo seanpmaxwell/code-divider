@@ -1,0 +1,6 @@
+# Formatting fixtures for code-divider itself
+test/playground/
+# Build output
+lib/
+node_modules/
+package-lock.json
