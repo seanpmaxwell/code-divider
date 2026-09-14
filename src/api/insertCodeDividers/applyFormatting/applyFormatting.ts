@@ -1,9 +1,9 @@
-import type { ILogger } from '@logger';
+import type { ConfiguredLangSettings } from '@common/types/settings';
+import type { IRunContext } from '@common/utils/fns/RunContext';
 
 import uFile, { FilePathDTO } from '@utilm/uFile';
 
-import type { ConfiguredLangSettings } from '@common/types/settings';
-import type { IRunContext } from '@common/utils/fns/RunContext';
+import type { ILogger } from '@logger';
 
 import formatLabel from './formatLabel';
 

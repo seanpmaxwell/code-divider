@@ -1,9 +1,9 @@
 import path from 'path';
 
-import uFile from '@utilm/uFile';
-
 import { CONFIG_FILE_NAME } from '@common/constants/misc.js';
 import { InitialSettings } from '@common/types/settings';
+
+import uFile from '@utilm/uFile';
 
 // ========================================================================= //
 //                                 FUNCTIONS                                 //

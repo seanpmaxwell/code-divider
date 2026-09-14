@@ -1,4 +1,3 @@
-import logger from '@logger';
 import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
@@ -7,9 +6,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import HELP_TEXT from '@src/cli/_internal/HELP_TEXT';
 import cli from '@src/cli/cli';
 
+import { CONFIG_FILE_NAME } from '@common/constants/misc';
+
 import uFile from '@utilm/uFile';
 
-import { CONFIG_FILE_NAME } from '@common/constants/misc';
+import logger from '@logger';
 
 // ========================================================================= //
 //                                  HELPERS                                  //

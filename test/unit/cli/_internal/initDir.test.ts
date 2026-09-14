@@ -5,10 +5,10 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import initDir from '@src/cli/_internal/initDir';
 
-import uFile from '@utilm/uFile';
-
 import DefaultConfig from '@common/constants/DefaultConfig';
 import { CONFIG_FILE_NAME } from '@common/constants/misc';
+
+import uFile from '@utilm/uFile';
 
 import EdgeCaseConfig from '@test/_common/constants/EdgeCaseConfig';
 

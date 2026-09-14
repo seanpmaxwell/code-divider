@@ -1,4 +1,3 @@
-import logger, { type ILogger, SilentLogger } from '@logger';
 import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
@@ -6,11 +5,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import configureSettings from '@src/api/insertCodeDividers/configureSettings/configureSettings';
 
-import uFile from '@utilm/uFile';
-
 import DefaultConfig from '@common/constants/DefaultConfig';
 import { CONFIG_FILE_NAME } from '@common/constants/misc';
 import RunContext, { IRunContext } from '@common/utils/fns/RunContext';
+
+import uFile from '@utilm/uFile';
+
+import logger, { type ILogger, SilentLogger } from '@logger';
 
 // ========================================================================= //
 //                                 CONSTANTS                                 //

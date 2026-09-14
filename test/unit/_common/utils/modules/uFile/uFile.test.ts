@@ -1,12 +1,13 @@
-import logger from '@logger';
 import { Dirent } from 'fs';
 import fs from 'fs/promises';
 import path from 'path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import { UNIT_TEST_ENV } from '@common/constants/misc';
+
 import uFile, { FilePathDTO } from '@utilm/uFile';
 
-import { UNIT_TEST_ENV } from '@common/constants/misc';
+import logger from '@logger';
 
 import { getDummyDirent } from '@test/_common/utils';
 

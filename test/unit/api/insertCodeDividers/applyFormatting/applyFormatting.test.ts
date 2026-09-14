@@ -1,4 +1,3 @@
-import logger, { type ILogger } from '@logger';
 import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
@@ -17,13 +16,15 @@ import {
 import applyFormatting from '@src/api/insertCodeDividers/applyFormatting/applyFormatting';
 import configureSettings from '@src/api/insertCodeDividers/configureSettings/configureSettings';
 
-import uFile, { FilePathDTO } from '@utilm/uFile';
-
 import type {
   ConfiguredLangSettings,
   ExtensionsMap,
 } from '@common/types/settings';
 import RunContext from '@common/utils/fns/RunContext';
+
+import uFile, { FilePathDTO } from '@utilm/uFile';
+
+import logger, { type ILogger } from '@logger';
 
 // ========================================================================= //
 //                                 CONSTANTS                                 //

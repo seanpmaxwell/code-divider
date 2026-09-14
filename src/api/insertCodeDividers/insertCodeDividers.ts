@@ -1,9 +1,10 @@
-import logger_, { type ILogger, SilentLogger } from '@logger';
 import path from 'path';
+
+import RunContext from '@common/utils/fns/RunContext';
 
 import uFile, { FilePathDTO } from '@utilm/uFile';
 
-import RunContext from '@common/utils/fns/RunContext';
+import logger_, { type ILogger, SilentLogger } from '@logger';
 
 import applyFormatting from './applyFormatting/applyFormatting';
 import configureSettings from './configureSettings/configureSettings';

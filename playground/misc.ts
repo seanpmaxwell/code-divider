@@ -1,11 +1,11 @@
-import ulog from '@logger';
-import shell from '@shell';
-
 import cmdLineParser from '@src/cli/_internal/cmdLineParser';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import insertCodeDividers from '@src/index';
 
 import onInit from '@common/utils/fns/onInit';
+
+import ulog from '@logger';
+import shell from '@shell';
 
 // ========================================================================= //
 //                                    RUN                                    //

@@ -1,11 +1,12 @@
-import logger from '@logger';
-import shell from '@shell';
 import { build as esbuild } from 'esbuild';
 import fs from 'fs/promises';
 
+import onInit from '@common/utils/fns/onInit';
+
 import uFile from '@utilm/uFile';
 
-import onInit from '@common/utils/fns/onInit';
+import logger from '@logger';
+import shell from '@shell';
 
 // ========================================================================= //
 //                                 CONSTANTS                                 //

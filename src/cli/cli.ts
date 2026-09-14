@@ -1,4 +1,3 @@
-import logger from '@logger';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -6,6 +5,8 @@ import { fileURLToPath } from 'url';
 import insertCodeDividers from '@src/api';
 
 import DefaultConfig from '@common/constants/DefaultConfig';
+
+import logger from '@logger';
 
 import cmdLineParser from './_internal/cmdLineParser';
 import HELP_TEXT from './_internal/HELP_TEXT';

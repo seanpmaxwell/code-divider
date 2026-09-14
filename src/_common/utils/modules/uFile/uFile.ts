@@ -1,9 +1,10 @@
-import logger from '@logger';
 import { Dirent } from 'fs';
 import fs from 'fs/promises';
 import path from 'path';
 
 import { IS_UNIT_TEST_ENV } from '@common/constants/misc';
+
+import logger from '@logger';
 
 import gcGlobSearch from './_internal/gcGlobSearch';
 

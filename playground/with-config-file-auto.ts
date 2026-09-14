@@ -1,8 +1,8 @@
-import shell from '@shell';
+import onInit from '@common/utils/fns/onInit';
 
 import uFile from '@utilm/uFile';
 
-import onInit from '@common/utils/fns/onInit';
+import shell from '@shell';
 
 // ========================================================================= //
 //                                 CONSTANTS                                 //

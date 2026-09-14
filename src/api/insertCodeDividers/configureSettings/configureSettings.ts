@@ -1,7 +1,5 @@
 import path from 'path';
 
-import uFile from '@utilm/uFile';
-
 import DefaultConfig from '@common/constants/DefaultConfig.js';
 import { CONFIG_FILE_NAME } from '@common/constants/misc.js';
 import type {
@@ -11,6 +9,8 @@ import type {
   InitialSettings,
 } from '@common/types/settings';
 import { type IRunContext } from '@common/utils/fns/RunContext';
+
+import uFile from '@utilm/uFile';
 
 import {
   validateFilterSettings,

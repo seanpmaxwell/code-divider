@@ -1,4 +1,3 @@
-import logger from '@logger';
 import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
@@ -7,6 +6,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import insertCodeDividers from '@src/api/insertCodeDividers/insertCodeDividers';
 
 import uFile from '@utilm/uFile';
+
+import logger from '@logger';
 
 // ========================================================================= //
 //                                  HELPERS                                  //
