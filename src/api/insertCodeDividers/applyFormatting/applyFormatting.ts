@@ -54,7 +54,9 @@ async function applyFormatting(
 /**
  * Insert code-dividers for a file.
  *
- * @private {@link applyFormatting}
+ * Used by: {@link applyFormatting}
+ *
+ * @private
  */
 async function applyFormattingToOneFile(
   fileFullPath: string,
@@ -110,7 +112,9 @@ async function applyFormattingToOneFile(
 /**
  * Double check the label is truthy after trimming.
  *
- * @private {@link applyFormattingToOneFile}
+ * Used by: {@link applyFormattingToOneFile}
+ *
+ * @private
  */
 function validateLabel(
   label: string,
@@ -132,7 +136,9 @@ function validateLabel(
  * Filler fills up to the character limit and stops; a label too long to fit
  * simply gets no filler rather than pushing the line past the limit.
  *
- * @private {@link applyFormattingToOneFile}
+ * Used by: {@link applyFormattingToOneFile}
+ *
+ * @private
  */
 function insertSection(
   label: string,
@@ -152,7 +158,9 @@ function insertSection(
  * Build a 3-line region header block with the label centered on the middle line.
  * Rule lines stop at the character limit: "// " + filler + " //".
  *
- * @private {@link applyFormattingToOneFile}
+ * Used by: {@link applyFormattingToOneFile}
+ *
+ * @private
  */
 function insertRegion(
   label: string,

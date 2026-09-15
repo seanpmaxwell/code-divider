@@ -91,7 +91,9 @@ async function cli(args: string[], cwd: string): Promise<unknown> {
  * directory this file lives in, so it works both from the bundled `lib/cli.js`
  * (one level down) and from `src/cli/cli.ts` (two levels down).
  *
- * @private {@link cli}
+ * Used by: {@link cli}
+ *
+ * @private
  */
 async function readVersion(startDir: string): Promise<string> {
   let dir = startDir;

@@ -83,7 +83,9 @@ export function validateSharedSettings<T extends string>(
 /**
  * Lowercase a value if it is a string, otherwise pass it through untouched.
  *
- * @private {@link validateSharedSettings}
+ * Used by: {@link validateSharedSettings}
+ *
+ * @private
  */
 function lowerIfString(value: unknown): unknown {
   return typeof value === 'string' ? value.toLowerCase() : value;
@@ -92,7 +94,9 @@ function lowerIfString(value: unknown): unknown {
 /**
  * Check that a value is of type: `LabelFormats`
  *
- * @private {@link validateSharedSettings}
+ * Used by: {@link validateSharedSettings}
+ *
+ * @private
  */
 function isLabelFormatOpt(value: unknown): value is LabelFormats {
   return LabelFormatOptions.has(value);
@@ -122,7 +126,9 @@ export function validateFilterSettings(filter: unknown): FilterSettings {
 /**
  * Check a value is an integer of at least 1.
  *
- * @private {@link validateSharedSettings}
+ * Used by: {@link validateSharedSettings}
+ *
+ * @private
  */
 function isPosInt(value: unknown): value is number {
   return Number.isInteger(value) && (value as number) >= 1;
@@ -183,7 +189,9 @@ export function validateLangSpecificSettings(
 /**
  * Check that a value is of type: string[]
  *
- * @private {@link validateLangSpecificSettings}
+ * Used by: {@link validateLangSpecificSettings}
+ *
+ * @private
  */
 function isStrArr(value: unknown): value is string[] {
   if (!Array.isArray(value)) return false;

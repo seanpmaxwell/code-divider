@@ -81,7 +81,9 @@ async function gcGlobSearch(
 /**
  * Compile patterns for file matching, directory traversal, or exclusion.
  *
- * @private {@link gcGlobSearch}
+ * Used by: {@link gcGlobSearch}
+ *
+ * @private
  */
 function buildRegex(specs: string[], usage: Usage): RegExp {
   const isExclude = usage === 'exclude';
@@ -110,7 +112,9 @@ function buildRegex(specs: string[], usage: Usage): RegExp {
 /**
  * Validate and split a pattern, expanding directory-like includes.
  *
- * @private {@link buildRegex}
+ * Used by: {@link buildRegex}
+ *
+ * @private
  */
 function parseSpec(spec: string, usage: Usage): string[] {
   const parts = spec.split(/[\\/]/).filter((part) => part && part !== '.');
@@ -137,7 +141,9 @@ function parseSpec(spec: string, usage: Usage): string[] {
 /**
  * Convert wildcards and escape literal characters within one segment.
  *
- * @private {@link buildRegex}
+ * Used by: {@link buildRegex}
+ *
+ * @private
  */
 function segmentToSource(segment: string, isExclude: boolean): string {
   return segment.replace(RESERVED, (char, index: number) => {

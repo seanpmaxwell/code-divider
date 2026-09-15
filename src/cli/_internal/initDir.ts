@@ -42,7 +42,9 @@ async function initDir(
  * "Extensions": ["ts", "tsx"]). Arrays containing an object or nested array
  * are expanded one element per line, like objects.
  *
- * @private {@link initDir}
+ * Used by: {@link initDir}
+ *
+ * @private
  */
 function stringifyJsonObj(value: unknown, indent = ''): string {
   // Stringify the array
@@ -79,7 +81,9 @@ function stringifyJsonObj(value: unknown, indent = ''): string {
 /**
  * Check if the value is not an object.
  *
- * @private {@link stringifyJsonObj}
+ * Used by: {@link stringifyJsonObj}
+ *
+ * @private
  */
 function isPrimitive(value: unknown): boolean {
   return value === null || typeof value !== 'object';

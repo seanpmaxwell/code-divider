@@ -111,7 +111,9 @@ function cmdLineParser(args: string[]): ParsedCmdLineArgs {
  * one. This preprocessing step supplies the `process.cwd()` value in that
  * bare-flag case before parsing.
  *
- * @private {@link cmdLineParser}
+ * Used by: {@link cmdLineParser}
+ *
+ * @private
  */
 function preprocessArgs(argv: string[]): string[] {
   const result: string[] = [];

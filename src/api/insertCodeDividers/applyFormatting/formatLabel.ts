@@ -33,7 +33,9 @@ function formatLabel(label: string, format: LabelFormats): string {
  * Change one word's case according to `format`. Words starting or ending
  * with a non-alphanumeric character are returned as-is.
  *
- * @private {@link formatLabel}
+ * Used by: {@link formatLabel}
+ *
+ * @private
  */
 function applyFormatting(word: string, format: LabelFormats): string {
   const firstChar = word[0];

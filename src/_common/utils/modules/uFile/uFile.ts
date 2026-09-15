@@ -18,8 +18,6 @@ const ENCODING = 'utf8';
 //                                   TYPES                                   //
 // ========================================================================= //
 
-type Stringify = (value: unknown) => string;
-
 export interface FilePathDTO {
   absolutePath: string;
   parentPath: string;
@@ -176,7 +174,9 @@ async function copy(
 /**
  * Check whether `child` is `parent` itself or somewhere inside it.
  *
- * @private {@link copy}
+ * Used by: {@link copy}
+ *
+ * @private
  */
 function isSameOrInside(child: string, parent: string): boolean {
   const rel = path.relative(parent, child);
@@ -223,6 +223,35 @@ async function globSearch(
 }
 
 /**
+ * Convert a `Dirent<string>` array to a `FilePathDTO` object array
+ *
+ * Used by: {@link globSearch}
+ *
+ * @private
+ */
+function parseDirentArr(
+  arr: Dirent<string>[],
+  targetPath: string,
+): FilePathDTO[] {
+  return arr.map((item) => parseDirent(item, targetPath));
+}
+
+/**
+ * Convert a `Dirent<string>` object to a `FilePathDTO` object
+ *
+ * Used by: {@link parseDirentArr}
+ *
+ * @private
+ * @param {Dirent<string>} dirent
+ * @param {string} targetPath Must be an absolute path.
+ */
+function parseDirent(dirent: Dirent<string>, targetPath: string): FilePathDTO {
+  const absPath = path.join(dirent.parentPath, dirent.name);
+  const relativePath = path.relative(targetPath, absPath);
+  return parse(relativePath, targetPath);
+}
+
+/**
  * Convert json file to an object.
  */
 async function loadJsonFile<T = Record<string, unknown>>(
@@ -260,22 +289,13 @@ async function loadJsonFile<T = Record<string, unknown>>(
 async function saveJsonFile(
   filePath: string,
   value: unknown,
-  stringify: Stringify = defaultStringify,
+  stringify = (val: unknown) => JSON.stringify(val, null, 2),
 ): Promise<string> {
   const doesEndWithJson = filePath.toLowerCase().endsWith('.json');
   const fullPath = doesEndWithJson ? filePath : `${filePath}.json`;
   const fileContent = stringify(value);
   await fs.writeFile(fullPath, `${fileContent}\n`, 'utf8');
   return fullPath;
-}
-
-/**
- * Default serializer: pretty JSON with 2-space indentation.
- *
- * @private {@link saveJsonFile}
- */
-function defaultStringify(value: unknown): string {
-  return JSON.stringify(value, null, 2);
 }
 
 /**
@@ -304,33 +324,6 @@ function parse(relativePath: string, parentPath: string): FilePathDTO {
     name,
     ext,
   };
-}
-
-// ============================= Shared Helpers ============================ //
-
-/**
- * Convert a `Dirent<string>` array to a `FilePathDTO` object array
- *
- * @private {@link globSearch}
- */
-function parseDirentArr(
-  arr: Dirent<string>[],
-  targetPath: string,
-): FilePathDTO[] {
-  return arr.map((item) => parseDirent(item, targetPath));
-}
-
-/**
- * Convert a `Dirent<string>` object to a `FilePathDTO` object
- *
- * @private {@link parseDirentArr}
- * @param {Dirent<string>} dirent
- * @param {string} targetPath Must be an absolute path.
- */
-function parseDirent(dirent: Dirent<string>, targetPath: string): FilePathDTO {
-  const absPath = path.join(dirent.parentPath, dirent.name);
-  const relativePath = path.relative(targetPath, absPath);
-  return parse(relativePath, targetPath);
 }
 
 // ========================================================================= //

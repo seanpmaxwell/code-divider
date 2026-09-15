@@ -59,7 +59,9 @@ async function configureSettings(ctx: IRunContext): Promise<void> {
 /**
  * Get the target directory and file (file may be falsey)
  *
- * @private {@link configureSettings}
+ * Used by: {@link configureSettings}
+ *
+ * @private
  */
 async function setTargetPaths(ctx: IRunContext): Promise<void> {
   // Init
@@ -95,7 +97,9 @@ async function setTargetPaths(ctx: IRunContext): Promise<void> {
  *   4. If no configuration file exists, later workflow will use in-memory
  *     settings only.
  *
- * @private {@link configureSettings}
+ * Used by: {@link configureSettings}
+ *
+ * @private
  */
 async function setConfigFilePath(ctx: IRunContext): Promise<void> {
   // If the configuration file path was passed (relative paths are resolved
@@ -136,7 +140,9 @@ async function setConfigFilePath(ctx: IRunContext): Promise<void> {
  * Don't need to do any file validation, previous workflow should only pass a
  * non-null value if the config file was found.
  *
- * @private {@link configureSettings}
+ * Used by: {@link configureSettings}
+ *
+ * @private
  */
 async function getInitConfigSettings(
   ctx: IRunContext,
@@ -191,7 +197,9 @@ async function getInitConfigSettings(
 /**
  * Setup an object the individual language can use for formatting files.
  *
- * @private {@link configureSettings}
+ * Used by: {@link configureSettings}
+ *
+ * @private
  */
 function configureLangEntry(
   lang: string,
@@ -227,7 +235,9 @@ function configureLangEntry(
  * Capture the label if present. A bare marker ("// @reg" with no label) still
  * matches, but is warned about and skipped rather than formatted.
  *
- * @private {@link configureLangEntry}
+ * Used by: {@link configureLangEntry}
+ *
+ * @private
  */
 function getMarkerRegex(open: string, close: string, token: string): RegExp {
   const escape = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -238,7 +248,9 @@ function getMarkerRegex(open: string, close: string, token: string): RegExp {
 /**
  * Organize language settings by file extension
  *
- * @private {@link configureSettings}
+ * Used by: {@link configureSettings}
+ *
+ * @private
  */
 function setupExtensionsMap(
   configuredLangSettings: ConfiguredLangSettings[],

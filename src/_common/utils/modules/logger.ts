@@ -77,6 +77,11 @@ function line(): void {
 /**
  * Wrap the console function so we don't have to disable eslint repeatedly or
  * for the whole file.
+ * 
+ * Used by:
+ *   {@link info}
+ *   {@link warn}
+ *   {@link error}
  *
  * @private
  */
