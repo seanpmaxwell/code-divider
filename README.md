@@ -22,7 +22,7 @@ Use it from the command line, run it automatically when you save, or call it fro
 - [📌 Markers](#-markers)
 - [💻 Command-line options](#-command-line-options)
 - [💾 Run on save](#-run-on-save)
-- [🧩 Divider anatomy](#-divider-anatomy)
+- [🧩 Divider terminology](#-divider-terminology)
 - [🔧 Configuration](#-configuration)
   - [Create a config file](#create-a-config-file)
   - [How config files are found](#how-config-files-are-found)
@@ -147,7 +147,7 @@ This runs the command whenever you save a file with one of the listed extensions
 
 The command processes its working directory using your file filters—not just the file you saved.
 
-## 🧩 Divider anatomy
+## 🧩 Divider terminology
 
 Here’s a section divider, shortened for readability:
 
