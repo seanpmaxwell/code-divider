@@ -31,7 +31,6 @@ Use it from the command line, run it automatically when you save, or call it fro
   - [Built-in languages](#built-in-languages)
   - [Filtering files](#filtering-files)
     - [Default exclusions](#default-exclusions)
-    - [Pattern cheat sheet](#pattern-cheat-sheet)
 - [💻 Programmatic use](#-programmatic-use)
 - [📄 License](#-license)
 
@@ -294,7 +293,7 @@ Patterns work like `include` and `exclude` in a [`tsconfig.json`](https://www.ty
 | `include` | Process only matching files. Defaults to `[]`, which uses the default recursive search. |
 | `exclude` | Skip matching files and folders. Your list replaces the built-in exclusions. Use `[]` to exclude nothing. |
 
-File filters select candidates; files still need to match a configured language extension.
+Filters select files to consider; but to be updated those files still need to match a configured language extension.
 
 #### Default exclusions
 
@@ -303,83 +302,12 @@ Out of the box, `code-divider` skips:
 - **At any depth:** `node_modules`, `.vscode`, `.idea`, `.claude`, and files ending in `.log` or `.json`.
 - **At the top level:** `bin`, `lib`, and `dist`.
 
-Here’s the default filter configuration:
-
-```json
-{
-  "filter": {
-    "include": [],
-    "exclude": [
-      "bin",
-      "lib",
-      "dist",
-      "**/node_modules",
-      "**/*.log",
-      "**/*.json",
-      "**/.vscode",
-      "**/.idea",
-      "**/.claude"
-    ]
-  }
-}
-```
-
-#### Pattern cheat sheet
-
-| Pattern | Meaning |
-| --- | --- |
-| `*` | Zero or more characters within a single file or folder name. |
-| `?` | One character within a name. |
-| `**` | Any number of folder levels. Must be a whole path segment. |
-| `src` in `include` | Recursively include `src`, just like `src/**/*`. |
-| `node_modules` in `exclude` | Skip the top-level `node_modules` folder. |
-| `**/node_modules` in `exclude` | Skip `node_modules` folders at any depth. |
-
-A few rules worth knowing:
-
-- **Exclusions always win.** Excluded folders are not searched.
-- In `include`, a final segment with no `.`, `*`, or `?` is treated as a directory and expanded recursively.
-- Include wildcards skip names starting with `.` unless the dot is explicitly matched. For example, use `".github/**/*"` to search inside `.github`.
-- Include patterns cannot end with `**`. Use `"src/**/*"` or simply `"src"` instead.
-- `!` negation and `[abc]` character classes are not supported.
-
-For example, to process `src` while skipping dependencies and test files:
-
-```json
-{
-  "filter": {
-    "include": ["src"],
-    "exclude": ["**/node_modules", "**/*.test.ts"]
-  }
-}
-```
-
-**Remember:** this `exclude` list replaces the defaults—it does not add to them. Include any default exclusions you want to keep.
-
 ## 💻 Programmatic use
-
-Prefer to wire `code-divider` into your own tooling? Import it directly:
 
 ```js
 import insertdividers from 'code-divider';
 
-const updatedFiles = await insertdividers('src');
-```
-
-Or pass options:
-
-```js
-const filesThatWouldChange = await insertdividers('src', {
-  cwd: '/path/to/project',
-  configFilePath: 'custom.config.json',
-  isDryRun: true,
-});
-```
-
-The signature is:
-
-```js
-insertdividers(targetPath, options?)
+const updatedFiles = await insertdividers('targetPath', options?)
 ```
 
 `targetPath` can be a file or directory. Relative paths are resolved against `options.cwd`.
@@ -398,8 +326,6 @@ The logger receives:
 
 - `info` messages, such as which config file is being used.
 - `warn` messages, such as a marker with no label.
-
-The function returns a promise that resolves to the list of updated files—or, with `isDryRun: true`, the files that would be updated.
 
 ## 📄 License
 
