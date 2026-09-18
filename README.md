@@ -22,7 +22,7 @@ Use it from the command line, run it automatically when you save, or call it fro
 - [📌 Markers](#-markers)
 - [💻 Command-line options](#-command-line-options)
 - [💾 Run on save](#-run-on-save)
-- [🧩 Divider terminology](#-divider-terminology)
+- [🧩 Divider anatomy](#-divider-anatomy)
 - [🔧 Configuration](#-configuration)
   - [Create a config file](#create-a-config-file)
   - [How config files are found](#how-config-files-are-found)
@@ -52,9 +52,7 @@ npx code-divider
 
 Your markers are replaced in place with formatted headers. That’s it!
 
-You can target a file or a folder. Folders are searched recursively, using the configured file filters.
-
-Want to look before you leap? Add `--dry-run` to list the files that would change without touching them:
+You can target a file or a folder. Folders are searched recursively.
 
 ```bash
 npx code-divider --path ./src --dry-run
@@ -64,10 +62,10 @@ npx code-divider --path ./src --dry-run
 
 There are two kinds of dividers:
 
-| Marker | Creates | Handy for |
-| --- | --- | --- |
-| `// @reg Label` | A three-line boxed **region** header. | Major groups, such as imports, types, or functions. |
-| `// @sec Label` | A single-line **section** header. | Smaller groups within a region. |
+| Marker | Creates |
+| --- | --- |
+| `// @reg Label` | A three-line boxed **region** header. |
+| `// @sec Label` | A single-line **section** header. |
 
 Use your language’s comment syntax:
 
@@ -85,7 +83,7 @@ Use your language’s comment syntax:
 
 By default, region labels become **UPPERCASE** and section labels become **Capitalized Words**. You can customize both in [Configuration](#-configuration).
 
-Built-in support includes JavaScript, TypeScript, Java, CSS, SCSS, C, C++, Go, Rust, PHP, Ruby, Python, Bash, and SQL. You can add more languages through configuration.
+Built-in support includes JavaScript, TypeScript, Java, CSS, SCSS, C, C++, Go, Rust, PHP, Ruby, Python, Bash, and SQL. You can add more languages through the configuration file.
 
 ## 💻 Command-line options
 
@@ -142,11 +140,7 @@ For VS Code, install the [Run on Save](https://github.com/emeraldwalk/vscode-run
 }
 ```
 
-This runs the command whenever you save a file with one of the listed extensions. Adjust `match` to include the file types you work with.
-
-The command processes its working directory using your file filters—not just the file you saved.
-
-## 🧩 Divider terminology
+## 🧩 Divider anatomy
 
 Here’s a section divider, shortened for readability:
 
@@ -184,18 +178,16 @@ To create it somewhere else:
 npx code-divider --init ./packages/app
 ```
 
-You can also write a smaller config by hand. You only need to include the settings you want to change.
-
 ### How config files are found
 
-Unless you pass `--config <file>`, `code-divider` checks these locations in order:
+Unless you pass `--config <file>`, `code-divider` checks locations in this order:
 
 1. The target directory, or the containing directory if the target is a file.
 2. The directory the command is run from.
 
-The first config found wins. These config files are **not merged together**.
+The first config file found wins. These config files are **not merged together**.
 
-Settings in the selected config override the built-in defaults. Anything you leave out keeps its default value. If no config is found, the built-in defaults are used.
+Settings in the selected config file override the built-in defaults. Anything you leave out keeps its default value. If no config is found, the built-in defaults are used.
 
 ### Shared settings
 
@@ -217,22 +209,18 @@ Both label-format settings accept:
 | `"capitalize"` | `my COOL section` → `My Cool Section` |
 | `"none"` | Leave the label exactly as written. |
 
-`"capitalize"` uppercases the first letter of each word and lowercases the rest.
-
-Words that start or end with a non-alphanumeric character are left unchanged under every format. That keeps labels containing things like `@decorator` or `foo()` intact.
+Words that start or end with a non-alphanumeric character are left unchanged under every format. That keeps labels containing things like `@decorator` or `.foo` intact.
 
 ### Language-specific settings
 
-Want Python headers to look different from Java headers? Give each language its own settings.
-
-Other than `All` and `filter`, top-level config keys are language names. Use a built-in key to customize that language, or a new key to add your own.
+Other than `All` and `filter`, top-level config keys can be any string value, they're just there for organization. You can use a built-in key to customize that language's current settings, or a new key to add your own.
 
 | Setting | What it controls |
 | --- | --- |
 | `Extensions` | File extensions to match, without the leading dot. For example, `["py"]`. |
 | `Comment` | A `[start, end]` pair describing the comment syntax used for markers. Use `""` as the end for line comments. |
 | `Bookends` | Optional `[start, end]` strings for generated header lines. Defaults to `Comment`; for line comments, the opener is mirrored on the right. For example, `"# "` becomes `["# ", " #"]`. |
-| `CharacterLimit` | Override `All.CharacterLimit` for this language. |
+| `CharacterLimit` | Override `All.CharacterLimit` for this language. Note that this **DOES** account for indentation. So the divider will stop at the value regardless of where the marker starts. |
 | `FillerCharacter` | Override `All.FillerCharacter` for this language. |
 | `RegionLabelFormat` | Override `All.RegionLabelFormat` for this language. |
 | `SectionLabelFormat` | Override `All.SectionLabelFormat` for this language. |
@@ -246,7 +234,7 @@ For example:
     "FillerCharacter": "-"
   },
   "Java": {
-    "Bookends": ["/* ", " */"]
+    "Bookends": ["// ", " //"]
   },
   "Python": {
     "Extensions": ["py"],
@@ -255,17 +243,33 @@ For example:
 }
 ```
 
-This configuration:
+```java
+// Main.java
+class Main {
 
-- Sets the shared header width to `100` and uses `-` as the filler.
-- Wraps generated Java headers in block comments.
-- Matches Python files with the `.py` extension and reads markers written as `# @reg Label` or `# @sec Label`.
+    // ===================================================================== //
+    //                               FUNCTIONS                               //
+    // ===================================================================== //
 
-With these settings, `# @reg Label` in a `.py` file becomes a boxed **LABEL** header with rule lines filled with `-` up to column `100`.
+    public static void main(String[] args) {
+        System.out.println("Hello code-dividers");
+    }
+}
+```
 
-### Built-in languages
+```py
+# Main.python
 
-These are the language keys, file extensions, and comment styles available by default. The marker examples use `@reg`, but `@sec` uses the same syntax.
+# =========================================================================== #
+#                                  CONSTANTS                                  #
+# =========================================================================== #
+
+print('Hello code-divider')
+```
+
+### Default Settings
+
+These are the language keys, file extensions, and comment styles available by default.
 
 | Config key | File extensions | Marker example | Generated bookends |
 | --- | --- | --- | --- |
@@ -329,4 +333,4 @@ The logger receives:
 
 ## 📄 License
 
-MIT
+MIT © seanpmaxwell
