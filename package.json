@@ -1,6 +1,6 @@
 {
   "name": "code-divider",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Format separator/header comment markers so labels are centered and each line fills up to a character limit.",
   "type": "module",
   "repository": {
