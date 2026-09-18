@@ -1,3 +1,4 @@
+import logger, { type ILogger, SilentLogger } from '@logger';
 import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
@@ -10,8 +11,6 @@ import { CONFIG_FILE_NAME } from '@common/constants/misc';
 import RunContext, { IRunContext } from '@common/utils/fns/RunContext';
 
 import uFile from '@utilm/uFile';
-
-import logger, { type ILogger, SilentLogger } from '@logger';
 
 // ========================================================================= //
 //                                 CONSTANTS                                 //

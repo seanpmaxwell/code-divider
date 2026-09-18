@@ -1,5 +1,5 @@
 export {
-  default as default,
+  insertCodeDividers,
   type ILogger,
   type InsertCodeDividersOptions,
 } from './api';

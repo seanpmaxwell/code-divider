@@ -1,10 +1,9 @@
+import logger_, { type ILogger, SilentLogger } from '@logger';
 import path from 'path';
 
 import RunContext from '@common/utils/fns/RunContext';
 
-import uFile, { FilePathDTO } from '@utilm/uFile';
-
-import logger_, { type ILogger, SilentLogger } from '@logger';
+import uFile, { FileCtx } from '@utilm/uFile';
 
 import applyFormatting from './applyFormatting/applyFormatting';
 import configureSettings from './configureSettings/configureSettings';
@@ -60,7 +59,7 @@ async function insertCodeDividers(
   // ---- Get Files
   // Setup list of files to inspect, if targetFile is null then we need
   // to search a directory for all the files it contains
-  let fileDTOs: FilePathDTO[];
+  let fileDTOs: FileCtx[];
   if (ctx.targetFile === null) {
     fileDTOs = await uFile.globSearch(
       ctx.configuredSettings.filter.include,

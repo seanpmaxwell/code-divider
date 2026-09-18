@@ -1,3 +1,4 @@
+import logger from '@logger';
 import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
@@ -9,8 +10,6 @@ import cli from '@src/cli/cli';
 import { CONFIG_FILE_NAME } from '@common/constants/misc';
 
 import uFile from '@utilm/uFile';
-
-import logger from '@logger';
 
 // ========================================================================= //
 //                                  HELPERS                                  //

@@ -1,10 +1,9 @@
+import logger from '@logger';
 import { Dirent } from 'fs';
 import fs from 'fs/promises';
 import path from 'path';
 
 import { IS_UNIT_TEST_ENV } from '@common/constants/misc';
-
-import logger from '@logger';
 
 import gcGlobSearch from './_internal/gcGlobSearch';
 
@@ -18,7 +17,7 @@ const ENCODING = 'utf8';
 //                                   TYPES                                   //
 // ========================================================================= //
 
-export interface FilePathDTO {
+export interface FileCtx {
   absolutePath: string;
   parentPath: string;
   relativePath: string;
@@ -217,7 +216,7 @@ async function globSearch(
   include: string[],
   exclude: string[],
   targetPath: string,
-): Promise<FilePathDTO[]> {
+): Promise<FileCtx[]> {
   const dirents = await gcGlobSearch(include, exclude, targetPath);
   return parseDirentArr(dirents, targetPath);
 }
@@ -229,10 +228,7 @@ async function globSearch(
  *
  * @private
  */
-function parseDirentArr(
-  arr: Dirent<string>[],
-  targetPath: string,
-): FilePathDTO[] {
+function parseDirentArr(arr: Dirent<string>[], targetPath: string): FileCtx[] {
   return arr.map((item) => parseDirent(item, targetPath));
 }
 
@@ -245,7 +241,7 @@ function parseDirentArr(
  * @param {Dirent<string>} dirent
  * @param {string} targetPath Must be an absolute path.
  */
-function parseDirent(dirent: Dirent<string>, targetPath: string): FilePathDTO {
+function parseDirent(dirent: Dirent<string>, targetPath: string): FileCtx {
   const absPath = path.join(dirent.parentPath, dirent.name);
   const relativePath = path.relative(targetPath, absPath);
   return parse(relativePath, targetPath);
@@ -303,7 +299,7 @@ async function saveJsonFile(
  *
  * @param {string} parentPath Must be an absolute path.
  */
-function parse(relativePath: string, parentPath: string): FilePathDTO {
+function parse(relativePath: string, parentPath: string): FileCtx {
   // Validate parent path
   if (!path.isAbsolute(parentPath)) {
     throw new Error('parentPath must be absolute');

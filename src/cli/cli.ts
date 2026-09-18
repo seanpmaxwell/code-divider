@@ -1,12 +1,11 @@
+import logger from '@logger';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import insertCodeDividers from '@src/api';
+import { insertCodeDividers } from '@src/api';
 
 import DefaultConfig from '@common/constants/DefaultConfig';
-
-import logger from '@logger';
 
 import cmdLineParser from './_internal/cmdLineParser';
 import initDir from './_internal/initDir';

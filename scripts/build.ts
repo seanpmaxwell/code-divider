@@ -1,11 +1,10 @@
+import logger from '@logger';
+import shell from '@shell';
 import { build as esbuild } from 'esbuild';
-
-import onInit from '@common/utils/fns/onInit';
 
 import uFile from '@utilm/uFile';
 
-import logger from '@logger';
-import shell from '@shell';
+import onInit from '../dev-tools/onInit';
 
 // ========================================================================= //
 //                                    INIT                                   //

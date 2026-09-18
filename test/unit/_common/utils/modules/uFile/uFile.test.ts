@@ -1,3 +1,4 @@
+import logger from '@logger';
 import { Dirent } from 'fs';
 import fs from 'fs/promises';
 import path from 'path';
@@ -5,9 +6,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { UNIT_TEST_ENV } from '@common/constants/misc';
 
-import uFile, { FilePathDTO } from '@utilm/uFile';
-
-import logger from '@logger';
+import uFile, { FileCtx } from '@utilm/uFile';
 
 import { getDummyDirent } from '@test/_common/utils';
 
@@ -62,9 +61,9 @@ async function makeDirItemsToTest(): Promise<void> {
 
 /**
  * Convert dirents from the {@link DIRECTORY_ITEMS_TO_TEST} array to a
- * {@link FilePathDTO} array using indexes on the array.
+ * {@link FileCtx} array using indexes on the array.
  */
-function getExpectedResultByIndex(...args: number[]): FilePathDTO[] {
+function getExpectedResultByIndex(...args: number[]): FileCtx[] {
   const dirents: Dirent<string>[] = [];
   for (const index of args) {
     const item = DIRECTORY_ITEMS_TO_TEST[index];
@@ -76,7 +75,7 @@ function getExpectedResultByIndex(...args: number[]): FilePathDTO[] {
 /**
  * Shorthand for `globSearch` against the fixture directory.
  */
-function search(include: string[], exclude: string[]): Promise<FilePathDTO[]> {
+function search(include: string[], exclude: string[]): Promise<FileCtx[]> {
   return uFile.globSearch(include, exclude, TEMP_DIRECTORY);
 }
 

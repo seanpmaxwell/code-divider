@@ -5,15 +5,13 @@
 [![License](https://img.shields.io/npm/l/code-divider.svg?style=for-the-badge)](https://www.npmjs.com/package/code-divider)
 [![CI](https://img.shields.io/github/actions/workflow/status/seanpmaxwell/code-divider/ci.yml?style=for-the-badge&logo=githubactions&label=CI&logoColor=white)](https://github.com/seanpmaxwell/code-divider/actions/workflows/ci.yml)
 
-**Give your code a little breathing room.**
-
-`code-divider` turns simple comment markers into tidy, centered headers. No counting `=` signs. No lining things up by hand.
+`code-divider` turns simple comment markers into tidy, centered region/section dividers. No counting `=` signs. No lining things up by hand.
 
 Use it from the command line, run it automatically when you save, or call it from your own code.
 
 ## 👀 Preview
 
-![code-divider inserting two region headers and a section header](https://raw.githubusercontent.com/seanpmaxwell/code-divider/main/assets/demo.gif)
+![code-divider inserting two region headers and a section header](assets/demo.gif)
 
 ## Documentation
 

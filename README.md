@@ -5,9 +5,7 @@
 [![License](https://img.shields.io/npm/l/code-divider.svg?style=for-the-badge)](https://www.npmjs.com/package/code-divider)
 [![CI](https://img.shields.io/github/actions/workflow/status/seanpmaxwell/code-divider/ci.yml?style=for-the-badge&logo=githubactions&label=CI&logoColor=white)](https://github.com/seanpmaxwell/code-divider/actions/workflows/ci.yml)
 
-**Give your code a little breathing room.**
-
-`code-divider` turns simple comment markers into tidy, centered headers. No counting `=` signs. No lining things up by hand.
+`code-divider` turns simple comment markers into tidy, centered region/section dividers. No counting `=` signs. No lining things up by hand.
 
 Use it from the command line, run it automatically when you save, or call it from your own code.
 
@@ -30,7 +28,6 @@ Use it from the command line, run it automatically when you save, or call it fro
   - [Language-specific settings](#language-specific-settings)
   - [Built-in languages](#built-in-languages)
   - [Filtering files](#filtering-files)
-    - [Default exclusions](#default-exclusions)
 - [💻 Programmatic use](#-programmatic-use)
 - [📄 License](#-license)
 
@@ -299,6 +296,8 @@ Patterns work like `include` and `exclude` in a [`tsconfig.json`](https://www.ty
 
 Filters select the files to consider, but to be updated those files still need to match a configured language extension.
 
+> In case you're wondering why I didn't use Node's built-in `fs.glob` function, it's only available in Node 22+ and marked experimental until Node 24. 
+
 #### Default exclusions
 
 Out of the box, `code-divider` skips:
@@ -309,9 +308,9 @@ Out of the box, `code-divider` skips:
 ## 💻 Programmatic use
 
 ```js
-import insertdividers from 'code-divider';
+import { insertCodeDividers } from 'code-divider';
 
-const updatedFiles = await insertdividers('targetPath', options?)
+const updatedFiles = await insertCodeDividers('targetPath', options?)
 ```
 
 `targetPath` can be a file or directory. Relative paths are resolved against `options.cwd`.

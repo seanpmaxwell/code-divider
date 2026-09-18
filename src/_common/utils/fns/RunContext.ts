@@ -1,6 +1,6 @@
-import { ExtensionsMap, FilterSettings } from '@common/types/settings';
-
 import logger, { type ILogger } from '@logger';
+
+import { ExtensionsMap, FilterSettings } from '@common/types/settings';
 
 // ========================================================================= //
 //                                   TYPES                                   //

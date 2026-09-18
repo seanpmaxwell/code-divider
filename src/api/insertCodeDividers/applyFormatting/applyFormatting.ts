@@ -1,9 +1,9 @@
+import type { ILogger } from '@logger';
+
 import type { ConfiguredLangSettings } from '@common/types/settings';
 import type { IRunContext } from '@common/utils/fns/RunContext';
 
-import uFile, { FilePathDTO } from '@utilm/uFile';
-
-import type { ILogger } from '@logger';
+import uFile, { FileCtx } from '@utilm/uFile';
 
 import formatLabel from './formatLabel';
 
@@ -26,7 +26,7 @@ const MAX_OPEN_FILES = 50;
  * be) changed, in the same order as `dtos`.
  */
 async function applyFormatting(
-  dtos: FilePathDTO[],
+  dtos: FileCtx[],
   ctx: IRunContext,
 ): Promise<string[]> {
   // Collect a job per file, but don't start any yet

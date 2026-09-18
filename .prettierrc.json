@@ -2,10 +2,11 @@
   "plugins": ["@trivago/prettier-plugin-sort-imports"],
   "importOrder": [
     "<THIRD_PARTY_MODULES>",
+    "^@shell/.*$",
     "^@src/.*$",
     "^@common/.*$",
     "^@utilm/.*$",
-    "^@(logger|shell)$",
+    "^@logger/.*$",
     "^@test/.*$",
     "^\\.\\.(?!/?$).*$",
     "^\\./(?!.*/).*$",
