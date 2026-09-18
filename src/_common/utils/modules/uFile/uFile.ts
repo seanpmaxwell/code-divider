@@ -71,7 +71,7 @@ async function mkFile(
     logger.info(`Item "${finalPath}" already exists: skipping "mkFile"`);
     return;
   }
-  // Create file: `wx` means create only if doesn't exist
+  // Create file: `wx` means create only if it doesn't exist
   return fs.writeFile(finalPath, 'FILE_UTIL_GENERATED_FILE', {
     encoding: ENCODING,
     flag: 'wx',

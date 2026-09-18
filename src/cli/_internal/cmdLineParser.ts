@@ -28,7 +28,7 @@ const PARSE_ARG_OPTIONS = {
 //                                   TYPES                                   //
 // ========================================================================= //
 
-// Empty strings for falsey arguments
+// Empty strings for falsy arguments
 export interface ParsedCmdLineArgs {
   help: boolean;
   version: boolean;
@@ -47,7 +47,7 @@ export interface ParsedCmdLineArgs {
  * Convert the command line args array to an object: 2 categories.
  *
  * `Helpers`: Run alone and do not fire `insertCodeDividers`
- * `Options`: Can be combined with each-other and do fire `insertCodeDividers`.
+ * `Options`: Can be combined with each other and do fire `insertCodeDividers`.
  */
 function cmdLineParser(args: string[]): ParsedCmdLineArgs {
   // ---- Parse the arguments with `util`

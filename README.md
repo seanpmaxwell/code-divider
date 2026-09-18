@@ -293,7 +293,7 @@ Patterns work like `include` and `exclude` in a [`tsconfig.json`](https://www.ty
 | `include` | Process only matching files. Defaults to `[]`, which uses the default recursive search. |
 | `exclude` | Skip matching files and folders. Your list replaces the built-in exclusions. Use `[]` to exclude nothing. |
 
-Filters select files to consider; but to be updated those files still need to match a configured language extension.
+Filters select the files to consider, but to be updated those files still need to match a configured language extension.
 
 #### Default exclusions
 

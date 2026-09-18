@@ -16,9 +16,9 @@ const TEMP_DIR = './playground/tmp';
 // ========================================================================= //
 
 /**
- * Test running code-dividers with an existing config file.
+ * Test running code-divider without a config file.
  */
 await onInit(async () => {
   await uFile.testOnly.copyTo(TEMPLATES_DIR, TEMP_DIR);
   await shell('npm', ['run', 'start:build', '--', `--path=${TEMP_DIR}`]);
-}, 'with-config-file-auto');
+}, 'without-config-file-auto');

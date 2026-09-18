@@ -9,8 +9,8 @@ import DefaultConfig from '@common/constants/DefaultConfig';
 import logger from '@logger';
 
 import cmdLineParser from './_internal/cmdLineParser';
-import HELP_TEXT from './_internal/HELP_TEXT';
 import initDir from './_internal/initDir';
+import printHelpText from './_internal/printHelpText';
 
 // ========================================================================= //
 //                                   INIT                                    //
@@ -30,7 +30,7 @@ async function cli(args: string[], cwd: string): Promise<unknown> {
       const thisFilePath = fileURLToPath(import.meta.url);
       const thisFileDir = path.dirname(thisFilePath);
       if (pArgs.help) {
-        return logger.info(HELP_TEXT);
+        return printHelpText();
       } else if (pArgs.version) {
         const version = await readVersion(thisFileDir);
         return process.stdout.write(`${version}\n`);

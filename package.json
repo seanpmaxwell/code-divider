@@ -41,7 +41,9 @@
     "start:build": "npm run build && npm run start --",
     "test": "vitest run",
     "test:unit": "vitest run test/unit",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "dev:commit": "npm run format && git add -A && git commit -m \"dev commit\"",
+    "dev:commit:push": "npm run dev:commit && git push"
   },
   "engines": {
     "node": ">=20.11"
