@@ -1,1 +1,1 @@
-export { default as default, type FilePathDTO } from './uFile';
+export { default as default, type FileCtx } from './uFile';

@@ -1,3 +1,4 @@
+import logger, { type ILogger } from '@logger';
 import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
@@ -22,9 +23,7 @@ import type {
 } from '@common/types/settings';
 import RunContext from '@common/utils/fns/RunContext';
 
-import uFile, { FilePathDTO } from '@utilm/uFile';
-
-import logger, { type ILogger } from '@logger';
+import uFile, { FileCtx } from '@utilm/uFile';
 
 // ========================================================================= //
 //                                 CONSTANTS                                 //
@@ -54,7 +53,7 @@ interface RunOptions {
  * `applyFormatting` on them and return the result plus whatever was written.
  */
 async function run(files: Record<string, string>, opts: RunOptions = {}) {
-  const dtos: FilePathDTO[] = [];
+  const dtos: FileCtx[] = [];
   for (const [rel, content] of Object.entries(files)) {
     const abs = path.join(tmp, rel);
     await fs.mkdir(path.dirname(abs), { recursive: true });
