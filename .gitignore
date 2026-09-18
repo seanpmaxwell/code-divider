@@ -42,3 +42,4 @@ README-tmp
 code-divider.config.json
 /demo-studio
 /assets/private-notes.md
+*.tmp.*

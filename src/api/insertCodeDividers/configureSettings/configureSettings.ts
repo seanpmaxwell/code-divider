@@ -57,7 +57,7 @@ async function configureSettings(ctx: IRunContext): Promise<void> {
 }
 
 /**
- * Get the target directory and file (file may be falsey)
+ * Get the target directory and file (file may be falsy)
  *
  * Used by: {@link configureSettings}
  *
@@ -137,7 +137,7 @@ async function setConfigFilePath(ctx: IRunContext): Promise<void> {
  * the config file's overrides on top (when `configFilePath` is not null), and
  * finally fill each language's missing shared settings from `All`.
  *
- * Don't need to do any file validation, previous workflow should only pass a
+ * No file validation is needed here: the previous step should only pass a
  * non-null value if the config file was found.
  *
  * Used by: {@link configureSettings}

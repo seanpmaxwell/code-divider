@@ -110,7 +110,7 @@ async function applyFormattingToOneFile(
 }
 
 /**
- * Double check the label is truthy after trimming.
+ * Double-check the label is truthy after trimming.
  *
  * Used by: {@link applyFormattingToOneFile}
  *

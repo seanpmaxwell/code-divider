@@ -10,7 +10,7 @@ import type { InitialSettings } from '@common/types/settings';
  * objects or nested arrays (expanded one item per line), empty arrays and
  * objects, every primitive type, and strings that need escaping.
  *
- * It is not a valid code-divider config, so it is cast to `InitalSettings`
+ * It is not a valid code-divider config, so it is cast to `InitialSettings`
  * purely to satisfy `initDir`'s signature.
  */
 const EdgeCaseConfig = {

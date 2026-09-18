@@ -3,7 +3,7 @@ import os from 'os';
 import path from 'path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import HELP_TEXT from '@src/cli/_internal/HELP_TEXT';
+import * as printHelpTextMod from '@src/cli/_internal/printHelpText';
 import cli from '@src/cli/cli';
 
 import { CONFIG_FILE_NAME } from '@common/constants/misc';
@@ -27,6 +27,7 @@ const PACKAGE_JSON = path.join(
 let cwd: string;
 let write: ReturnType<typeof vi.spyOn>;
 let info: ReturnType<typeof vi.spyOn>;
+let printHelpTextSpy: ReturnType<typeof vi.spyOn>;
 
 /**
  * Write a file under the temp cwd.
@@ -57,6 +58,9 @@ describe('cli', () => {
     // `uFile.write` is a no-op under the unit-test env; capture instead.
     write = vi.spyOn(uFile, 'write').mockResolvedValue(undefined);
     info = vi.spyOn(logger, 'info').mockImplementation(() => '');
+    printHelpTextSpy = vi
+      .spyOn(printHelpTextMod, 'default')
+      .mockImplementation(() => true);
     vi.spyOn(logger, 'line').mockImplementation(() => undefined);
     vi.spyOn(logger, 'warn').mockImplementation(() => '');
     process.exitCode = undefined;
@@ -68,11 +72,11 @@ describe('cli', () => {
     await fs.rm(cwd, { recursive: true, force: true });
   });
 
-  // ---- Helpers
+  // ---- Helpers (help/version/init)
   describe('help and version', () => {
     it('should print the help text', async () => {
       await cli(['--help'], cwd);
-      expect(info).toHaveBeenCalledWith(HELP_TEXT);
+      expect(printHelpTextSpy).toHaveBeenCalled();
     });
 
     it('should print the package version', async () => {
@@ -99,7 +103,7 @@ describe('cli', () => {
     });
   });
 
-  // ---- `--init`
+  // ---- `init`
   describe('--init', () => {
     it('should write a config file into the given directory', async () => {
       await cli(['--init', cwd], cwd);
@@ -174,7 +178,7 @@ describe('cli', () => {
     });
   });
 
-  // ---- `--check`
+  // ---- `check`
   describe('--check', () => {
     it('should exit with code 1 and list the files when changes are needed', async () => {
       const a = await writeFile('a.ts', '// @reg one\n');

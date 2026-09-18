@@ -29,7 +29,7 @@ export interface IRunContext {
 // ========================================================================= //
 
 /**
- * Factory-Function: Get a IRunContext object using a partial and default
+ * Factory-Function: Get an IRunContext object using a partial and default
  * settings.
  */
 function RunContext(partial: Partial<IRunContext> = {}): IRunContext {
