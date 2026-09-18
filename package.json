@@ -1,7 +1,7 @@
 {
   "name": "code-divider",
-  "version": "1.0.1",
-  "description": "Format separator/header comment markers so labels are centered and each line fills up to a character limit.",
+  "version": "1.0.2",
+  "description": "Turn region/section labels into centered, fixed-width comment headers. Any language, any editor.",
   "type": "module",
   "repository": {
     "type": "git",
