@@ -44,10 +44,10 @@ Add a marker on its own line in a source file:
 // @sec helper functions
 ```
 
-Then run:
+Then run (inside of your project folder):
 
 ```bash
-npx code-divider --path ./src
+npx code-divider
 ```
 
 Your markers are replaced in place with formatted headers. That’s it!
