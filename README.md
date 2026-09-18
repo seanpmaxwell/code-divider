@@ -20,6 +20,7 @@ Use it from the command line, run it automatically when you save, or call it fro
 - [📌 Markers](#-markers)
 - [💻 Command-line options](#-command-line-options)
 - [💾 Run on save](#-run-on-save)
+- [🤔 Why not snippets?](#-why-not-snippets)
 - [🧩 Divider anatomy](#-divider-anatomy)
 - [🔧 Configuration](#-configuration)
   - [Create a config file](#create-a-config-file)
@@ -136,6 +137,30 @@ For VS Code, install the [Run on Save](https://github.com/emeraldwalk/vscode-run
   }
 }
 ```
+
+## 🤔 Why not snippets?
+
+Editor snippets can insert a header template, and if they work for you, great! What they can't do is measure the label. Snippet transforms can change case, but they can't count characters, so the filler stays the same length and the line grows with the label:
+
+```js
+// ================================= Helpers ================================= //
+// ================================= Shared Helpers ================================= //
+```
+
+`code-divider` sizes the filler around each label, so every header ends at the same column:
+
+```js
+// ================================ Helpers ================================ //
+// ============================= Shared Helpers ============================ //
+```
+
+|  | Snippets | `code-divider` |
+| --- | --- | --- |
+| Centers the label at a fixed width | No | Yes |
+| Appears as you type | Yes | On save, with [Run on save](#-run-on-save) |
+| Works in any editor | One format per editor | Yes |
+| Covers every language | One entry per language | One config file |
+| Can be enforced in CI | No | Yes, with `--check` |
 
 ## 🧩 Divider anatomy
 
