@@ -54,8 +54,6 @@ npx code-divider
 
 Your markers are replaced in place with formatted headers. That’s it!
 
-Run it again after changing a setting such as the character limit and the headers it generated earlier are re-centered to match.
-
 You can target a file or a folder. Folders are searched recursively.
 
 ```bash
@@ -368,6 +366,9 @@ Patterns work like `include` and `exclude` in a [`tsconfig.json`](https://www.ty
 
 Filters select the files to consider, but to be updated those files still need to match a configured language extension.
 
+<details>
+<summary>Symlinks, the default exclusions, and why not <code>fs.glob</code></summary>
+
 Symbolic links are skipped while walking a directory, whether they point at a file or a folder, so `code-divider` never edits anything outside the folder you gave it. A symlink passed directly with `--path` is followed.
 
 > In case you're wondering why I didn't use Node's built-in `fs.glob` function, it's only available in Node 22+ and marked experimental until Node 24. 
@@ -378,6 +379,8 @@ Out of the box, `code-divider` skips:
 
 - **At any depth:** `node_modules`, `.vscode`, `.idea`, `.claude`, and files ending in `.log` or `.json`.
 - **At the top level:** `bin`, `lib`, and `dist`.
+
+</details>
 
 <p align="center">· · ·</p>
 
