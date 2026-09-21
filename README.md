@@ -50,6 +50,8 @@ npx code-divider
 
 Your markers are replaced in place with formatted headers. That’s it!
 
+Run it again after changing a setting such as the character limit and the headers it generated earlier are re-centered to match.
+
 You can target a file or a folder. Folders are searched recursively.
 
 ```bash
@@ -170,6 +172,8 @@ Here’s a section divider, shortened for readability:
 // ============== My Section ============== //
 ```
 
+Dividers are recognized on later runs by their bookends and filler character, so changing `CharacterLimit` or a label format and running `code-divider` again updates headers that were generated earlier.
+
 These are the names used throughout the configuration:
 
 | Term | Meaning |
@@ -193,6 +197,14 @@ npx code-divider --init
 ```
 
 This creates `code-divider.config.json` in the current directory. It won’t overwrite an existing file.
+
+The file starts with a `$schema` line pointing at the package's JSON schema, so editors such as VS Code can autocomplete settings and flag typos. If you write the file by hand, add the line yourself:
+
+```json
+{
+  "$schema": "https://unpkg.com/code-divider@1/schema.json"
+}
+```
 
 To create it somewhere else:
 
@@ -235,7 +247,7 @@ Words that start or end with a non-alphanumeric character are left unchanged und
 
 ### Language-specific settings
 
-Other than `All` and `filter`, top-level config keys can be any string value, they're just there for organization. You can use a built-in key to customize that language's current settings, or a new key to add your own.
+Other than `All` and `filter`, top-level config keys can be any string value, they're just there for organization. You can use a built-in key to customize that language's current settings, or a new key to add your own. Set a built-in key to `null` to remove that language. Keys starting with `$` (such as `$schema`) are ignored.
 
 | Setting | What it controls |
 | --- | --- |
@@ -261,7 +273,8 @@ For example:
   "Python": {
     "Extensions": ["py"],
     "Comment": ["# ", ""]
-  }
+  },
+  "Sql": null
 }
 ```
 
@@ -293,6 +306,8 @@ print('Hello code-divider')
 
 These are the language keys, file extensions, and comment styles available by default.
 
+Extensions are matched case-insensitively, so `Main.TS` is treated like `main.ts`.
+
 | Config key | File extensions | Marker example | Generated bookends |
 | --- | --- | --- | --- |
 | `JavaScript` | `.js .jsx .ts .tsx .mjs .cjs` | `// @reg Label` | `"// "` … `" //"` |
@@ -321,6 +336,8 @@ Patterns work like `include` and `exclude` in a [`tsconfig.json`](https://www.ty
 
 Filters select the files to consider, but to be updated those files still need to match a configured language extension.
 
+Symbolic links are skipped while walking a directory, whether they point at a file or a folder, so `code-divider` never edits anything outside the folder you gave it. A symlink passed directly with `--path` is followed.
+
 > In case you're wondering why I didn't use Node's built-in `fs.glob` function, it's only available in Node 22+ and marked experimental until Node 24. 
 
 #### Default exclusions
@@ -335,10 +352,10 @@ Out of the box, `code-divider` skips:
 ```js
 import { insertCodeDividers } from 'code-divider';
 
-const updatedFiles = await insertCodeDividers('targetPath', options?)
+const updatedFiles = await insertCodeDividers(targetPath?, options?)
 ```
 
-`targetPath` can be a file or directory. Relative paths are resolved against `options.cwd`.
+`targetPath` can be a file or directory. Relative paths are resolved against `options.cwd`, and an empty or omitted path means `options.cwd` itself.
 
 All options are optional:
 
@@ -346,6 +363,7 @@ All options are optional:
 | --- | --- | --- |
 | `cwd` | Base directory for resolving relative paths. | `process.cwd()` |
 | `configFilePath` | Use a specific config file. If empty, check the target directory, then `cwd`, then use the built-in defaults. | `''` |
+| `config` | An inline config object with the same shape as a config file. Replaces the config-file lookup entirely; cannot be combined with `configFilePath`. The `CodeDividerConfig` type describes it. | none |
 | `isDryRun` | Return the files that would change without writing them. | `false` |
 | `logger` | Handle messages with an object exposing `info` and `warn` methods, such as `console`. | Console output |
 | `silent` | Suppress all messages. Takes priority over `logger`. | `false` |
@@ -354,6 +372,19 @@ The logger receives:
 
 - `info` messages, such as which config file is being used.
 - `warn` messages, such as a marker with no label.
+
+For example, with an inline config:
+
+```ts
+import { insertCodeDividers, type CodeDividerConfig } from 'code-divider';
+
+const config: CodeDividerConfig = {
+  All: { CharacterLimit: 100 },
+  JavaScript: null, // don't touch JS/TS files
+};
+
+const updatedFiles = await insertCodeDividers('src', { config, isDryRun: true });
+```
 
 ## 📄 License
 

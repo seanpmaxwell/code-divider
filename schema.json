@@ -1,0 +1,124 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://unpkg.com/code-divider@1/schema.json",
+  "title": "code-divider configuration",
+  "description": "Settings for code-divider (code-divider.config.json). Every setting is optional and overrides the built-in default. Any key other than \"filter\" and \"All\" is a language block; set a built-in language to null to remove it.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "URL of this schema, for editor support."
+    },
+    "filter": {
+      "type": "object",
+      "description": "Which files to process, relative to the folder being processed. Patterns work like include/exclude in a tsconfig.json.",
+      "additionalProperties": false,
+      "properties": {
+        "include": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Process only matching files. An empty list means a full recursive search."
+        },
+        "exclude": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Skip matching files and folders. Replaces the built-in exclusions; use [] to exclude nothing."
+        }
+      }
+    },
+    "All": {
+      "$ref": "#/definitions/sharedSettings",
+      "description": "Settings shared by every language. A language block may override any of them."
+    }
+  },
+  "patternProperties": {
+    "^\\$": {
+      "description": "Keys starting with \"$\" are ignored by code-divider."
+    }
+  },
+  "additionalProperties": {
+    "oneOf": [
+      { "$ref": "#/definitions/language" },
+      {
+        "type": "null",
+        "description": "Remove this built-in language."
+      }
+    ]
+  },
+  "definitions": {
+    "labelFormat": {
+      "type": "string",
+      "enum": ["uppercase", "lowercase", "capitalize", "none"]
+    },
+    "stringPair": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "sharedSettings": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "CharacterLimit": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "The column that generated header lines extend to, indentation included. Default: 79."
+        },
+        "FillerCharacter": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1,
+          "description": "The single character used to fill the header lines. Default: \"=\"."
+        },
+        "RegionLabelFormat": {
+          "$ref": "#/definitions/labelFormat",
+          "description": "How region (@reg) labels are capitalized. Default: \"uppercase\"."
+        },
+        "SectionLabelFormat": {
+          "$ref": "#/definitions/labelFormat",
+          "description": "How section (@sec) labels are capitalized. Default: \"capitalize\"."
+        }
+      }
+    },
+    "language": {
+      "type": "object",
+      "description": "A language: the files it matches, the comment syntax markers are written in, and any overrides of the shared settings. A new language needs at least Extensions and Comment.",
+      "additionalProperties": false,
+      "properties": {
+        "Extensions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "File extensions to match, e.g. [\"py\"]. Case-insensitive; the leading dot is optional."
+        },
+        "Comment": {
+          "$ref": "#/definitions/stringPair",
+          "description": "The [start, end] comment syntax markers are written in. Use \"\" as the end for line comments, e.g. [\"# \", \"\"]."
+        },
+        "Bookends": {
+          "$ref": "#/definitions/stringPair",
+          "description": "The [start, end] strings of each generated header line. Defaults to Comment; for line comments the opener is mirrored on the right, e.g. [\"# \", \" #\"]."
+        },
+        "CharacterLimit": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Override All.CharacterLimit for this language."
+        },
+        "FillerCharacter": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1,
+          "description": "Override All.FillerCharacter for this language."
+        },
+        "RegionLabelFormat": {
+          "$ref": "#/definitions/labelFormat",
+          "description": "Override All.RegionLabelFormat for this language."
+        },
+        "SectionLabelFormat": {
+          "$ref": "#/definitions/labelFormat",
+          "description": "Override All.SectionLabelFormat for this language."
+        }
+      }
+    }
+  }
+}

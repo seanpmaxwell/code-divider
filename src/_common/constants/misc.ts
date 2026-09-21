@@ -3,5 +3,14 @@
 // ========================================================================= //
 
 export const CONFIG_FILE_NAME = 'code-divider.config.json';
-export const UNIT_TEST_ENV = 'CODE_DIVIDER_UNIT_TESTING';
-export const IS_UNIT_TEST_ENV = process.env.NODE_ENV === UNIT_TEST_ENV;
+
+// Marker tokens written in source files: "// @reg Label", "/* @sec Label */".
+// These are fixed and not configurable.
+export const Markers = {
+  REGION: '@reg',
+  SECTION: '@sec',
+} as const;
+
+// Written into the config file by `--init` so editors can validate it. The
+// major version is pinned; a test checks it matches package.json.
+export const SCHEMA_URL = 'https://unpkg.com/code-divider@1/schema.json';

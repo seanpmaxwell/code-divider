@@ -1,12 +1,19 @@
-import logger from '@logger';
 import fs from 'fs/promises';
-import os from 'os';
 import path from 'path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { insertCodeDividers } from '@src/index';
 
+import UserError from '@common/utils/classes/UserError';
+
 import uFile from '@utilm/uFile';
+
+import {
+  createLogger,
+  JS_RULE,
+  makeTmpDir,
+  writeFile as writeFile_,
+} from '@test/_common/utils';
 
 // ========================================================================= //
 //                                  HELPERS                                  //
@@ -18,23 +25,26 @@ let write: ReturnType<typeof vi.spyOn>;
 /**
  * Write a file under the temp cwd.
  */
-async function writeFile(rel: string, content: string): Promise<string> {
-  const abs = path.join(cwd, rel);
-  await fs.mkdir(path.dirname(abs), { recursive: true });
-  await fs.writeFile(abs, content, 'utf8');
-  return abs;
+function writeFile(rel: string, content: string): Promise<string> {
+  return writeFile_(cwd, rel, content);
+}
+
+/**
+ * The content written for `file`, or '' if it wasn't written.
+ */
+function written(file: string): string {
+  const call = write.mock.calls.find((c: unknown[]) => c[0] === file);
+  return (call?.[1] as string | undefined) ?? '';
 }
 
 // ========================================================================= //
-//                                    TESTS                                  //
+//                                   TESTS                                   //
 // ========================================================================= //
 
 describe('insertCodeDividers', () => {
   beforeEach(async () => {
-    cwd = await fs.realpath(
-      await fs.mkdtemp(path.join(os.tmpdir(), 'code-divider-icd-')),
-    );
-    // `uFile.write` is a no-op under the unit-test env; capture instead.
+    cwd = await makeTmpDir('icd');
+    // Capture writes instead of touching the disk
     write = vi.spyOn(uFile, 'write').mockResolvedValue(undefined);
   });
 
@@ -67,10 +77,10 @@ describe('insertCodeDividers', () => {
     expect(result).toEqual([a]);
   });
 
-  it('should default every option when none are passed', async () => {
+  it('should default every option (and the target path) when none are passed', async () => {
     const a = await writeFile('a.ts', '// @reg one\n');
     vi.spyOn(process, 'cwd').mockReturnValue(cwd);
-    const result = await insertCodeDividers('');
+    const result = await insertCodeDividers();
     expect(result).toEqual([a]);
     // Not a dry run by default, so the file is written
     expect(write).toHaveBeenCalledTimes(1);
@@ -83,8 +93,14 @@ describe('insertCodeDividers', () => {
     expect(result).toEqual([a]);
   });
 
+  it('should match extensions case-insensitively', async () => {
+    const a = await writeFile('a.TS', '// @reg one\n');
+    const result = await insertCodeDividers('', { cwd });
+    expect(result).toEqual([a]);
+  });
+
   it('should honor a config file found in the target directory', async () => {
-    await writeFile('src/a.ts', '// @sec x\n');
+    const a = await writeFile('src/a.ts', '// @sec x\n');
     await uFile.saveJsonFile(
       path.join(cwd, 'src', 'code-divider.config.json'),
       {
@@ -92,12 +108,11 @@ describe('insertCodeDividers', () => {
       },
     );
     await insertCodeDividers('src', { cwd });
-    const written = write.mock.calls[0][1] as string;
-    expect(written.trimEnd()).toHaveLength(40);
+    expect(written(a).trimEnd()).toHaveLength(40);
   });
 
   it('should use an explicit `configFilePath` over the automatic lookup', async () => {
-    await writeFile('src/a.ts', '// @sec x\n');
+    const a = await writeFile('src/a.ts', '// @sec x\n');
     await uFile.saveJsonFile(
       path.join(cwd, 'src', 'code-divider.config.json'),
       { All: { CharacterLimit: 40 } },
@@ -106,8 +121,7 @@ describe('insertCodeDividers', () => {
       All: { CharacterLimit: 50 },
     });
     await insertCodeDividers('src', { cwd, configFilePath: 'custom.json' });
-    const written = write.mock.calls[0][1] as string;
-    expect(written.trimEnd()).toHaveLength(50);
+    expect(written(a).trimEnd()).toHaveLength(50);
   });
 
   it('should report but not write on a dry run', async () => {
@@ -121,16 +135,101 @@ describe('insertCodeDividers', () => {
     expect(write).not.toHaveBeenCalled();
   });
 
-  it('should throw for a target that does not exist', async () => {
-    await expect(insertCodeDividers('nope', { cwd })).rejects.toThrow(
-      /must be an existing/,
-    );
+  it('should throw a UserError for a target that does not exist', async () => {
+    const promise = insertCodeDividers('nope', { cwd });
+    await expect(promise).rejects.toThrow(/must be an existing/);
+    await expect(promise).rejects.toThrow(UserError);
   });
 
   it('should throw for an explicit config file that does not exist', async () => {
     await expect(
       insertCodeDividers('', { cwd, configFilePath: 'missing.json' }),
     ).rejects.toThrow(/was not found/);
+  });
+
+  // ---- Inline config
+  describe('inline `config` option', () => {
+    it('should use the inline config instead of looking for a file', async () => {
+      // A config file that would set 40 is ignored in favor of the inline 50
+      await uFile.saveJsonFile(path.join(cwd, 'code-divider.config.json'), {
+        All: { CharacterLimit: 40 },
+      });
+      const a = await writeFile('a.ts', '// @sec x\n');
+      const info = vi.fn();
+      await insertCodeDividers('', {
+        cwd,
+        config: { All: { CharacterLimit: 50 } },
+        logger: createLogger({ info }),
+      });
+      expect(written(a).trimEnd()).toHaveLength(50);
+      expect(info).not.toHaveBeenCalled();
+    });
+
+    it('should let an inline config add a language', async () => {
+      const a = await writeFile('a.toml', '# @sec x\n');
+      await insertCodeDividers('', {
+        cwd,
+        config: { Toml: { Extensions: ['toml'], Comment: ['# ', ''] } },
+      });
+      expect(written(a)).toMatch(/^# =+ X =+ #\n$/);
+    });
+
+    it('should let a language be removed with null', async () => {
+      await writeFile('a.ts', '// @reg one\n');
+      const b = await writeFile('b.py', '# @reg two\n');
+      const result = await insertCodeDividers('', {
+        cwd,
+        config: { JavaScript: null },
+      });
+      expect(result).toEqual([b]);
+    });
+
+    it('should validate the inline config like a file', async () => {
+      await expect(
+        insertCodeDividers('', { cwd, config: { All: { CharacterLimit: 0 } } }),
+      ).rejects.toThrow(/CharacterLimit/);
+    });
+
+    it('should reject an inline config combined with a configFilePath', async () => {
+      await uFile.saveJsonFile(path.join(cwd, 'custom.json'), {});
+      await expect(
+        insertCodeDividers('', {
+          cwd,
+          config: {},
+          configFilePath: 'custom.json',
+        }),
+      ).rejects.toThrow(/not both/);
+    });
+  });
+
+  // ---- Existing dividers
+  describe('existing dividers', () => {
+    it('should re-center dividers generated with a different character limit', async () => {
+      const a = await writeFile(
+        'a.ts',
+        `${JS_RULE}\n// ${' '.repeat(34)}HELLO${' '.repeat(34)} //\n${JS_RULE}\n// ${'='.repeat(30)} Section ${'='.repeat(30)} //\n`,
+      );
+      const result = await insertCodeDividers('', {
+        cwd,
+        config: { All: { CharacterLimit: 60 } },
+      });
+      expect(result).toEqual([a]);
+      const lines = written(a).split('\n');
+      expect(lines[0]).toBe(`// ${'='.repeat(54)} //`);
+      expect(lines[1]).toHaveLength(60);
+      expect(lines[1]).toContain('HELLO');
+      expect(lines[3]).toHaveLength(60);
+      expect(lines[3]).toContain(' Section ');
+    });
+
+    it('should report nothing when the dividers already match', async () => {
+      const a = await writeFile('a.ts', '// @reg one\n// @sec two\n');
+      await insertCodeDividers('', { cwd });
+      const formatted = written(a);
+      write.mockClear();
+      await fs.writeFile(a, formatted, 'utf8');
+      expect(await insertCodeDividers('', { cwd })).toEqual([]);
+    });
   });
 
   // ---- Logger
@@ -172,7 +271,7 @@ describe('insertCodeDividers', () => {
     it('should let `silent` override a given logger', async () => {
       await writeFile('code-divider.config.json', '{}');
       await writeFile('a.ts', '// @reg\n');
-      const mockLogger = logger.create({ info: vi.fn(), warn: vi.fn() });
+      const mockLogger = createLogger({ info: vi.fn(), warn: vi.fn() });
       await insertCodeDividers('', { cwd, logger: mockLogger, silent: true });
       expect(mockLogger.info).not.toHaveBeenCalled();
       expect(mockLogger.warn).not.toHaveBeenCalled();
@@ -181,7 +280,7 @@ describe('insertCodeDividers', () => {
     it('should send the config file and warnings to a given logger', async () => {
       const config = await writeFile('code-divider.config.json', '{}');
       const file = await writeFile('a.ts', '// @reg\n');
-      const mockLogger = logger.create({ info: vi.fn(), warn: vi.fn() });
+      const mockLogger = createLogger({ info: vi.fn(), warn: vi.fn() });
       await insertCodeDividers('', { cwd, logger: mockLogger });
       expect(mockLogger.info).toHaveBeenCalledWith(
         `Using configuration overrides from: ${config}`,

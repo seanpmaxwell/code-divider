@@ -1,7 +1,8 @@
 import path from 'path';
 
-import { CONFIG_FILE_NAME } from '@common/constants/misc.js';
-import { InitialSettings } from '@common/types/settings';
+import { CONFIG_FILE_NAME, SCHEMA_URL } from '@common/constants/misc';
+import type { InitialSettings } from '@common/types/settings';
+import UserError from '@common/utils/classes/UserError';
 
 import uFile from '@utilm/uFile';
 
@@ -11,27 +12,30 @@ import uFile from '@utilm/uFile';
 
 /**
  * Write `initLangSettings` as a code-divider.config.json into `targetDir`
- * (relative paths are resolved against `process.cwd()`). Refuses to overwrite
- * an existing config. Returns the path of the written file.
+ * (relative paths are resolved against `cwd`), with a `$schema` line first
+ * for editor support. Refuses to overwrite an existing config. Returns the
+ * path of the written file.
  */
 async function initDir(
   targetDir: string,
   initLangSettings: InitialSettings,
+  cwd: string,
 ): Promise<string> {
   // Get the directory
-  const targetDirNew = path.isAbsolute(targetDir)
-    ? targetDir
-    : path.join(process.cwd(), targetDir);
+  const targetDirNew = path.resolve(cwd, targetDir);
   const isDir = await uFile.isDir(targetDirNew);
-  if (!isDir) throw new Error('--init value must be a directory');
+  if (!isDir) throw new UserError('--init value must be a directory');
   // Get the path for the configuration file
   const configPath = path.join(targetDirNew, CONFIG_FILE_NAME);
   const configAlreadyExists = await uFile.exists(configPath);
   if (configAlreadyExists) {
-    throw new Error(`${CONFIG_FILE_NAME} already exists here, not overwriting`);
+    throw new UserError(
+      `${CONFIG_FILE_NAME} already exists here, not overwriting`,
+    );
   }
   // Save file content to JSON file
-  await uFile.saveJsonFile(configPath, initLangSettings, stringifyJsonObj);
+  const content = { $schema: SCHEMA_URL, ...initLangSettings };
+  await uFile.saveJsonFile(configPath, content, stringifyJsonObj);
   // Return filepath
   return configPath;
 }

@@ -1,16 +1,20 @@
 import path from 'path';
 
-import DefaultConfig from '@common/constants/DefaultConfig.js';
-import { CONFIG_FILE_NAME } from '@common/constants/misc.js';
+import DefaultConfig from '@common/constants/DefaultConfig';
+import { CONFIG_FILE_NAME, Markers } from '@common/constants/misc';
+import type { ConfiguredSettings } from '@common/types/RunContext';
 import type {
   ConfiguredLangSettings,
   ExtensionsMap,
   InitialLangSettings,
   InitialSettings,
+  UserConfig,
 } from '@common/types/settings';
-import { type IRunContext } from '@common/utils/fns/RunContext';
+import UserError from '@common/utils/classes/UserError';
 
 import uFile from '@utilm/uFile';
+
+import type { ILogger } from '@logger';
 
 import {
   validateFilterSettings,
@@ -19,74 +23,88 @@ import {
 } from './validators';
 
 // ========================================================================= //
-//                                 CONSTANTS                                 //
+//                                   TYPES                                   //
 // ========================================================================= //
 
-// Marker tokens written in source files: "// @reg Label", "/* @sec Label */".
-// These are fixed and not configurable.
-const Markers = {
-  REGION: '@reg',
-  SECTION: '@sec',
-} as const;
+export interface ConfigureSettingsOptions {
+  cwd: string; // absolute
+  targetPath: string; // '' means `cwd`
+  configFilePath: string | null;
+  config: UserConfig | null;
+  logger: ILogger;
+}
 
 // ========================================================================= //
 //                                 FUNCTIONS                                 //
 // ========================================================================= //
 
 /**
- * Resolve the target path, find and load the config file (if any), validate
- * everything, and compile the per-language settings into the matchers used
- * while formatting. Fills in `targetDir`, `targetFile`, `configFilePath`, and
- * `configuredSettings` on the `ctx` it's given.
+ * Resolve the target path, find and load the config file (if any, and unless
+ * an inline `config` was given), validate everything, and compile the
+ * per-language settings into the matchers used while formatting.
  */
-async function configureSettings(ctx: IRunContext): Promise<void> {
-  // Load settings
-  await setTargetPaths(ctx);
-  await setConfigFilePath(ctx);
-  const initConfigSettings = await getInitConfigSettings(ctx);
-  const { All, filter: filterRaw, ...other } = initConfigSettings;
-  // Run validations for the `All` and `filter` settings
-  validateSharedSettings('All', All);
-  ctx.configuredSettings.filter = validateFilterSettings(filterRaw);
-  // Configure extensions map
-  const finalConfigSettings = Object.keys(other).map((lang) =>
-    configureLangEntry(lang, other[lang] as InitialLangSettings),
+async function configureSettings(
+  options: ConfigureSettingsOptions,
+): Promise<ConfiguredSettings> {
+  const { cwd, config, logger } = options;
+  if (config && options.configFilePath) {
+    throw new UserError(
+      'Pass either an inline "config" or a "configFilePath", not both',
+    );
+  }
+  // ---- Resolve the target and the config
+  const { targetDir, targetFile } = await resolveTargetPaths(
+    cwd,
+    options.targetPath,
   );
-  ctx.configuredSettings.extensionsMap =
-    setupExtensionsMap(finalConfigSettings);
+  let configFilePath: string | null = null;
+  let overrides: UserConfig | null = config;
+  if (!config) {
+    configFilePath = await resolveConfigFilePath(
+      cwd,
+      targetDir,
+      options.configFilePath,
+    );
+    if (configFilePath !== null) {
+      overrides = await uFile.loadJsonFile<UserConfig>(configFilePath);
+      logger.info(`Using configuration overrides from: ${configFilePath}`);
+    }
+  }
+  // ---- Merge and validate
+  const { All, filter: filterRaw, ...languages } = mergeSettings(overrides);
+  validateSharedSettings('All', All);
+  const filter = validateFilterSettings(filterRaw);
+  const langEntries = Object.keys(languages).map((lang) =>
+    configureLangEntry(lang, languages[lang] as InitialLangSettings),
+  );
+  const extensionsMap = setupExtensionsMap(langEntries, logger);
+  // ---- Return
+  return { targetDir, targetFile, configFilePath, filter, extensionsMap };
 }
 
 /**
- * Get the target directory and file (file may be falsy)
+ * Get the target directory and file (file is null for a directory target).
+ * Relative paths are resolved against `cwd`; an empty path means `cwd`.
  *
  * Used by: {@link configureSettings}
  *
  * @private
  */
-async function setTargetPaths(ctx: IRunContext): Promise<void> {
-  // Init
-  let targetPath = ctx.targetPathRaw;
-  if (!targetPath) {
-    targetPath = ctx.cwd;
-  } else if (targetPath && !path.isAbsolute(targetPath)) {
-    targetPath = path.join(ctx.cwd, targetPath);
-  }
-  // Check exists
-  const exists = await uFile.exists(targetPath);
-  if (!exists) {
-    throw new Error(
+async function resolveTargetPaths(
+  cwd: string,
+  targetPathRaw: string,
+): Promise<Pick<ConfiguredSettings, 'targetDir' | 'targetFile'>> {
+  const targetPath = path.resolve(cwd, targetPathRaw);
+  const type = await uFile.pathType(targetPath);
+  if (type === null || type === 'other') {
+    throw new UserError(
       `targetPath ${targetPath} must be an existing file or directory`,
     );
   }
-  // If directory
-  if (await uFile.isDir(targetPath)) {
-    ctx.targetDir = targetPath;
-    ctx.targetFile = null;
-    return;
+  if (type === 'directory') {
+    return { targetDir: targetPath, targetFile: null };
   }
-  // If file
-  ctx.targetDir = path.dirname(targetPath);
-  ctx.targetFile = targetPath;
+  return { targetDir: path.dirname(targetPath), targetFile: targetPath };
 }
 
 /**
@@ -101,52 +119,44 @@ async function setTargetPaths(ctx: IRunContext): Promise<void> {
  *
  * @private
  */
-async function setConfigFilePath(ctx: IRunContext): Promise<void> {
+async function resolveConfigFilePath(
+  cwd: string,
+  targetDir: string,
+  explicitPath: string | null,
+): Promise<string | null> {
   // If the configuration file path was passed (relative paths are resolved
   // against `cwd`, absolute paths are used as-is)
-  if (ctx.configFilePath) {
-    const fullPath = path.resolve(ctx.cwd, ctx.configFilePath);
-    const exists = await uFile.exists(fullPath);
-    if (!exists)
-      throw new Error(
-        `Configuration file ${ctx.configFilePath} was specified but was not found`,
+  if (explicitPath) {
+    const fullPath = path.resolve(cwd, explicitPath);
+    if (!(await uFile.exists(fullPath))) {
+      throw new UserError(
+        `Configuration file ${explicitPath} was specified but was not found`,
       );
-    ctx.configFilePath = fullPath;
-    return;
+    }
+    return fullPath;
   }
-  // Look in the target directory
-  const localConfigFile = path.join(ctx.targetDir, CONFIG_FILE_NAME);
-  const exists = await uFile.exists(localConfigFile);
-  if (exists) {
-    ctx.configFilePath = localConfigFile;
-    return;
+  // Look in the target directory, then the current working directory
+  for (const dir of [targetDir, cwd]) {
+    const candidate = path.join(dir, CONFIG_FILE_NAME);
+    if (await uFile.exists(candidate)) return candidate;
   }
-  // Look in the current working directory
-  const cwdConfigFile = path.join(ctx.cwd, CONFIG_FILE_NAME);
-  const cwdConfigFileExists = await uFile.exists(cwdConfigFile);
-  if (cwdConfigFileExists) {
-    ctx.configFilePath = cwdConfigFile;
-    return;
-  }
-  // Use `null` if there's no configuration file anywhere.
-  ctx.configFilePath = null;
+  // `null` if there's no configuration file anywhere.
+  return null;
 }
 
 /**
  * Build the full settings object: start from the in-memory defaults, apply
- * the config file's overrides on top (when `configFilePath` is not null), and
- * finally fill each language's missing shared settings from `All`.
+ * the user's overrides on top, and finally fill each language's missing
+ * shared settings from `All`.
  *
- * No file validation is needed here: the previous step should only pass a
- * non-null value if the config file was found.
+ * A language set to `null` is removed. Keys starting with `$` (e.g. the
+ * `$schema` key editors use) are ignored.
  *
  * Used by: {@link configureSettings}
  *
  * @private
  */
-async function getInitConfigSettings(
-  ctx: IRunContext,
-): Promise<InitialSettings> {
+function mergeSettings(overrides: UserConfig | null): InitialSettings {
   // ---- Initialize
   const retVal: InitialSettings = {
     ...DefaultConfig,
@@ -154,41 +164,26 @@ async function getInitConfigSettings(
     filter: { ...DefaultConfig.filter },
   };
 
-  // ---- Apply Settings from Configuration File
-  // Note: `.loadJsonFile` will check that it's a valid .json file
-  if (ctx.configFilePath !== null) {
-    const jsonFileSettings: InitialSettings =
-      await uFile.loadJsonFile<InitialSettings>(ctx.configFilePath);
-    ctx.logger.info(
-      `Using configuration overrides from: ${ctx.configFilePath}`,
-    );
-    Object.keys(jsonFileSettings).forEach((key) => {
-      const overridesFromFile = jsonFileSettings[key] as InitialLangSettings;
-      // Spreading a string/array/null would silently produce garbage
-      if (
-        overridesFromFile === null ||
-        typeof overridesFromFile !== 'object' ||
-        Array.isArray(overridesFromFile)
-      ) {
-        throw new Error(
-          `invalid ${CONFIG_FILE_NAME}: "${key}" must be an object`,
-        );
-      }
-      retVal[key] = {
-        ...retVal[key],
-        ...overridesFromFile,
-      };
-    });
+  // ---- Apply the overrides
+  for (const [key, value] of Object.entries(overrides ?? {})) {
+    if (key.startsWith('$') || value === undefined) continue;
+    const isShared = key === 'All' || key === 'filter';
+    if (value === null && !isShared) {
+      delete retVal[key];
+      continue;
+    }
+    // Spreading a string/array/null would silently produce garbage
+    if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+      throw new UserError(`invalid configuration: "${key}" must be an object`);
+    }
+    retVal[key] = { ...retVal[key], ...value } as InitialLangSettings;
   }
 
   // ---- Fill in the languages
-  Object.keys(retVal).forEach((key) => {
-    if (key === 'filter' || key === 'All') return;
-    retVal[key] = {
-      ...retVal.All,
-      ...retVal[key],
-    };
-  });
+  for (const key of Object.keys(retVal)) {
+    if (key === 'filter' || key === 'All') continue;
+    retVal[key] = { ...retVal.All, ...retVal[key] };
+  }
 
   // ---- Return
   return retVal;
@@ -220,6 +215,7 @@ function configureLangEntry(
   const [open, close] = Comment;
   // Return
   return {
+    LANGUAGE: lang,
     EXTENSIONS: Extensions,
     REGION_MARKER: getMarkerRegex(open, close, Markers.REGION),
     SECTION_MARKER: getMarkerRegex(open, close, Markers.SECTION),
@@ -240,13 +236,20 @@ function configureLangEntry(
  * @private
  */
 function getMarkerRegex(open: string, close: string, token: string): RegExp {
-  const escape = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const str = `^\\s*${escape(open)}${escape(token)}(?:[ \\t]+(.+?))?${escape(close)}\\s*$`;
+  const str = `^\\s*${escapeRegex(open)}${escapeRegex(token)}(?:[ \\t]+(.+?))?${escapeRegex(close)}\\s*$`;
   return new RegExp(str);
 }
 
 /**
- * Organize language settings by file extension
+ * Escape a string so it matches literally inside a `RegExp`.
+ */
+export function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Organize language settings by file extension. Warns when two languages
+ * claim the same extension (the later one wins).
  *
  * Used by: {@link configureSettings}
  *
@@ -254,10 +257,17 @@ function getMarkerRegex(open: string, close: string, token: string): RegExp {
  */
 function setupExtensionsMap(
   configuredLangSettings: ConfiguredLangSettings[],
+  logger: ILogger,
 ): ExtensionsMap {
   const map: ExtensionsMap = new Map();
   for (const setting of configuredLangSettings) {
     for (const ext of setting.EXTENSIONS) {
+      const previous = map.get(ext);
+      if (previous && previous !== setting) {
+        logger.warn(
+          `Warning: extension "${ext}" is listed under both "${previous.LANGUAGE}" and "${setting.LANGUAGE}", using "${setting.LANGUAGE}"`,
+        );
+      }
       map.set(ext, setting);
     }
   }

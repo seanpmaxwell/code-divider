@@ -1,8 +1,6 @@
-import shell from '@shell';
-
-import uFile from '@utilm/uFile';
-
-import onInit from '../dev-tools/onInit';
+import copyDir from '@dev-tools/copyDir';
+import onInit from '@dev-tools/onInit';
+import shell from '@dev-tools/shell';
 
 // ========================================================================= //
 //                                 CONSTANTS                                 //
@@ -19,6 +17,6 @@ const TEMP_DIR = './playground/tmp';
  * Test running code-divider without a config file.
  */
 await onInit(async () => {
-  await uFile.testOnly.copyTo(TEMPLATES_DIR, TEMP_DIR);
+  await copyDir(TEMPLATES_DIR, TEMP_DIR);
   await shell('npm', ['run', 'start:build', '--', `--path=${TEMP_DIR}`]);
 }, 'without-config-file-auto');

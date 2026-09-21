@@ -83,7 +83,7 @@ const DefaultConfig = {
     Bookends: ['-- ', ' --'],
   },
   Bash: {
-    Extensions: ['.sh'],
+    Extensions: ['sh'],
     Comment: ['# ', ''],
     Bookends: ['# ', ' #'],
   },

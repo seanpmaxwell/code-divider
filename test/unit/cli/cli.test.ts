@@ -1,6 +1,4 @@
-import logger from '@logger';
 import fs from 'fs/promises';
-import os from 'os';
 import path from 'path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -8,8 +6,13 @@ import * as printHelpTextMod from '@src/cli/_internal/printHelpText';
 import cli from '@src/cli/cli';
 
 import { CONFIG_FILE_NAME } from '@common/constants/misc';
+import UserError from '@common/utils/classes/UserError';
 
 import uFile from '@utilm/uFile';
+
+import logger from '@logger';
+
+import { makeTmpDir, writeFile as writeFile_ } from '@test/_common/utils';
 
 // ========================================================================= //
 //                                  HELPERS                                  //
@@ -31,11 +34,8 @@ let printHelpTextSpy: ReturnType<typeof vi.spyOn>;
 /**
  * Write a file under the temp cwd.
  */
-async function writeFile(rel: string, content: string): Promise<string> {
-  const abs = path.join(cwd, rel);
-  await fs.mkdir(path.dirname(abs), { recursive: true });
-  await fs.writeFile(abs, content, 'utf8');
-  return abs;
+function writeFile(rel: string, content: string): Promise<string> {
+  return writeFile_(cwd, rel, content);
 }
 
 /**
@@ -46,15 +46,13 @@ function printed(): string {
 }
 
 // ========================================================================= //
-//                                    TESTS                                  //
+//                                   TESTS                                   //
 // ========================================================================= //
 
 describe('cli', () => {
   beforeEach(async () => {
-    cwd = await fs.realpath(
-      await fs.mkdtemp(path.join(os.tmpdir(), 'code-divider-cli-')),
-    );
-    // `uFile.write` is a no-op under the unit-test env; capture instead.
+    cwd = await makeTmpDir('cli');
+    // Capture writes instead of touching the disk
     write = vi.spyOn(uFile, 'write').mockResolvedValue(undefined);
     info = vi.spyOn(logger, 'info').mockImplementation(() => '');
     printHelpTextSpy = vi
@@ -91,14 +89,12 @@ describe('cli', () => {
       await expect(cli(['-h', '--path', 'src'], cwd)).rejects.toThrow(
         /Invalid command-line arguments/,
       );
-      await expect(cli(['-v', '-d'], cwd)).rejects.toThrow(
-        /Invalid command-line arguments/,
-      );
+      await expect(cli(['-v', '-d'], cwd)).rejects.toThrow(UserError);
       expect(write).not.toHaveBeenCalled();
     });
 
-    it('should reject an unknown option', async () => {
-      await expect(cli(['--bogus'], cwd)).rejects.toThrow();
+    it('should reject an unknown option with a UserError', async () => {
+      await expect(cli(['--bogus'], cwd)).rejects.toThrow(UserError);
     });
   });
 
@@ -109,6 +105,19 @@ describe('cli', () => {
       const configPath = path.join(cwd, CONFIG_FILE_NAME);
       expect(await uFile.exists(configPath)).toBe(true);
       expect(printed()).toContain(`created ${configPath}`);
+    });
+
+    it('should default a bare --init to the cwd it was given', async () => {
+      await cli(['--init'], cwd);
+      expect(await uFile.exists(path.join(cwd, CONFIG_FILE_NAME))).toBe(true);
+    });
+
+    it('should resolve a relative --init directory against the cwd', async () => {
+      await fs.mkdir(path.join(cwd, 'sub'));
+      await cli(['--init', 'sub'], cwd);
+      expect(await uFile.exists(path.join(cwd, 'sub', CONFIG_FILE_NAME))).toBe(
+        true,
+      );
     });
 
     it('should reject --init combined with another option', async () => {
@@ -174,6 +183,10 @@ describe('cli', () => {
         '[Dry Run] code-divider CLI: 1 file/s would have been updated',
       );
       expect(process.exitCode).toBeUndefined();
+    });
+
+    it('should throw a UserError for a missing target', async () => {
+      await expect(cli(['--path', 'nope'], cwd)).rejects.toThrow(UserError);
     });
   });
 
