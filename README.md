@@ -142,6 +142,9 @@ For VS Code, install the [Run on Save](https://github.com/emeraldwalk/vscode-run
 
 ## 🤔 Why not snippets?
 
+<details>
+<summary>Snippets can't measure the label. Here's the difference.</summary>
+
 Editor snippets can insert a header template, and if they work for you, great! What they can't do is measure the label. Snippet transforms can change case, but they can't count characters, so the filler stays the same length and the line grows with the label:
 
 ```js
@@ -163,6 +166,8 @@ Editor snippets can insert a header template, and if they work for you, great! W
 | Works in any editor | One format per editor | Yes |
 | Covers every language | One entry per language | One config file |
 | Can be enforced in CI | No | Yes, with `--check` |
+
+</details>
 
 ## 🧩 Divider anatomy
 
@@ -259,7 +264,8 @@ Other than `All` and `filter`, top-level config keys can be any string value, th
 | `RegionLabelFormat` | Override `All.RegionLabelFormat` for this language. |
 | `SectionLabelFormat` | Override `All.SectionLabelFormat` for this language. |
 
-For example:
+<details>
+<summary>Full example: a config file and the headers it produces</summary>
 
 ```json
 {
@@ -302,11 +308,16 @@ class Main {
 print('Hello code-divider')
 ```
 
+</details>
+
 ### Default Settings
 
 These are the language keys, file extensions, and comment styles available by default.
 
 Extensions are matched case-insensitively, so `Main.TS` is treated like `main.ts`.
+
+<details>
+<summary>All built-in languages, extensions and bookends</summary>
 
 | Config key | File extensions | Marker example | Generated bookends |
 | --- | --- | --- | --- |
@@ -322,6 +333,8 @@ Extensions are matched case-insensitively, so `Main.TS` is treated like `main.ts
 | `Python` | `.py .pyi .pyw` | `# @reg Label` | `"# "` … `" #"` |
 | `Bash` | `.sh` | `# @reg Label` | `"# "` … `" #"` |
 | `Sql` | `.sql` | `-- @reg Label` | `"-- "` … `" --"` |
+
+</details>
 
 ### Filtering files
 
