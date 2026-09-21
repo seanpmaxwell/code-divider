@@ -13,7 +13,7 @@ Use it from the command line, run it automatically when you save, or call it fro
 
 ![code-divider inserting two region headers and a section header](assets/demo.gif)
 
----
+<p align="center">· · ·</p>
 
 ## 🧭 Table of contents
 
@@ -34,7 +34,7 @@ Use it from the command line, run it automatically when you save, or call it fro
 - [💻 Programmatic use](#-programmatic-use)
 - [📄 License](#-license)
 
----
+<p align="center">· · ·</p>
 
 ## 🚀 Quick start
 
@@ -62,7 +62,7 @@ You can target a file or a folder. Folders are searched recursively.
 npx code-divider --path ./src --dry-run
 ```
 
----
+<p align="center">· · ·</p>
 
 ## 📌 Markers
 
@@ -91,7 +91,7 @@ By default, region labels become **UPPERCASE** and section labels become **Capit
 
 Built-in support includes JavaScript, TypeScript, Java, CSS, SCSS, C, C++, Go, Rust, PHP, Ruby, Python, Bash, and SQL. You can add more languages through the configuration file.
 
----
+<p align="center">· · ·</p>
 
 ## 💻 Command-line options
 
@@ -130,7 +130,7 @@ npx code-divider --config ./custom.config.json
 
 </details>
 
----
+<p align="center">· · ·</p>
 
 ## 💾 Run on save
 
@@ -153,7 +153,7 @@ For VS Code, install the [Run on Save](https://github.com/emeraldwalk/vscode-run
 }
 ```
 
----
+<p align="center">· · ·</p>
 
 ## 🤔 Why not snippets?
 
@@ -184,7 +184,7 @@ Editor snippets can insert a header template, and if they work for you, great! W
 
 </details>
 
----
+<p align="center">· · ·</p>
 
 ## 🧩 Divider anatomy
 
@@ -206,7 +206,7 @@ These are the names used throughout the configuration:
 | **Filler character** | The repeated character that fills the available space: `=` in this example. |
 | **Bookends** | The strings at the start and end of each generated line: `"// "` and `" //"` here. |
 
----
+<p align="center">· · ·</p>
 
 ## 🔧 Configuration
 
@@ -379,7 +379,7 @@ Out of the box, `code-divider` skips:
 - **At any depth:** `node_modules`, `.vscode`, `.idea`, `.claude`, and files ending in `.log` or `.json`.
 - **At the top level:** `bin`, `lib`, and `dist`.
 
----
+<p align="center">· · ·</p>
 
 ## 💻 Programmatic use
 
@@ -420,7 +420,7 @@ const config: CodeDividerConfig = {
 const updatedFiles = await insertCodeDividers('src', { config, isDryRun: true });
 ```
 
----
+<p align="center">· · ·</p>
 
 ## 📄 License
 
