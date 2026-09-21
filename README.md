@@ -13,6 +13,8 @@ Use it from the command line, run it automatically when you save, or call it fro
 
 ![code-divider inserting two region headers and a section header](assets/demo.gif)
 
+---
+
 ## 🧭 Table of contents
 
 - [👀 Preview](#-preview)
@@ -31,6 +33,8 @@ Use it from the command line, run it automatically when you save, or call it fro
   - [Filtering files](#filtering-files)
 - [💻 Programmatic use](#-programmatic-use)
 - [📄 License](#-license)
+
+---
 
 ## 🚀 Quick start
 
@@ -57,6 +61,8 @@ You can target a file or a folder. Folders are searched recursively.
 ```bash
 npx code-divider --path ./src --dry-run
 ```
+
+---
 
 ## 📌 Markers
 
@@ -85,6 +91,8 @@ By default, region labels become **UPPERCASE** and section labels become **Capit
 
 Built-in support includes JavaScript, TypeScript, Java, CSS, SCSS, C, C++, Go, Rust, PHP, Ruby, Python, Bash, and SQL. You can add more languages through the configuration file.
 
+---
+
 ## 💻 Command-line options
 
 ```bash
@@ -103,7 +111,8 @@ With no options, `code-divider` processes the current directory.
 | `-h`, `--help` | Show help. |
 | `-v`, `--version` | Show the version. |
 
-A few examples:
+<details>
+<summary>Examples</summary>
 
 ```bash
 # Process the current directory
@@ -118,6 +127,10 @@ npx code-divider --check
 # Use a specific config file
 npx code-divider --config ./custom.config.json
 ```
+
+</details>
+
+---
 
 ## 💾 Run on save
 
@@ -139,6 +152,8 @@ For VS Code, install the [Run on Save](https://github.com/emeraldwalk/vscode-run
   }
 }
 ```
+
+---
 
 ## 🤔 Why not snippets?
 
@@ -169,6 +184,8 @@ Editor snippets can insert a header template, and if they work for you, great! W
 
 </details>
 
+---
+
 ## 🧩 Divider anatomy
 
 Here’s a section divider, shortened for readability:
@@ -188,6 +205,8 @@ These are the names used throughout the configuration:
 | **Label** | The title after the marker, such as `My Section`. |
 | **Filler character** | The repeated character that fills the available space: `=` in this example. |
 | **Bookends** | The strings at the start and end of each generated line: `"// "` and `" //"` here. |
+
+---
 
 ## 🔧 Configuration
 
@@ -360,6 +379,8 @@ Out of the box, `code-divider` skips:
 - **At any depth:** `node_modules`, `.vscode`, `.idea`, `.claude`, and files ending in `.log` or `.json`.
 - **At the top level:** `bin`, `lib`, and `dist`.
 
+---
+
 ## 💻 Programmatic use
 
 ```js
@@ -398,6 +419,8 @@ const config: CodeDividerConfig = {
 
 const updatedFiles = await insertCodeDividers('src', { config, isDryRun: true });
 ```
+
+---
 
 ## 📄 License
 
