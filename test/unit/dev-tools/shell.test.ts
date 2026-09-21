@@ -1,5 +1,6 @@
-import shell from '@shell';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import shell from '@dev-tools/shell';
 
 // ========================================================================= //
 //                                  HELPERS                                  //
@@ -19,7 +20,7 @@ function streamed(spy: ReturnType<typeof vi.spyOn>): string {
 }
 
 // ========================================================================= //
-//                                    TESTS                                  //
+//                                   TESTS                                   //
 // ========================================================================= //
 
 describe('shell', () => {
@@ -73,9 +74,33 @@ describe('shell', () => {
     });
 
     it('should reject when the command does not exist', async () => {
+      // A bare name goes through cmd.exe on Windows, which reports a
+      // non-zero exit code rather than ENOENT.
       await expect(
         shell('code-divider-no-such-command-xyz', []),
-      ).rejects.toThrow(/ENOENT/);
+      ).rejects.toThrow(/ENOENT|exit code/);
+    });
+  });
+
+  describe('commands installed by npm', () => {
+    beforeEach(() => {
+      // Keep the streamed output out of the test report
+      vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+      vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('should run a command whose package has a different name', async () => {
+      expect(await shell('tsc', ['--version'])).toMatch(/^Version \d/);
+    });
+
+    it('should run a command whose package has the same name', async () => {
+      expect(await shell('dts-bundle-generator', ['--version'])).toMatch(
+        /^\d+\.\d+/,
+      );
     });
   });
 });

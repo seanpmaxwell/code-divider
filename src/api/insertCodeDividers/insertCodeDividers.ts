@@ -1,9 +1,11 @@
-import logger_, { type ILogger, SilentLogger } from '@logger';
 import path from 'path';
 
-import RunContext from '@common/utils/fns/RunContext';
+import type { IRunContext } from '@common/types/RunContext';
+import type { UserConfig } from '@common/types/settings';
 
 import uFile, { FileCtx } from '@utilm/uFile';
+
+import logger_, { type ILogger, SilentLogger } from '@logger';
 
 import applyFormatting from './applyFormatting/applyFormatting';
 import configureSettings from './configureSettings/configureSettings';
@@ -15,6 +17,7 @@ import configureSettings from './configureSettings/configureSettings';
 export interface InsertCodeDividersOptions {
   cwd?: string;
   configFilePath?: string;
+  config?: UserConfig;
   isDryRun?: boolean;
   logger?: ILogger;
   silent?: boolean;
@@ -28,48 +31,53 @@ export interface InsertCodeDividersOptions {
  * Process a path (file or directory). Directories are walked recursively.
  * Returns the list of file paths that were updated.
  *
- * `configFilePath` empty means "look for one in the target directory, then
- * the cwd, then fall back to the built-in defaults".
+ * `targetPath` empty (the default) means the `cwd`. `configFilePath` empty
+ * means "look for one in the target directory, then the cwd, then fall back
+ * to the built-in defaults". An inline `config` replaces that lookup.
  */
 async function insertCodeDividers(
-  targetPath: string,
+  targetPath = '',
   options: InsertCodeDividersOptions = {},
 ): Promise<string[]> {
   const {
     cwd = process.cwd(),
     configFilePath,
+    config,
     isDryRun = false,
     logger = logger_,
     silent = false,
   } = options;
-
-  // ---- Init `RunContext`
-  const ctx = RunContext({
-    cwd: path.resolve(cwd),
-    targetPathRaw: targetPath,
-    configFilePath: configFilePath ?? null,
-    isDryRun,
-    // `silent` wins over a given logger
-    logger: silent ? SilentLogger : logger,
-  });
+  const cwdAbs = path.resolve(cwd);
+  // `silent` wins over a given logger
+  const loggerFinal = silent ? SilentLogger : logger;
 
   // ---- Load settings
-  await configureSettings(ctx);
+  const settings = await configureSettings({
+    cwd: cwdAbs,
+    targetPath,
+    configFilePath: configFilePath || null,
+    config: config ?? null,
+    logger: loggerFinal,
+  });
+  const ctx: IRunContext = {
+    ...settings,
+    cwd: cwdAbs,
+    isDryRun,
+    logger: loggerFinal,
+  };
 
   // ---- Get Files
-  // Setup list of files to inspect, if targetFile is null then we need
-  // to search a directory for all the files it contains
+  // If the target is a directory search it for files, otherwise it's the
+  // one file to inspect
   let fileDTOs: FileCtx[];
   if (ctx.targetFile === null) {
     fileDTOs = await uFile.globSearch(
-      ctx.configuredSettings.filter.include,
-      ctx.configuredSettings.filter.exclude,
+      ctx.filter.include,
+      ctx.filter.exclude,
       ctx.targetDir,
     );
-    // If it's just one file we don't need to search
   } else {
-    const relativePath = path.relative(ctx.targetDir, ctx.targetFile);
-    fileDTOs = [uFile.parse(relativePath, ctx.targetDir)];
+    fileDTOs = [uFile.parse(path.basename(ctx.targetFile), ctx.targetDir)];
   }
 
   // ---- Insert code-dividers

@@ -1,6 +1,8 @@
 import path from 'path';
 import util from 'util';
 
+import UserError from '@common/utils/classes/UserError';
+
 // ========================================================================= //
 //                                 CONSTANTS                                 //
 // ========================================================================= //
@@ -48,14 +50,12 @@ export interface ParsedCmdLineArgs {
  *
  * `Helpers`: Run alone and do not fire `insertCodeDividers`
  * `Options`: Can be combined with each other and do fire `insertCodeDividers`.
+ *
+ * `cwd` is what a bare `--init` (no directory) defaults to.
  */
-function cmdLineParser(args: string[]): ParsedCmdLineArgs {
+function cmdLineParser(args: string[], cwd: string): ParsedCmdLineArgs {
   // ---- Parse the arguments with `util`
-  const { values: pArgs, positionals } = util.parseArgs({
-    args: preprocessArgs(args),
-    options: PARSE_ARG_OPTIONS,
-    allowPositionals: true,
-  });
+  const { values: pArgs, positionals } = parseArgs(preprocessArgs(args, cwd));
 
   // ---- Validate helpers (`args[0]` may be in the `--flag=value` form)
   const firstFlag = args[0]?.split('=')[0];
@@ -63,7 +63,7 @@ function cmdLineParser(args: string[]): ParsedCmdLineArgs {
     (pArgs.help || pArgs.version || pArgs.init) &&
     !ShouldBeFirstSet.has(firstFlag)
   ) {
-    throw new Error(
+    throw new UserError(
       'If specified, the flags [--init,--version,--help] should come first',
     );
   }
@@ -78,7 +78,7 @@ function cmdLineParser(args: string[]): ParsedCmdLineArgs {
       pArgs.path !== undefined ||
       pArgs.config !== undefined;
     if (hasOtherFlag || positionals.length > 0) {
-      throw new Error(
+      throw new UserError(
         '--init takes at most one argument (a directory) and cannot be combined with other options',
       );
     }
@@ -87,7 +87,7 @@ function cmdLineParser(args: string[]): ParsedCmdLineArgs {
   // ---- Bare arguments aren't accepted: the path must be given with `--path`.
   // Positionals are still allowed by `parseArgs` so this error can say so.
   if (positionals.length > 0) {
-    throw new Error(
+    throw new UserError(
       `Unexpected argument "${positionals[0]}". Pass the path with --path (e.g. --path ${positionals[0]})`,
     );
   }
@@ -106,16 +106,37 @@ function cmdLineParser(args: string[]): ParsedCmdLineArgs {
 }
 
 /**
- * `--init` if specified but no value is passed will default to process.cwd.
- * But `parseArgs` still requires a string value and will throw if there isn't
- * one. This preprocessing step supplies the `process.cwd()` value in that
- * bare-flag case before parsing.
+ * Run `util.parseArgs`, turning its errors (unknown option, missing value)
+ * into `UserError`s so the CLI prints them without a stack trace.
  *
  * Used by: {@link cmdLineParser}
  *
  * @private
  */
-function preprocessArgs(argv: string[]): string[] {
+function parseArgs(args: string[]) {
+  try {
+    return util.parseArgs({
+      args,
+      options: PARSE_ARG_OPTIONS,
+      allowPositionals: true,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new UserError(message, { cause: err });
+  }
+}
+
+/**
+ * `--init` if specified but no value is passed will default to `cwd`. But
+ * `parseArgs` still requires a string value and will throw if there isn't
+ * one. This preprocessing step supplies the `cwd` value in that bare-flag
+ * case before parsing.
+ *
+ * Used by: {@link cmdLineParser}
+ *
+ * @private
+ */
+function preprocessArgs(argv: string[], cwd: string): string[] {
   const result: string[] = [];
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
@@ -123,7 +144,7 @@ function preprocessArgs(argv: string[]): string[] {
     if (arg === '--init' || arg === '-i') {
       const next = argv[i + 1];
       const hasValue = next !== undefined && !next.startsWith('-');
-      if (!hasValue) result.push(process.cwd());
+      if (!hasValue) result.push(cwd);
     }
   }
   return result;

@@ -4,11 +4,16 @@ import cmdLineParser, {
   type ParsedCmdLineArgs,
 } from '@src/cli/_internal/cmdLineParser';
 
+import UserError from '@common/utils/classes/UserError';
+
 // ========================================================================= //
 //                                 CONSTANTS                                 //
 // ========================================================================= //
 
 const CWD = process.cwd();
+
+// Every call passes the same cwd, which is what a bare `--init` defaults to.
+const parse = (args: string[]) => cmdLineParser(args, CWD);
 
 const DEFAULT_RESULT = {
   help: false,
@@ -47,21 +52,21 @@ const GetPathConfigResult = (path = '', config = ''): ParsedCmdLineArgs => ({
 });
 
 // ========================================================================= //
-//                                  TESTS                                    //
+//                                   TESTS                                   //
 // ========================================================================= //
 
 describe('cmdLineParser', () => {
   // Help
   describe('help flag [-h, --help]', () => {
     it('should work as expected', async () => {
-      const res1 = cmdLineParser(['--help']);
+      const res1 = parse(['--help']);
       expect(res1).toEqual(FLAG_HELP_RESULT);
-      const res2 = cmdLineParser(['-h']);
+      const res2 = parse(['-h']);
       expect(res2).toEqual(FLAG_HELP_RESULT);
       // Bare arguments are rejected, wherever they appear
-      const res3 = () => cmdLineParser(['-h', 'horse']);
+      const res3 = () => parse(['-h', 'horse']);
       expect(() => res3()).toThrow(/Unexpected argument "horse"/);
-      const res4 = () => cmdLineParser(['horse', '-h']);
+      const res4 = () => parse(['horse', '-h']);
       expect(() => res4()).toThrow();
     });
   });
@@ -69,15 +74,15 @@ describe('cmdLineParser', () => {
   // Version
   describe('version flag [-v, --version]', () => {
     it('should work as expected', async () => {
-      const res1 = cmdLineParser(['--version']);
+      const res1 = parse(['--version']);
       expect(res1).toEqual(FLAG_VERSION_RESULT);
-      const res2 = cmdLineParser(['-v']);
+      const res2 = parse(['-v']);
       expect(res2).toEqual(FLAG_VERSION_RESULT);
-      const res2a = cmdLineParser(['-v']);
+      const res2a = parse(['-v']);
       expect(res2a).not.toEqual(FLAG_HELP_RESULT);
-      const res3 = () => cmdLineParser(['-v', 'horse']);
+      const res3 = () => parse(['-v', 'horse']);
       expect(() => res3()).toThrow(/Unexpected argument "horse"/);
-      const res4 = () => cmdLineParser(['horse', '-v']);
+      const res4 = () => parse(['horse', '-v']);
       expect(() => res4()).toThrow();
     });
   });
@@ -85,49 +90,49 @@ describe('cmdLineParser', () => {
   // Initialize
   describe('init flag [-i, --init]', () => {
     it('should work as expected', async () => {
-      const res1 = cmdLineParser(['--init']);
+      const res1 = parse(['--init']);
       expect(res1).toEqual(GetFlagInitResult());
-      const res2 = cmdLineParser(['-i']);
+      const res2 = parse(['-i']);
       expect(res2).toEqual(GetFlagInitResult());
-      const res2a = cmdLineParser(['-i']);
+      const res2a = parse(['-i']);
       expect(res2a).not.toEqual(FLAG_HELP_RESULT);
-      const res3 = cmdLineParser(['-i', 'some-folder']);
+      const res3 = parse(['-i', 'some-folder']);
       expect(res3).toEqual(GetFlagInitResult('some-folder'));
-      const res4 = () => cmdLineParser(['some-folder', '--init']);
+      const res4 = () => parse(['some-folder', '--init']);
       expect(() => res4()).toThrow();
-      const res5 = () => cmdLineParser(['-i', '--config']);
+      const res5 = () => parse(['-i', '--config']);
       expect(() => res5()).toThrow();
     });
 
     it('should accept the --init=<dir> form when it comes first', async () => {
-      const res = cmdLineParser(['--init=some-folder']);
+      const res = parse(['--init=some-folder']);
       expect(res).toEqual(GetFlagInitResult('some-folder'));
     });
 
     it('should reject init combined with anything but its directory', async () => {
       const re = /--init takes at most one argument/;
-      expect(() => cmdLineParser(['-i', '-d'])).toThrow(re);
-      expect(() => cmdLineParser(['--init', 'dir', '--dry-run'])).toThrow(re);
-      expect(() => cmdLineParser(['--init=dir', 'extra'])).toThrow(re);
-      expect(() => cmdLineParser(['-i', 'dir', '-p', 'src'])).toThrow(re);
-      expect(() => cmdLineParser(['-i', 'dir', '-c', 'x.json'])).toThrow(re);
-      expect(() => cmdLineParser(['-i', 'dir', '-h'])).toThrow(re);
+      expect(() => parse(['-i', '-d'])).toThrow(re);
+      expect(() => parse(['--init', 'dir', '--dry-run'])).toThrow(re);
+      expect(() => parse(['--init=dir', 'extra'])).toThrow(re);
+      expect(() => parse(['-i', 'dir', '-p', 'src'])).toThrow(re);
+      expect(() => parse(['-i', 'dir', '-c', 'x.json'])).toThrow(re);
+      expect(() => parse(['-i', 'dir', '-h'])).toThrow(re);
     });
   });
 
   // DryRun
   describe('dry-run flag [-d, --dry-run]', () => {
     it('should work as expected', async () => {
-      const res1 = cmdLineParser(['--dry-run']);
+      const res1 = parse(['--dry-run']);
       expect(res1).toEqual(FLAG_DRY_RUN_RESULT);
-      const res2 = cmdLineParser(['-d']);
+      const res2 = parse(['-d']);
       expect(res2).toEqual(FLAG_DRY_RUN_RESULT);
-      const res2a = cmdLineParser(['-d']);
+      const res2a = parse(['-d']);
       expect(res2a).not.toEqual(FLAG_HELP_RESULT);
       // Order doesn't matter for options
-      const res3 = cmdLineParser(['-d', '-p', 'horse']);
+      const res3 = parse(['-d', '-p', 'horse']);
       expect(res3).toEqual({ ...FLAG_DRY_RUN_RESULT, path: 'horse' });
-      const res4 = cmdLineParser(['-p', 'horse', '-d']);
+      const res4 = parse(['-p', 'horse', '-d']);
       expect(res4).toEqual({ ...FLAG_DRY_RUN_RESULT, path: 'horse' });
     });
   });
@@ -135,45 +140,55 @@ describe('cmdLineParser', () => {
   // Check
   describe('check flag [--check]', () => {
     it('should parse alone and combined with a path or dry run', async () => {
-      expect(cmdLineParser(['--check'])).toEqual({
+      expect(parse(['--check'])).toEqual({
         ...DEFAULT_RESULT,
         check: true,
       });
-      expect(cmdLineParser(['--check', '--path', 'src'])).toEqual({
+      expect(parse(['--check', '--path', 'src'])).toEqual({
         ...GetPathConfigResult('src'),
         check: true,
       });
-      expect(cmdLineParser(['-d', '--check'])).toEqual({
+      expect(parse(['-d', '--check'])).toEqual({
         ...FLAG_DRY_RUN_RESULT,
         check: true,
       });
     });
 
     it('should not be combinable with --init', async () => {
-      expect(() => cmdLineParser(['--init', 'dir', '--check'])).toThrow(
+      expect(() => parse(['--init', 'dir', '--check'])).toThrow(
         /--init takes at most one argument/,
       );
+    });
+  });
+
+  // Errors
+  describe('errors', () => {
+    it('should throw a UserError for an unknown option', async () => {
+      expect(() => parse(['--bogus'])).toThrow(UserError);
+      expect(() => parse(['--bogus'])).toThrow(/bogus/);
+    });
+
+    it('should throw a UserError for a bare argument', async () => {
+      expect(() => parse(['src'])).toThrow(UserError);
     });
   });
 
   // Bare arguments
   describe('bare arguments', () => {
     it('should reject a bare path and point to --path', async () => {
-      expect(() => cmdLineParser(['src'])).toThrow(
+      expect(() => parse(['src'])).toThrow(
         'Unexpected argument "src". Pass the path with --path (e.g. --path src)',
       );
     });
 
     it('should reject a bare argument alongside --path', async () => {
       const re = /Unexpected argument "src"/;
-      expect(() => cmdLineParser(['src', '--path', 'lib'])).toThrow(re);
-      expect(() => cmdLineParser(['--path', 'lib', 'src'])).toThrow(re);
+      expect(() => parse(['src', '--path', 'lib'])).toThrow(re);
+      expect(() => parse(['--path', 'lib', 'src'])).toThrow(re);
     });
 
     it('should reject more than one bare argument', async () => {
-      expect(() => cmdLineParser(['src', 'lib'])).toThrow(
-        /Unexpected argument "src"/,
-      );
+      expect(() => parse(['src', 'lib'])).toThrow(/Unexpected argument "src"/);
     });
   });
 
@@ -181,17 +196,17 @@ describe('cmdLineParser', () => {
   describe('path + config [-p/--path, -c/--config]', () => {
     it('should work as expected', async () => {
       // Each on its own
-      const res1 = cmdLineParser(['--path', './src']);
+      const res1 = parse(['--path', './src']);
       expect(res1).toEqual(GetPathConfigResult('src'));
-      const res2 = cmdLineParser(['--config', './cfg.json']);
+      const res2 = parse(['--config', './cfg.json']);
       expect(res2).toEqual(GetPathConfigResult('', 'cfg.json'));
       // Short forms
-      const res3 = cmdLineParser(['-p', './src']);
+      const res3 = parse(['-p', './src']);
       expect(res3).toEqual(GetPathConfigResult('src'));
-      const res4 = cmdLineParser(['-c', './cfg.json']);
+      const res4 = parse(['-c', './cfg.json']);
       expect(res4).toEqual(GetPathConfigResult('', 'cfg.json'));
       // Can be combined with the other option flags
-      const res5 = cmdLineParser(['--path', './src', '--dry-run']);
+      const res5 = parse(['--path', './src', '--dry-run']);
       expect(res5).toEqual({
         ...GetPathConfigResult('src'),
         dryRun: true,
@@ -201,28 +216,28 @@ describe('cmdLineParser', () => {
     it('should not care which of the two comes first', async () => {
       const expected = GetPathConfigResult('src', 'cfg.json');
       // `path` first
-      const res1 = cmdLineParser(['--path', './src', '--config', './cfg.json']);
+      const res1 = parse(['--path', './src', '--config', './cfg.json']);
       expect(res1).toEqual(expected);
-      const res2 = cmdLineParser(['-p', './src', '-c', './cfg.json']);
+      const res2 = parse(['-p', './src', '-c', './cfg.json']);
       expect(res2).toEqual(expected);
       // `config` first
-      const res3 = cmdLineParser(['--config', './cfg.json', '--path', './src']);
+      const res3 = parse(['--config', './cfg.json', '--path', './src']);
       expect(res3).toEqual(expected);
-      const res4 = cmdLineParser(['-c', './cfg.json', '-p', './src']);
+      const res4 = parse(['-c', './cfg.json', '-p', './src']);
       expect(res4).toEqual(expected);
     });
 
     it('should throw if the argument is missing', async () => {
       // Nothing at all after the flag
-      expect(() => cmdLineParser(['--path'])).toThrow();
-      expect(() => cmdLineParser(['--config'])).toThrow();
-      expect(() => cmdLineParser(['-p'])).toThrow();
-      expect(() => cmdLineParser(['-c'])).toThrow();
+      expect(() => parse(['--path'])).toThrow();
+      expect(() => parse(['--config'])).toThrow();
+      expect(() => parse(['-p'])).toThrow();
+      expect(() => parse(['-c'])).toThrow();
       // Another flag where the value should be
-      expect(() => cmdLineParser(['--path', '--config'])).toThrow();
-      expect(() => cmdLineParser(['--config', '--path'])).toThrow();
+      expect(() => parse(['--path', '--config'])).toThrow();
+      expect(() => parse(['--config', '--path'])).toThrow();
       // Only the trailing flag is missing its value
-      expect(() => cmdLineParser(['--path', './src', '--config'])).toThrow();
+      expect(() => parse(['--path', './src', '--config'])).toThrow();
     });
   });
 });

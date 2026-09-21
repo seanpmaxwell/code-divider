@@ -24,8 +24,10 @@ const HELP_TEXT = `
     -v, --version         Show the version.
 
   Markers (rewritten in place, centered and padded to the character limit):
-    // @reg Region Section -> A 3-line boxed header block.
-    // @sec Label Section -> A Single Centered Header line.`;
+    // @reg Label    -> A 3-line boxed region header.
+    // @sec Label    -> A single centered section header line.
+
+  Dividers generated earlier are re-centered when the settings change.`;
 
 // ========================================================================= //
 //                                 FUNCTIONS                                 //

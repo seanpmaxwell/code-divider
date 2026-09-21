@@ -2,6 +2,9 @@ import type { Dirent } from 'fs';
 import fs from 'fs/promises';
 import path from 'path';
 
+import UserError from '@common/utils/classes/UserError';
+import pLimit from '@common/utils/fns/pLimit';
+
 // ========================================================================= //
 //                                   TYPES                                   //
 // ========================================================================= //
@@ -19,6 +22,11 @@ const RESERVED = /[^\w\s/]/g;
 // Case-insensitive on macOS and Windows, like tsc.
 const REGEX_FLAGS = ['darwin', 'win32'].includes(process.platform) ? 'i' : '';
 
+// Directory reads in flight at once. Subdirectories are walked concurrently,
+// so this keeps a huge tree from opening thousands of handles at the same
+// time.
+const MAX_CONCURRENT_FS_OPS = 32;
+
 // ========================================================================= //
 //                                 FUNCTIONS                                 //
 // ========================================================================= //
@@ -33,8 +41,10 @@ const REGEX_FLAGS = ['darwin', 'win32'].includes(process.platform) ? 'i' : '';
  * - Directory-like includes expand to recursive file searches.
  * - Excludes match the named path and its descendants, pruning traversal.
  * - Empty include searches recursively; empty exclude excludes nothing.
- * - Symlinks are followed; visited real directories are not revisited.
- * - Symlinks that cannot be stat'ed are skipped.
+ * - Symbolic links (to files or folders) are skipped, so the walk never
+ *   leaves `targetPath` and cannot loop.
+ * - Results are in a stable order: sorted per directory, folders walked in
+ *   place (depth first).
  */
 async function gcGlobSearch(
   include: string[],
@@ -47,35 +57,31 @@ async function gcGlobSearch(
   const excludeRegex = exclude.length
     ? buildRegex(exclude, 'exclude')
     : undefined;
-  const visited = new Set<string>();
-  const matches: Dirent[] = [];
+  const limit = pLimit(MAX_CONCURRENT_FS_OPS);
 
   // ---- Recursively collect matching files, pruning excluded directories.
-  async function walk(directory: string, relative: string): Promise<void> {
-    const real = await fs.realpath(directory);
-    if (visited.has(real)) return;
-    visited.add(real);
-    const entries = await fs.readdir(directory, { withFileTypes: true });
+  // Symbolic links are neither followed nor listed.
+  async function walk(directory: string, relative: string): Promise<Dirent[]> {
+    const entries = await limit(() =>
+      fs.readdir(directory, { withFileTypes: true }),
+    );
     entries.sort((a, b) => a.name.localeCompare(b.name));
+    const results: (Dirent | Promise<Dirent[]>)[] = [];
     for (const entry of entries) {
       const relativePath = `${relative}/${entry.name}`;
       if (excludeRegex?.test(relativePath)) continue;
-      const fullPath = path.join(directory, entry.name);
-      const stat = entry.isSymbolicLink()
-        ? await fs.stat(fullPath).catch(() => null)
-        : entry;
-      if (!stat) continue;
-      if (stat.isFile()) {
-        if (fileRegex.test(relativePath)) matches.push(entry);
-      } else if (stat.isDirectory() && dirRegex.test(relativePath)) {
-        await walk(fullPath, relativePath);
+      if (entry.isFile()) {
+        if (fileRegex.test(relativePath)) results.push(entry);
+      } else if (entry.isDirectory() && dirRegex.test(relativePath)) {
+        results.push(walk(path.join(directory, entry.name), relativePath));
       }
     }
+    const settled = await Promise.all(results);
+    return settled.flat();
   }
 
   // ---- Walk/Return
-  await walk(path.resolve(targetPath), '');
-  return matches;
+  return walk(path.resolve(targetPath), '');
 }
 
 /**
@@ -120,16 +126,18 @@ function parseSpec(spec: string, usage: Usage): string[] {
   const parts = spec.split(/[\\/]/).filter((part) => part && part !== '.');
   const last = parts.at(-1);
   if (!last) {
-    throw new Error(`Empty pattern: "${spec}"`);
+    throw new UserError(`Empty pattern: "${spec}"`);
   }
   if (parts.includes('..')) {
-    throw new Error(`Pattern may not leave the target directory: "${spec}"`);
+    throw new UserError(
+      `Pattern may not leave the target directory: "${spec}"`,
+    );
   }
   if (parts.some((part) => part !== '**' && part.includes('**'))) {
-    throw new Error(`"**" must be a whole path segment: "${spec}"`);
+    throw new UserError(`"**" must be a whole path segment: "${spec}"`);
   }
   if (usage !== 'exclude' && last === '**') {
-    throw new Error(`Include pattern cannot end in "**": "${spec}"`);
+    throw new UserError(`Include pattern cannot end in "**": "${spec}"`);
   }
   // Include "src" → "src/**/*".
   // Exclude "src" stays unchanged so the directory itself is pruned.

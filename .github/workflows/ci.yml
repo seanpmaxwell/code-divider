@@ -24,7 +24,13 @@ jobs:
           # handles differently, so cover it once on the newest Node.
           - os: macos-latest
             node: 24
+          # Windows covers path separators and CRLF handling.
+          - os: windows-latest
+            node: 24
     steps:
+      # Keep LF line endings on Windows so the Prettier check passes
+      - run: git config --global core.autocrlf false
+
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4

@@ -1,6 +1,4 @@
-import logger, { type ILogger, SilentLogger } from '@logger';
 import fs from 'fs/promises';
-import os from 'os';
 import path from 'path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -8,9 +6,15 @@ import configureSettings from '@src/api/insertCodeDividers/configureSettings/con
 
 import DefaultConfig from '@common/constants/DefaultConfig';
 import { CONFIG_FILE_NAME } from '@common/constants/misc';
-import RunContext, { IRunContext } from '@common/utils/fns/RunContext';
+import type { ConfiguredSettings } from '@common/types/RunContext';
+import type { UserConfig } from '@common/types/settings';
+import UserError from '@common/utils/classes/UserError';
 
 import uFile from '@utilm/uFile';
+
+import { type ILogger, SilentLogger } from '@logger';
+
+import { createLogger, makeTmpDir, mkFile } from '@test/_common/utils';
 
 // ========================================================================= //
 //                                 CONSTANTS                                 //
@@ -45,7 +49,7 @@ let cwd: string;
  */
 async function mkDir(...parts: string[]): Promise<string> {
   const dir = path.join(cwd, ...parts);
-  await uFile.mkDir(dir);
+  await fs.mkdir(dir, { recursive: true });
   return dir;
 }
 
@@ -61,31 +65,30 @@ async function writeConfig(
 }
 
 /**
- * Run `configureSettings` from the temp cwd and flatten the parts of the
- * returned context the tests check.
+ * Run `configureSettings` from the temp cwd.
  */
-async function configure(
+function configure(
   targetPath = '',
   configFilePath = '',
   logger: ILogger = SilentLogger,
-): Promise<IRunContext> {
-  const ctx = RunContext({
+  config: UserConfig | null = null,
+): Promise<ConfiguredSettings> {
+  return configureSettings({
     cwd,
-    configFilePath,
-    targetPathRaw: targetPath,
+    targetPath,
+    configFilePath: configFilePath || null,
+    config,
     logger,
   });
-  await configureSettings(ctx);
-  return ctx;
 }
 
 // ========================================================================= //
-//                                    TESTS                                  //
+//                                   TESTS                                   //
 // ========================================================================= //
 
 describe('configureSettings', () => {
   beforeEach(async () => {
-    cwd = await fs.mkdtemp(path.join(os.tmpdir(), 'code-divider-cs-'));
+    cwd = await makeTmpDir('cs');
   });
 
   afterEach(async () => {
@@ -116,7 +119,7 @@ describe('configureSettings', () => {
     it('should split a file target into its directory and the file', async () => {
       const src = await mkDir('src');
       const file = path.join(src, 'a.ts');
-      await uFile.testOnly.mkFile(file);
+      await mkFile(file);
       const { targetDir, targetFile } = await configure('src/a.ts');
       expect(targetDir).toBe(src);
       expect(targetFile).toBe(file);
@@ -130,14 +133,14 @@ describe('configureSettings', () => {
   // ---- Defaults (no config file anywhere)
   describe('defaults', () => {
     it('should register every built-in language by extension', async () => {
-      const { extensionsMap } = (await configure()).configuredSettings;
+      const { extensionsMap } = await configure();
       for (const ext of DEFAULT_EXTENSIONS) {
         expect(extensionsMap.has(ext), ext).toBe(true);
       }
     });
 
     it('should apply the `All` settings to every language', async () => {
-      const { extensionsMap } = (await configure()).configuredSettings;
+      const { extensionsMap } = await configure();
       for (const [ext, settings] of extensionsMap) {
         expect(settings.CHAR_LIMIT, ext).toBe(79);
         expect(settings.FILLER, ext).toBe('=');
@@ -147,22 +150,21 @@ describe('configureSettings', () => {
     });
 
     it('should return the default filter', async () => {
-      const { filter } = (await configure()).configuredSettings;
+      const { filter } = await configure();
       expect(filter).toEqual(DefaultConfig.filter);
     });
 
     it('should prefix extensions with a dot', async () => {
-      const { extensionsMap } = (await configure()).configuredSettings;
+      const { extensionsMap } = await configure();
       for (const ext of extensionsMap.keys()) {
         expect(ext.startsWith('.'), ext).toBe(true);
       }
-      // Bash already had the dot in the default config; no double dot
       expect(extensionsMap.has('..sh')).toBe(false);
       expect(extensionsMap.has('.sh')).toBe(true);
     });
 
     it('should share one settings object across a language’s extensions', async () => {
-      const { extensionsMap } = (await configure()).configuredSettings;
+      const { extensionsMap } = await configure();
       expect(extensionsMap.get('.ts')).toBe(extensionsMap.get('.js'));
       expect(extensionsMap.get('.ts')).not.toBe(extensionsMap.get('.py'));
     });
@@ -171,7 +173,7 @@ describe('configureSettings', () => {
   // ---- Marker regexes
   describe('marker regexes', () => {
     it('should capture the label of a line-comment marker', async () => {
-      const { extensionsMap } = (await configure()).configuredSettings;
+      const { extensionsMap } = await configure();
       const { REGION_MARKER, SECTION_MARKER } = extensionsMap.get('.ts')!;
       expect('// @reg Functions'.match(REGION_MARKER)?.[1]).toBe('Functions');
       expect('// @sec My Section'.match(SECTION_MARKER)?.[1]).toBe(
@@ -180,13 +182,13 @@ describe('configureSettings', () => {
     });
 
     it('should allow indentation and trailing whitespace', async () => {
-      const { extensionsMap } = (await configure()).configuredSettings;
+      const { extensionsMap } = await configure();
       const { REGION_MARKER } = extensionsMap.get('.ts')!;
       expect('    // @reg Nested   '.match(REGION_MARKER)?.[1]).toBe('Nested');
     });
 
     it('should match a bare marker with no label', async () => {
-      const { extensionsMap } = (await configure()).configuredSettings;
+      const { extensionsMap } = await configure();
       const { REGION_MARKER } = extensionsMap.get('.ts')!;
       const match = '// @reg'.match(REGION_MARKER);
       expect(match).not.toBeNull();
@@ -194,7 +196,7 @@ describe('configureSettings', () => {
     });
 
     it('should not match the other marker or ordinary comments', async () => {
-      const { extensionsMap } = (await configure()).configuredSettings;
+      const { extensionsMap } = await configure();
       const { REGION_MARKER, SECTION_MARKER } = extensionsMap.get('.ts')!;
       expect('// @sec Label').not.toMatch(REGION_MARKER);
       expect('// @reg Label').not.toMatch(SECTION_MARKER);
@@ -203,14 +205,14 @@ describe('configureSettings', () => {
     });
 
     it('should require the closing comment for block-comment languages', async () => {
-      const { extensionsMap } = (await configure()).configuredSettings;
+      const { extensionsMap } = await configure();
       const { REGION_MARKER } = extensionsMap.get('.css')!;
       expect('/* @reg Label */'.match(REGION_MARKER)?.[1]).toBe('Label');
       expect('/* @reg Label').not.toMatch(REGION_MARKER);
     });
 
     it('should use each language’s own comment syntax', async () => {
-      const { extensionsMap } = (await configure()).configuredSettings;
+      const { extensionsMap } = await configure();
       expect(
         '# @reg Label'.match(extensionsMap.get('.py')!.REGION_MARKER)?.[1],
       ).toBe('Label');
@@ -228,14 +230,14 @@ describe('configureSettings', () => {
     it('should use the config in the target directory', async () => {
       const src = await mkDir('src');
       await writeConfig(src, { JavaScript: { CharacterLimit: 60 } });
-      const { extensionsMap } = (await configure('src')).configuredSettings;
+      const { extensionsMap } = await configure('src');
       expect(extensionsMap.get('.ts')!.CHAR_LIMIT).toBe(60);
     });
 
     it('should fall back to the config in the cwd', async () => {
       await mkDir('src');
       await writeConfig(cwd, { JavaScript: { CharacterLimit: 60 } });
-      const { extensionsMap } = (await configure('src')).configuredSettings;
+      const { extensionsMap } = await configure('src');
       expect(extensionsMap.get('.ts')!.CHAR_LIMIT).toBe(60);
     });
 
@@ -243,7 +245,7 @@ describe('configureSettings', () => {
       const src = await mkDir('src');
       await writeConfig(cwd, { JavaScript: { CharacterLimit: 60 } });
       await writeConfig(src, { JavaScript: { CharacterLimit: 50 } });
-      const { extensionsMap } = (await configure('src')).configuredSettings;
+      const { extensionsMap } = await configure('src');
       expect(extensionsMap.get('.ts')!.CHAR_LIMIT).toBe(50);
     });
 
@@ -251,7 +253,7 @@ describe('configureSettings', () => {
       const src = await mkDir('src');
       await writeConfig(cwd, { JavaScript: { CharacterLimit: 60 } });
       await writeConfig(src, { JavaScript: { FillerCharacter: '-' } });
-      const { extensionsMap } = (await configure('src')).configuredSettings;
+      const { extensionsMap } = await configure('src');
       expect(extensionsMap.get('.ts')!.FILLER).toBe('-');
       expect(extensionsMap.get('.ts')!.CHAR_LIMIT).toBe(79);
     });
@@ -265,8 +267,7 @@ describe('configureSettings', () => {
         { JavaScript: { CharacterLimit: 40 } },
         'custom.json',
       );
-      const { extensionsMap } = (await configure('src', 'custom.json'))
-        .configuredSettings;
+      const { extensionsMap } = await configure('src', 'custom.json');
       expect(extensionsMap.get('.ts')!.CHAR_LIMIT).toBe(40);
     });
 
@@ -276,7 +277,7 @@ describe('configureSettings', () => {
         { JavaScript: { CharacterLimit: 40 } },
         'custom.json',
       );
-      const { extensionsMap } = (await configure('', file)).configuredSettings;
+      const { extensionsMap } = await configure('', file);
       expect(extensionsMap.get('.ts')!.CHAR_LIMIT).toBe(40);
     });
 
@@ -305,7 +306,7 @@ describe('configureSettings', () => {
       await writeConfig(cwd, {
         All: { CharacterLimit: 100, FillerCharacter: '-' },
       });
-      const { extensionsMap } = (await configure()).configuredSettings;
+      const { extensionsMap } = await configure();
       for (const [ext, settings] of extensionsMap) {
         expect(settings.CHAR_LIMIT, ext).toBe(100);
         expect(settings.FILLER, ext).toBe('-');
@@ -317,21 +318,21 @@ describe('configureSettings', () => {
         All: { CharacterLimit: 100 },
         JavaScript: { CharacterLimit: 60 },
       });
-      const { extensionsMap } = (await configure()).configuredSettings;
+      const { extensionsMap } = await configure();
       expect(extensionsMap.get('.ts')!.CHAR_LIMIT).toBe(60);
       expect(extensionsMap.get('.py')!.CHAR_LIMIT).toBe(100);
     });
 
     it('should only change the overridden language', async () => {
       await writeConfig(cwd, { JavaScript: { CharacterLimit: 60 } });
-      const { extensionsMap } = (await configure()).configuredSettings;
+      const { extensionsMap } = await configure();
       expect(extensionsMap.get('.ts')!.CHAR_LIMIT).toBe(60);
       expect(extensionsMap.get('.py')!.CHAR_LIMIT).toBe(79);
     });
 
     it('should keep a language’s other defaults when overriding one field', async () => {
       await writeConfig(cwd, { JavaScript: { CharacterLimit: 60 } });
-      const { extensionsMap } = (await configure()).configuredSettings;
+      const { extensionsMap } = await configure();
       const js = extensionsMap.get('.ts')!;
       expect(js.FILLER).toBe('=');
       expect(js.BOOKENDS).toEqual(['// ', ' //']);
@@ -346,7 +347,7 @@ describe('configureSettings', () => {
           Bookends: ['# ', ' #'],
         },
       });
-      const { extensionsMap } = (await configure()).configuredSettings;
+      const { extensionsMap } = await configure();
       const toml = extensionsMap.get('.toml')!;
       expect(toml).toBeDefined();
       expect(toml.CHAR_LIMIT).toBe(79); // inherited from `All`
@@ -357,15 +358,60 @@ describe('configureSettings', () => {
       await writeConfig(cwd, {
         Toml: { Extensions: ['toml'], Comment: ['# ', ''] },
       });
-      const { extensionsMap } = (await configure()).configuredSettings;
+      const { extensionsMap } = await configure();
       expect(extensionsMap.get('.toml')!.BOOKENDS).toEqual(['# ', ' #']);
     });
 
     it('should replace the filter lists that are given and keep the rest', async () => {
       await writeConfig(cwd, { filter: { include: ['src'] } });
-      const { filter } = (await configure()).configuredSettings;
+      const { filter } = await configure();
       expect(filter.include).toEqual(['src']);
       expect(filter.exclude).toEqual(DefaultConfig.filter.exclude);
+    });
+
+    it('should remove a language set to null', async () => {
+      await writeConfig(cwd, { JavaScript: null });
+      const { extensionsMap } = await configure();
+      expect(extensionsMap.has('.ts')).toBe(false);
+      expect(extensionsMap.has('.py')).toBe(true);
+    });
+
+    it('should ignore keys starting with "$" such as $schema', async () => {
+      await writeConfig(cwd, { $schema: 'https://example.com/schema.json' });
+      const { extensionsMap } = await configure();
+      expect(extensionsMap.has('.ts')).toBe(true);
+    });
+
+    it('should lowercase and dot-prefix extensions', async () => {
+      await writeConfig(cwd, {
+        Toml: { Extensions: ['TOML', '.Tml'], Comment: ['# ', ''] },
+      });
+      const { extensionsMap } = await configure();
+      expect(extensionsMap.has('.toml')).toBe(true);
+      expect(extensionsMap.has('.tml')).toBe(true);
+    });
+
+    it('should accept an inline config in place of a file', async () => {
+      await writeConfig(cwd, { JavaScript: { CharacterLimit: 60 } });
+      const settings = await configure('', '', SilentLogger, {
+        JavaScript: { CharacterLimit: 50 },
+      });
+      expect(settings.extensionsMap.get('.ts')!.CHAR_LIMIT).toBe(50);
+      expect(settings.configFilePath).toBeNull();
+    });
+
+    it('should warn when two languages claim the same extension', async () => {
+      await writeConfig(cwd, {
+        Java: { Extensions: ['java', 'ts'] },
+      });
+      const warn = vi.fn();
+      const { extensionsMap } = await configure('', '', createLogger({ warn }));
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringMatching(
+          /"\.ts" is listed under both "JavaScript" and "Java", using "Java"/,
+        ),
+      );
+      expect(extensionsMap.get('.ts')!.LANGUAGE).toBe('Java');
     });
 
     it('should lowercase label formats', async () => {
@@ -375,7 +421,7 @@ describe('configureSettings', () => {
           SectionLabelFormat: 'Lowercase',
         },
       });
-      const { extensionsMap } = (await configure()).configuredSettings;
+      const { extensionsMap } = await configure();
       expect(extensionsMap.get('.ts')!.REGION_LABEL_FORMAT).toBe('none');
       expect(extensionsMap.get('.ts')!.SECTION_LABEL_FORMAT).toBe('lowercase');
     });
@@ -427,6 +473,11 @@ describe('configureSettings', () => {
       await rejects({ Python: { CharacterLimit: -1 } }, /"Python"/);
     });
 
+    it('should throw a UserError', async () => {
+      await writeConfig(cwd, { Python: { CharacterLimit: -1 } });
+      await expect(configure()).rejects.toThrow(UserError);
+    });
+
     it('should reject a non-string label format with the friendly error', async () => {
       await rejects({ All: { RegionLabelFormat: 5 } }, /RegionLabelFormat/);
       await rejects(
@@ -444,7 +495,9 @@ describe('configureSettings', () => {
     it('should reject a config block that is not an object', async () => {
       await rejects({ filter: 'src' }, /"filter" must be an object/);
       await rejects({ All: [79] }, /"All" must be an object/);
-      await rejects({ JavaScript: null }, /"JavaScript" must be an object/);
+      await rejects({ JavaScript: 'js' }, /"JavaScript" must be an object/);
+      // `null` is only a valid way to remove a language
+      await rejects({ All: null }, /"All" must be an object/);
     });
 
     it('should reject a new language without a Comment pair', async () => {
@@ -513,7 +566,7 @@ describe('configureSettings', () => {
   describe('logger', () => {
     it('should report the config file it uses through the logger', async () => {
       await writeConfig(cwd, {});
-      const mockLogger = logger.create({ info: vi.fn(), warn: vi.fn() });
+      const mockLogger = createLogger({ info: vi.fn(), warn: vi.fn() });
       await configure('', '', mockLogger);
       expect(mockLogger.info).toHaveBeenCalledWith(
         `Using configuration overrides from: ${path.join(cwd, CONFIG_FILE_NAME)}`,
@@ -521,7 +574,7 @@ describe('configureSettings', () => {
     });
 
     it('should not log anything when there is no config file', async () => {
-      const mockLogger = logger.create({ info: vi.fn(), warn: vi.fn() });
+      const mockLogger = createLogger({ info: vi.fn(), warn: vi.fn() });
       await configure('', '', mockLogger);
       expect(mockLogger.info).not.toHaveBeenCalled();
       expect(mockLogger.warn).not.toHaveBeenCalled();

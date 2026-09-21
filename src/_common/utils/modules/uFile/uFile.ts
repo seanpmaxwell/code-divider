@@ -1,9 +1,8 @@
-import logger from '@logger';
-import { Dirent } from 'fs';
+import type { Dirent } from 'fs';
 import fs from 'fs/promises';
 import path from 'path';
 
-import { IS_UNIT_TEST_ENV } from '@common/constants/misc';
+import UserError from '@common/utils/classes/UserError';
 
 import gcGlobSearch from './_internal/gcGlobSearch';
 
@@ -26,160 +25,24 @@ export interface FileCtx {
   ext: string;
 }
 
-interface CopyOptions {
-  rename?: string;
-  filter?: (_: string) => boolean;
-}
+export type PathType = 'file' | 'directory' | 'other';
 
 // ========================================================================= //
 //                                 FUNCTIONS                                 //
 // ========================================================================= //
-// Under the unit-test env `write` is a no-op, so tests can never modify real
-// files. (The CLI's `--dry-run` is handled separately, in `applyFormatting`.)
-// The other "fs" functions are wrapped here too, for consistency.
 
 /**
- * Replace a file's content with `content`, unless running under the
- * unit-test env.
+ * Replace a file's content with `content`.
  */
-async function write(targetPath: string, content: string): Promise<void> {
-  if (!IS_UNIT_TEST_ENV) return fs.writeFile(targetPath, content, ENCODING);
+function write(targetPath: string, content: string): Promise<void> {
+  return fs.writeFile(targetPath, content, ENCODING);
 }
 
 /**
  * Return a file's contents
  */
-function read(path: string): Promise<string> {
-  return fs.readFile(path, ENCODING);
-}
-
-/**
- * Create a file with some placeholder content if it does not exist.
- */
-async function mkFile(
-  relativePath: string,
-  startingDir?: string,
-): Promise<void> {
-  // Setup final path
-  let finalPath = relativePath;
-  if (startingDir && !path.isAbsolute(relativePath)) {
-    finalPath = path.join(startingDir, relativePath);
-  }
-  // Edge cases
-  if (await exists(finalPath)) {
-    logger.info(`Item "${finalPath}" already exists: skipping "mkFile"`);
-    return;
-  }
-  // Create file: `wx` means create only if it doesn't exist
-  return fs.writeFile(finalPath, 'FILE_UTIL_GENERATED_FILE', {
-    encoding: ENCODING,
-    flag: 'wx',
-  });
-}
-
-/**
- * Create a folder (and any missing parents) if it does not exist.
- */
-async function mkDir(
-  relativePath: string,
-  startingDir?: string,
-): Promise<void> {
-  // Setup final path
-  let finalPath = relativePath;
-  if (startingDir && !path.isAbsolute(relativePath)) {
-    finalPath = path.join(startingDir, relativePath);
-  }
-  // Edge cases
-  if (await exists(finalPath)) {
-    logger.info(`Item "${finalPath}" already exists: skipping "mkDir"`);
-    return;
-  }
-  await fs.mkdir(finalPath, { recursive: true });
-}
-
-/**
- * Delete a file or a directory. This works even if the folder has content.
- */
-async function remove(
-  relativePath: string,
-  startingDir?: string,
-): Promise<void> {
-  // Setup final path
-  let finalPath = relativePath;
-  if (startingDir && !path.isAbsolute(relativePath)) {
-    finalPath = path.join(startingDir, relativePath);
-  }
-  // Check if the path exists
-  const doesExist = await exists(finalPath);
-  if (!doesExist) {
-    logger.info(
-      `File or folder "${finalPath}" does not exist: skipping removal`,
-    );
-    return;
-  }
-  // Delete file/folder
-  return fs.rm(finalPath, { recursive: true, force: true });
-}
-
-/**
- * Delete a folder's contents by deleting and recreating it.
- */
-async function emptyDir(dirPath: string): Promise<void> {
-  await remove(dirPath);
-  return mkDir(dirPath);
-}
-
-/**
- * Copy a file or folder into `destDir`, keeping its name: `('src', 'dest')`
- * produces `dest/src`. An existing `dest/src` is deleted first, so the result
- * is an exact copy rather than a merge. Returns the path that was written.
- *
- * Throws, without deleting anything, if `src` doesn't exist or if the target
- * overlaps `src` (the same path, or one inside the other), since deleting the
- * target would destroy the source.
- */
-async function copy(
-  src: string,
-  destDir: string,
-  options: CopyOptions = {},
-): Promise<string> {
-  // Init `filter`
-  const { filter, rename } = options;
-  const filter_ = filter ? { filter } : {};
-  // Init `target`
-  const srcAbs = path.resolve(src);
-  const destBase = rename ? rename : path.basename(srcAbs);
-  const target = path.join(path.resolve(destDir), destBase);
-  // Fail on a missing source before anything is deleted
-  if (!(await exists(srcAbs))) {
-    throw new Error(`src path ${srcAbs} does not exist`);
-  }
-  // Refuse any overlap between the source and the target
-  if (isSameOrInside(target, srcAbs) || isSameOrInside(srcAbs, target)) {
-    throw new Error(
-      `Cannot copy "${srcAbs}" to "${target}": the paths overlap`,
-    );
-  }
-  // Replace, don't merge
-  await fs.rm(target, { recursive: true, force: true });
-  await fs.cp(srcAbs, target, {
-    recursive: true,
-    verbatimSymlinks: true,
-    ...filter_,
-  });
-  return target;
-}
-
-/**
- * Check whether `child` is `parent` itself or somewhere inside it.
- *
- * Used by: {@link copy}
- *
- * @private
- */
-function isSameOrInside(child: string, parent: string): boolean {
-  const rel = path.relative(parent, child);
-  return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
+function read(targetPath: string): Promise<string> {
+  return fs.readFile(targetPath, ENCODING);
 }
 
 /**
@@ -195,16 +58,26 @@ async function exists(target: string): Promise<boolean> {
 }
 
 /**
+ * Tell a file, a directory and a missing path apart with a single `stat`.
+ * Returns `null` when nothing exists at `target`.
+ */
+async function pathType(target: string): Promise<PathType | null> {
+  try {
+    const stat = await fs.stat(target);
+    if (stat.isDirectory()) return 'directory';
+    if (stat.isFile()) return 'file';
+    return 'other';
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') return null;
+    throw err;
+  }
+}
+
+/**
  * Check if the targetPath is a directory (folder).
  */
 async function isDir(target: string): Promise<boolean> {
-  try {
-    const stat = await fs.stat(target);
-    return stat.isDirectory();
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === 'ENOENT') return false;
-    throw err;
-  }
+  return (await pathType(target)) === 'directory';
 }
 
 /**
@@ -218,24 +91,13 @@ async function globSearch(
   targetPath: string,
 ): Promise<FileCtx[]> {
   const dirents = await gcGlobSearch(include, exclude, targetPath);
-  return parseDirentArr(dirents, targetPath);
+  return dirents.map((dirent) => parseDirent(dirent, targetPath));
 }
 
 /**
- * Convert a `Dirent<string>` array to a `FilePathDTO` object array
+ * Convert a `Dirent<string>` object to a `FileCtx` object
  *
  * Used by: {@link globSearch}
- *
- * @private
- */
-function parseDirentArr(arr: Dirent<string>[], targetPath: string): FileCtx[] {
-  return arr.map((item) => parseDirent(item, targetPath));
-}
-
-/**
- * Convert a `Dirent<string>` object to a `FilePathDTO` object
- *
- * Used by: {@link parseDirentArr}
  *
  * @private
  * @param {Dirent<string>} dirent
@@ -255,23 +117,26 @@ async function loadJsonFile<T = Record<string, unknown>>(
 ): Promise<T> {
   // Check extension
   const ext = path.extname(filePath).toLowerCase();
-  if (ext !== '.json')
-    throw new Error('To load a JSON file, extension must be .json');
+  if (ext !== '.json') {
+    throw new UserError('To load a JSON file, extension must be .json');
+  }
   // Load file
-  const fileContent = await fs.readFile(filePath, 'utf8');
+  const fileContent = await fs.readFile(filePath, ENCODING);
   // Parse it
   let parsed: unknown;
   try {
     parsed = JSON.parse(fileContent);
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
-    throw new Error(`invalid JSON in "${filePath}": ${reason}`, {
+    throw new UserError(`invalid JSON in "${filePath}": ${reason}`, {
       cause: err,
     });
   }
   // Make sure it's an object
   if (parsed === null || typeof parsed !== 'object') {
-    throw new Error(`expected "${filePath}" to contain a JSON object or array`);
+    throw new UserError(
+      `expected "${filePath}" to contain a JSON object or array`,
+    );
   }
   // Return
   return parsed as T;
@@ -290,12 +155,12 @@ async function saveJsonFile(
   const doesEndWithJson = filePath.toLowerCase().endsWith('.json');
   const fullPath = doesEndWithJson ? filePath : `${filePath}.json`;
   const fileContent = stringify(value);
-  await fs.writeFile(fullPath, `${fileContent}\n`, 'utf8');
+  await fs.writeFile(fullPath, `${fileContent}\n`, ENCODING);
   return fullPath;
 }
 
 /**
- * Convert a relativePath + parentPath to a `FilePathDTO` object
+ * Convert a relativePath + parentPath to a `FileCtx` object
  *
  * @param {string} parentPath Must be an absolute path.
  */
@@ -329,18 +194,11 @@ function parse(relativePath: string, parentPath: string): FileCtx {
 export default {
   write,
   read,
-  rm: remove,
   exists,
+  pathType,
   isDir,
-  mkDir,
-  emptyDir,
   globSearch,
   loadJsonFile,
   saveJsonFile,
   parse,
-  testOnly: {
-    mkFile,
-    parseDirentArr,
-    copyTo: copy,
-  },
 } as const;

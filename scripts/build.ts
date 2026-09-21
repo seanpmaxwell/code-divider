@@ -1,18 +1,18 @@
-import logger from '@logger';
-import shell from '@shell';
 import { build as esbuild } from 'esbuild';
+import fs from 'fs/promises';
 
-import uFile from '@utilm/uFile';
+import logger from '@logger';
 
-import onInit from '../dev-tools/onInit';
+import onInit from '@dev-tools/onInit';
+import shell from '@dev-tools/shell';
 
 // ========================================================================= //
-//                                    INIT                                   //
+//                                   INIT                                    //
 // ========================================================================= //
 
 await onInit(async () => {
   // --- Delete and recreate the folder to keep things clean
-  await uFile.emptyDir('lib');
+  await fs.rm('./lib', { recursive: true, force: true });
 
   // ---- Typecheck
   // A type error rejects, so `onInit` exits non-zero before anything is built.
@@ -28,7 +28,10 @@ await onInit(async () => {
   ]);
 
   // ---- Build and bundle runtime code
+  // The version is inlined so the CLI's `--version` needs no filesystem read.
+  const { version } = JSON.parse(await fs.readFile('package.json', 'utf8'));
   await esbuild({
+    define: { __CODE_DIVIDER_VERSION__: JSON.stringify(version) },
     entryPoints: {
       index: 'src/index.ts',
       cli: 'src/cli/main.ts',

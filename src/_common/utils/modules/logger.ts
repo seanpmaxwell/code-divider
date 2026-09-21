@@ -30,18 +30,6 @@ export interface ILogger {
 // ========================================================================= //
 
 /**
- * Create a new logger from a partial. Note that SilentLogger sets the defaults.
- *
- * @testOnly
- */
-function create(partial: Partial<ILogger>): ILogger {
-  return {
-    ...SilentLogger,
-    ...partial,
-  };
-}
-
-/**
  * Print info. Return content
  */
 function info(...args: unknown[]): string {
@@ -54,14 +42,6 @@ function info(...args: unknown[]): string {
  */
 function warn(...args: unknown[]): string {
   callConsoleFn(args, 'warn');
-  return args.join(' ');
-}
-
-/**
- * Print error
- */
-function error(...args: unknown[]): string {
-  callConsoleFn(args, 'error');
   return args.join(' ');
 }
 
@@ -81,14 +61,10 @@ function line(): void {
  * Used by:
  *   {@link info}
  *   {@link warn}
- *   {@link error}
  *
  * @private
  */
-function callConsoleFn(
-  args: unknown[],
-  fnKey: 'info' | 'warn' | 'error',
-): void {
+function callConsoleFn(args: unknown[], fnKey: 'info' | 'warn'): void {
   // eslint-disable-next-line no-console
   return console[fnKey](...args);
 }
@@ -100,7 +76,5 @@ function callConsoleFn(
 export default {
   info,
   warn,
-  error,
   line,
-  create,
 } as const;

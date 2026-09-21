@@ -1,5 +1,3 @@
-import logger from '@logger';
-
 // ========================================================================= //
 //                                 FUNCTIONS                                 //
 // ========================================================================= //
@@ -16,7 +14,8 @@ async function onInit<T>(
   try {
     return await cb();
   } catch (err) {
-    logger.error(`onInit function "${cbName}" failed:`, err);
+    // eslint-disable-next-line no-console
+    console.error(`onInit function "${cbName}" failed:`, err);
     throw err;
   }
 }

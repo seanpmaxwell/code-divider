@@ -1,6 +1,6 @@
 {
   "name": "code-divider",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Turn region/section labels into centered, fixed-width comment headers. Any language, any editor.",
   "type": "module",
   "repository": {
@@ -23,6 +23,7 @@
   },
   "files": [
     "lib",
+    "schema.json",
     "README.md",
     "LICENSE"
   ],
@@ -33,10 +34,9 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "readme:swap": "mv README.md ./assets/README.tmp.md && mv ./assets/README-npm.md README.md",
-    "readme:restore": "mv README.md ./assets/README-npm.md && mv ./assets/README.tmp.md README.md",
-    "prepublishOnly": "npm run build && tsc && npm run lint && npm run format:check && npm test && npm run readme:swap",
-    "postpack": "npm run readme:restore",
+    "prepublishOnly": "npm run build && tsc && npm run lint && npm run format:check && npm test",
+    "prepack": "mv README.md ./assets/README.tmp.md && mv ./assets/README-npm.md README.md",
+    "postpack": "mv README.md ./assets/README-npm.md && mv ./assets/README.tmp.md README.md",
     "start": "node lib/cli.js",
     "start:build": "npm run build && npm run start --",
     "test": "vitest run",
@@ -46,7 +46,7 @@
     "dev:commit:push": "npm run dev:commit && git push"
   },
   "engines": {
-    "node": ">=20.11"
+    "node": ">=20.12"
   },
   "keywords": [
     "cli",
@@ -73,6 +73,7 @@
     "@eslint/js": "^10.0.1",
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
     "@types/node": "^26.2.0",
+    "ajv": "^8.20.0",
     "dts-bundle-generator": "^9.5.1",
     "esbuild": "^0.28.2",
     "eslint": "^10.7.0",

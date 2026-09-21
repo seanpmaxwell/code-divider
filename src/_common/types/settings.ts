@@ -19,6 +19,23 @@ export interface InitialSettings {
 }
 
 /**
+ * The shape of a config file, or of the `config` option of the API. Every
+ * field is optional and is layered over the built-in defaults. A language
+ * key set to `null` removes that language. Keys starting with `$` (such as
+ * `$schema`) are ignored.
+ */
+export interface UserConfig {
+  filter?: Partial<FilterSettings>;
+  All?: Partial<SharedSettings>;
+  [language: string]:
+    | Partial<InitialLangSettings>
+    | Partial<SharedSettings>
+    | Partial<FilterSettings>
+    | null
+    | undefined;
+}
+
+/**
  * Files to include/exclude.
  */
 export interface FilterSettings {
@@ -56,6 +73,7 @@ export interface InitialLangSettings {
  * files. This is the validated, ready-to-use form of an `InitialLangSettings`.
  */
 export interface ConfiguredLangSettings {
+  LANGUAGE: string;
   EXTENSIONS: string[];
   REGION_MARKER: RegExp;
   SECTION_MARKER: RegExp;

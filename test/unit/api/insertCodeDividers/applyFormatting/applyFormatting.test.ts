@@ -1,6 +1,4 @@
-import logger, { type ILogger } from '@logger';
 import fs from 'fs/promises';
-import os from 'os';
 import path from 'path';
 import {
   afterAll,
@@ -17,20 +15,17 @@ import {
 import applyFormatting from '@src/api/insertCodeDividers/applyFormatting/applyFormatting';
 import configureSettings from '@src/api/insertCodeDividers/configureSettings/configureSettings';
 
+import type { IRunContext } from '@common/types/RunContext';
 import type {
   ConfiguredLangSettings,
   ExtensionsMap,
 } from '@common/types/settings';
-import RunContext from '@common/utils/fns/RunContext';
 
 import uFile, { FileCtx } from '@utilm/uFile';
 
-// ========================================================================= //
-//                                 CONSTANTS                                 //
-// ========================================================================= //
+import { type ILogger, SilentLogger } from '@logger';
 
-// Default JavaScript settings: limit 79, filler "=", bookends "// " / " //".
-const RULE = `// ${'='.repeat(73)} //`;
+import { createLogger, makeTmpDir, JS_RULE as RULE } from '@test/_common/utils';
 
 // ========================================================================= //
 //                                  HELPERS                                  //
@@ -65,11 +60,16 @@ async function run(files: Record<string, string>, opts: RunOptions = {}) {
     map = new Map(defaultMap);
     map.set('.ts', { ...defaultMap.get('.ts')!, ...opts.ts });
   }
-  const ctx = RunContext({
+  const ctx: IRunContext = {
+    cwd: tmp,
+    targetDir: tmp,
+    targetFile: null,
+    configFilePath: null,
+    filter: { include: [], exclude: [] },
+    extensionsMap: map,
     isDryRun: opts.isDryRun ?? false,
-    logger: logger.create({ warn }),
-  });
-  ctx.configuredSettings.extensionsMap = map;
+    logger: createLogger({ warn }),
+  };
   const result = await applyFormatting(dtos, ctx);
   const written = new Map<string, string>();
   for (const [file, content] of write.mock.calls as [string, string][]) {
@@ -95,15 +95,20 @@ async function sectionLabel(src: string, opts?: RunOptions): Promise<string> {
 }
 
 // ========================================================================= //
-//                                    TESTS                                  //
+//                                   TESTS                                   //
 // ========================================================================= //
 
 describe('applyFormatting', () => {
   beforeAll(async () => {
-    base = await fs.mkdtemp(path.join(os.tmpdir(), 'code-divider-af-'));
-    const ctx = RunContext({ cwd: base });
-    await configureSettings(ctx);
-    defaultMap = ctx.configuredSettings.extensionsMap;
+    base = await makeTmpDir('af');
+    const settings = await configureSettings({
+      cwd: base,
+      targetPath: '',
+      configFilePath: null,
+      config: null,
+      logger: SilentLogger,
+    });
+    defaultMap = settings.extensionsMap;
   });
 
   afterAll(async () => {
@@ -112,8 +117,7 @@ describe('applyFormatting', () => {
 
   beforeEach(async () => {
     tmp = await fs.mkdtemp(path.join(base, 'case-'));
-    // `uFile.write` is a no-op under the unit-test env, so capture what
-    // would be written instead of reading it back from disk.
+    // Capture what would be written instead of reading it back from disk.
     write = vi.spyOn(uFile, 'write').mockResolvedValue(undefined);
     warn = vi.fn<ILogger['warn']>();
   });
@@ -361,8 +365,11 @@ describe('applyFormatting', () => {
       expect(await sectionLabel('data.json handler')).toBe('Data.json Handler');
     });
 
-    it('should collapse runs of whitespace between words', async () => {
+    it('should collapse runs of whitespace between words, under every format', async () => {
       expect(await sectionLabel('a    b')).toBe('A B');
+      expect(
+        await sectionLabel('a    b', { ts: { SECTION_LABEL_FORMAT: 'none' } }),
+      ).toBe('a b');
     });
   });
 
@@ -396,6 +403,103 @@ describe('applyFormatting', () => {
       expect(lines[0]).toBe(`/* ${'='.repeat(73)} */`);
       expect(lines[1].startsWith('/* ')).toBe(true);
       expect(lines[1].endsWith(' */')).toBe(true);
+    });
+  });
+
+  // ---- Line endings
+  describe('line endings', () => {
+    it('should keep the ending of each line in a file with mixed endings', async () => {
+      const out = await format(
+        'const a = 1;\r\n// @reg one\nconst b = 2;\r\n// @sec two\n',
+      );
+      const lines = out.split('\n');
+      expect(lines[0]).toBe('const a = 1;\r');
+      expect(lines[1]).toBe(RULE);
+      expect(lines[2]).toContain('ONE');
+      expect(lines[3]).toBe(RULE);
+      expect(lines[4]).toBe('const b = 2;\r');
+      expect(lines[5]).toMatch(/^\/\/ =+ Two =+ \/\/$/);
+      expect(lines[6]).toBe('');
+    });
+
+    it('should use the ending of the marker line for the extra region lines', async () => {
+      const out = await format('x\r\n// @reg one');
+      expect(out).toBe(
+        'x\r\n' +
+          [RULE, `// ${' '.repeat(35)}ONE${' '.repeat(35)} //`, RULE].join(
+            '\r\n',
+          ),
+      );
+    });
+
+    it('should not add a trailing newline to a file that has none', async () => {
+      const out = await format('// @sec a');
+      expect(out.endsWith('\n')).toBe(false);
+    });
+  });
+
+  // ---- Existing dividers
+  describe('existing dividers', () => {
+    const narrowRule = `// ${'='.repeat(34)} //`; // limit 40
+
+    it('should re-center an existing section divider when the limit changes', async () => {
+      const existing = await format('// @sec my label\n');
+      const out = await format(existing, { ts: { CHAR_LIMIT: 40 } });
+      expect(out).toBe(`// ${'='.repeat(12)} My Label ${'='.repeat(12)} //\n`);
+    });
+
+    it('should rebuild an existing region block when the limit changes', async () => {
+      const existing = await format('  // @reg hello\nconst x = 1;\n');
+      const out = await format(existing, { ts: { CHAR_LIMIT: 40 } });
+      const lines = out.split('\n');
+      expect(lines[0]).toBe(`  // ${'='.repeat(32)} //`);
+      expect(lines[1]).toBe(`  // ${' '.repeat(13)}HELLO${' '.repeat(14)} //`);
+      expect(lines[2]).toBe(lines[0]);
+      expect(lines[3]).toBe('const x = 1;');
+    });
+
+    it('should re-apply the label format to existing dividers', async () => {
+      const existing = await format('// @sec my label\n');
+      const out = await format(existing, {
+        ts: { SECTION_LABEL_FORMAT: 'uppercase' },
+      });
+      expect(out).toContain(' MY LABEL ');
+    });
+
+    it('should leave a hand-written box alone when its lines differ in width', async () => {
+      const box = [narrowRule, '// some comment //', narrowRule, ''].join('\n');
+      const { result } = await run({ 'a.ts': box });
+      expect(result).toEqual([]);
+    });
+
+    it('should leave three rule lines in a row alone', async () => {
+      const { result } = await run({
+        'a.ts': [RULE, RULE, RULE, ''].join('\n'),
+      });
+      expect(result).toEqual([]);
+    });
+
+    it('should not touch a lone rule line or a plain comment', async () => {
+      const { result } = await run({
+        'a.ts': `${RULE}\n// a = b\n// ===\n`,
+      });
+      expect(result).toEqual([]);
+    });
+
+    it('should handle a label that contains the filler character', async () => {
+      const first = await format('// @sec a = b\n');
+      expect(first).toContain(' A = B ');
+      write.mockClear();
+      const second = await format(first);
+      expect(second).toBe(''); // nothing written: already up to date
+    });
+  });
+
+  // ---- Extension lookup
+  describe('extension lookup', () => {
+    it('should match extensions case-insensitively', async () => {
+      const { result } = await run({ 'a.TS': '// @reg one\n' });
+      expect(result).toEqual([path.join(tmp, 'a.TS')]);
     });
   });
 });

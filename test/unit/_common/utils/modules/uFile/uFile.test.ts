@@ -1,27 +1,22 @@
-import logger from '@logger';
-import { Dirent } from 'fs';
 import fs from 'fs/promises';
 import path from 'path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { UNIT_TEST_ENV } from '@common/constants/misc';
-
 import uFile, { FileCtx } from '@utilm/uFile';
 
-import { getDummyDirent } from '@test/_common/utils';
+import { mkFile } from '@test/_common/utils';
 
 // ========================================================================= //
 //                                 CONSTANTS                                 //
 // ========================================================================= //
 
 const TEMP_DIRECTORY = path.join(import.meta.dirname, 'tmp');
-// Mutating tests (mkFile, copy, etc.) work in here so the search tests above
-// them always see the same fixture.
+// Mutating tests work in here so the search tests always see the same fixture.
 const SCRATCH_DIRECTORY = path.join(TEMP_DIRECTORY, '_scratch');
 const IS_CASE_INSENSITIVE_FS = ['darwin', 'win32'].includes(process.platform);
 
-// Note: `makeDirItemsToTest` will create folders for items ending in '/'.
-const DIRECTORY_ITEMS_TO_TEST: ReadonlyArray<Dirent<string>> = [
+// Note: items ending in '/' are created as folders.
+const DIRECTORY_ITEMS_TO_TEST = [
   './node_modules/', // 0
   './node_modules/cache.conf', // 1
   './node_modules/someLib/', // 2
@@ -34,7 +29,7 @@ const DIRECTORY_ITEMS_TO_TEST: ReadonlyArray<Dirent<string>> = [
   'package.json', // 9
   'foo.log', // 10
   '.gitignore', // 11
-].map((item) => getDummyDirent(item, TEMP_DIRECTORY));
+];
 
 // ========================================================================= //
 //                                  HELPERS                                  //
@@ -44,32 +39,24 @@ const DIRECTORY_ITEMS_TO_TEST: ReadonlyArray<Dirent<string>> = [
  * Create files/folders for testing purposes.
  */
 async function makeDirItemsToTest(): Promise<void> {
-  try {
-    for (const dirent of DIRECTORY_ITEMS_TO_TEST) {
-      const absPath = path.join(dirent.parentPath, dirent.name);
-      if (!dirent.isFile()) {
-        await uFile.mkDir(absPath);
-      } else {
-        await uFile.testOnly.mkFile(absPath);
-      }
+  for (const item of DIRECTORY_ITEMS_TO_TEST) {
+    const absPath = path.join(TEMP_DIRECTORY, item);
+    if (item.endsWith('/')) {
+      await fs.mkdir(absPath, { recursive: true });
+    } else {
+      await mkFile(absPath);
     }
-  } catch (err) {
-    logger.error(err);
-    throw err;
   }
 }
 
 /**
- * Convert dirents from the {@link DIRECTORY_ITEMS_TO_TEST} array to a
- * {@link FileCtx} array using indexes on the array.
+ * The `FileCtx` objects `globSearch` should return for the given indexes
+ * into {@link DIRECTORY_ITEMS_TO_TEST}.
  */
-function getExpectedResultByIndex(...args: number[]): FileCtx[] {
-  const dirents: Dirent<string>[] = [];
-  for (const index of args) {
-    const item = DIRECTORY_ITEMS_TO_TEST[index];
-    dirents.push(item);
-  }
-  return uFile.testOnly.parseDirentArr(dirents, TEMP_DIRECTORY);
+function getExpectedResultByIndex(...indexes: number[]): FileCtx[] {
+  return indexes.map((index) =>
+    uFile.parse(DIRECTORY_ITEMS_TO_TEST[index], TEMP_DIRECTORY),
+  );
 }
 
 /**
@@ -87,19 +74,17 @@ function scratch(...parts: string[]): string {
 }
 
 // ========================================================================= //
-//                                    TESTS                                  //
+//                                   TESTS                                   //
 // ========================================================================= //
 
 describe('uFile', () => {
-  // ---- `beforeAll` hook
   beforeAll(async () => {
-    await uFile.rm(TEMP_DIRECTORY);
+    await fs.rm(TEMP_DIRECTORY, { recursive: true, force: true });
     await makeDirItemsToTest();
   });
 
-  // ---- `afterAll` hook
   afterAll(async () => {
-    await uFile.rm(TEMP_DIRECTORY);
+    await fs.rm(TEMP_DIRECTORY, { recursive: true, force: true });
   });
 
   // ---- Test `.globSearch`
@@ -173,6 +158,30 @@ describe('uFile', () => {
       await expect(search(['dist/**'], [])).rejects.toThrow(/cannot end/);
       await expect(search([''], [])).rejects.toThrow(/Empty pattern/);
     });
+
+    it('should skip symbolic links to files and to folders', async () => {
+      const linkDir = path.join(TEMP_DIRECTORY, 'linked');
+      await fs.mkdir(linkDir);
+      await mkFile(path.join(linkDir, 'real.py'));
+      await fs.symlink(
+        path.join(TEMP_DIRECTORY, 'dist'),
+        path.join(linkDir, 'to-dist'),
+      );
+      await fs.symlink(
+        path.join(TEMP_DIRECTORY, 'package.json'),
+        path.join(linkDir, 'to-file.py'),
+      );
+      // A link back to the root would loop if links were followed
+      await fs.symlink(TEMP_DIRECTORY, path.join(linkDir, 'to-root'));
+      try {
+        const result = await search(['linked'], []);
+        expect(result.map((r) => r.relativePath)).toEqual([
+          path.join('linked', 'real.py'),
+        ]);
+      } finally {
+        await fs.rm(linkDir, { recursive: true, force: true });
+      }
+    });
   });
 
   // ---- Test `.parse`
@@ -203,8 +212,8 @@ describe('uFile', () => {
     });
   });
 
-  // ---- Test `.exists` + `.isDir`
-  describe('exists + isDir', () => {
+  // ---- Test `.exists` + `.isDir` + `.pathType`
+  describe('exists + isDir + pathType', () => {
     it('should tell files, folders and missing paths apart', async () => {
       const file = path.join(TEMP_DIRECTORY, 'package.json');
       const dir = path.join(TEMP_DIRECTORY, 'dist');
@@ -215,82 +224,24 @@ describe('uFile', () => {
       expect(await uFile.isDir(file)).toBe(false);
       expect(await uFile.isDir(dir)).toBe(true);
       expect(await uFile.isDir(missing)).toBe(false);
+      expect(await uFile.pathType(file)).toBe('file');
+      expect(await uFile.pathType(dir)).toBe('directory');
+      expect(await uFile.pathType(missing)).toBeNull();
     });
   });
 
   // ---- Mutating tests: everything below works inside SCRATCH_DIRECTORY
   describe('mutating functions', () => {
-    beforeAll(() => uFile.mkDir(SCRATCH_DIRECTORY));
-    afterAll(() => uFile.rm(SCRATCH_DIRECTORY));
-
-    // ---- Test `.mkFile`
-    describe('mkFile', () => {
-      it('should create a file with placeholder content', async () => {
-        const file = scratch('made.txt');
-        await uFile.testOnly.mkFile(file);
-        expect(await uFile.read(file)).toBe('FILE_UTIL_GENERATED_FILE');
-      });
-
-      it('should resolve a relative path against `startingDir`', async () => {
-        await uFile.testOnly.mkFile('rel.txt', SCRATCH_DIRECTORY);
-        expect(await uFile.exists(scratch('rel.txt'))).toBe(true);
-      });
-
-      it('should skip, not throw, when the file already exists', async () => {
-        const file = scratch('twice.txt');
-        await uFile.testOnly.mkFile(file);
-        await expect(uFile.testOnly.mkFile(file)).resolves.toBeUndefined();
-      });
-    });
-
-    // ---- Test `.mkDir`
-    describe('mkDir', () => {
-      it('should create nested folders and tolerate existing ones', async () => {
-        const dir = scratch('a', 'b', 'c');
-        await uFile.mkDir(dir);
-        expect(await uFile.isDir(dir)).toBe(true);
-        await expect(uFile.mkDir(dir)).resolves.toBeUndefined();
-      });
-
-      it('should resolve a relative path against `startingDir`', async () => {
-        await uFile.mkDir('rel-dir', SCRATCH_DIRECTORY);
-        expect(await uFile.isDir(scratch('rel-dir'))).toBe(true);
-      });
-    });
-
-    // ---- Test `.rm` + `.emptyDir`
-    describe('rm + emptyDir', () => {
-      it('should remove a folder with contents', async () => {
-        const dir = scratch('to-remove');
-        await uFile.mkDir(dir);
-        await uFile.testOnly.mkFile(path.join(dir, 'x.txt'));
-        await uFile.rm(dir);
-        expect(await uFile.exists(dir)).toBe(false);
-      });
-
-      it('should not throw when the path does not exist', async () => {
-        await expect(uFile.rm(scratch('ghost'))).resolves.toBeUndefined();
-      });
-
-      it('should leave an empty folder behind with `emptyDir`', async () => {
-        const dir = scratch('to-empty');
-        await uFile.mkDir(dir);
-        await uFile.testOnly.mkFile(path.join(dir, 'x.txt'));
-        await uFile.emptyDir(dir);
-        expect(await uFile.isDir(dir)).toBe(true);
-        expect(await fs.readdir(dir)).toEqual([]);
-      });
-    });
+    beforeAll(() => fs.mkdir(SCRATCH_DIRECTORY, { recursive: true }));
+    afterAll(() => fs.rm(SCRATCH_DIRECTORY, { recursive: true, force: true }));
 
     // ---- Test `.write` + `.read`
     describe('write + read', () => {
-      it('should read what was written, unless running as a dry-run', async () => {
+      it('should read what was written', async () => {
         const file = scratch('rw.txt');
         await fs.writeFile(file, 'before', 'utf8');
         await uFile.write(file, 'after');
-        // Under the unit-test env `write` is a no-op (dry-run)
-        const isDryRun = process.env.NODE_ENV === UNIT_TEST_ENV;
-        expect(await uFile.read(file)).toBe(isDryRun ? 'before' : 'after');
+        expect(await uFile.read(file)).toBe('after');
       });
     });
 
@@ -335,78 +286,6 @@ describe('uFile', () => {
         await expect(uFile.loadJsonFile(scratch('num.json'))).rejects.toThrow(
           /object or array/,
         );
-      });
-    });
-
-    // ---- Test `.copyTo`
-    describe('copyTo', () => {
-      const SRC = scratch('copy-src');
-
-      beforeAll(async () => {
-        await uFile.mkDir(path.join(SRC, 'sub'));
-        await uFile.testOnly.mkFile(path.join(SRC, 'a.txt'));
-        await uFile.testOnly.mkFile(path.join(SRC, 'sub', 'b.txt'));
-      });
-
-      it('should copy a folder into the destination, keeping its name', async () => {
-        const dest = scratch('copy-dest');
-        const target = await uFile.testOnly.copyTo(SRC, dest);
-        expect(target).toBe(path.join(dest, 'copy-src'));
-        expect(await uFile.exists(path.join(target, 'a.txt'))).toBe(true);
-        expect(await uFile.exists(path.join(target, 'sub', 'b.txt'))).toBe(
-          true,
-        );
-      });
-
-      it('should rename the copy with the `rename` option', async () => {
-        const target = await uFile.testOnly.copyTo(SRC, scratch('copy-dest'), {
-          rename: 'renamed',
-        });
-        expect(target).toBe(scratch('copy-dest', 'renamed'));
-        expect(await uFile.exists(path.join(target, 'a.txt'))).toBe(true);
-      });
-
-      it('should replace an existing target instead of merging', async () => {
-        const dest = scratch('copy-replace');
-        const stale = path.join(dest, 'copy-src', 'STALE.txt');
-        await uFile.mkDir(path.dirname(stale));
-        await uFile.testOnly.mkFile(stale);
-        await uFile.testOnly.copyTo(SRC, dest);
-        expect(await uFile.exists(stale)).toBe(false);
-        expect(await uFile.exists(path.join(dest, 'copy-src', 'a.txt'))).toBe(
-          true,
-        );
-      });
-
-      it('should skip entries rejected by `filter`', async () => {
-        const dest = scratch('copy-filtered');
-        const target = await uFile.testOnly.copyTo(SRC, dest, {
-          filter: (src) => path.basename(src) !== 'sub',
-        });
-        expect(await uFile.exists(path.join(target, 'a.txt'))).toBe(true);
-        expect(await uFile.exists(path.join(target, 'sub'))).toBe(false);
-      });
-
-      it('should throw for a missing source without deleting the existing target', async () => {
-        const dest = scratch('copy-missing');
-        const keep = path.join(dest, 'ghost', 'keep.txt');
-        await uFile.mkDir(path.dirname(keep));
-        await uFile.testOnly.mkFile(keep);
-        await expect(
-          uFile.testOnly.copyTo(scratch('ghost'), dest),
-        ).rejects.toThrow(/does not exist/);
-        expect(await uFile.exists(keep)).toBe(true);
-      });
-
-      it('should refuse to copy a folder into itself', async () => {
-        await expect(
-          uFile.testOnly.copyTo(SRC, path.dirname(SRC)),
-        ).rejects.toThrow(/overlap/);
-        await expect(
-          uFile.testOnly.copyTo(SRC, path.join(SRC, 'sub')),
-        ).rejects.toThrow(/overlap/);
-        // Source untouched
-        expect(await uFile.exists(path.join(SRC, 'a.txt'))).toBe(true);
       });
     });
   });

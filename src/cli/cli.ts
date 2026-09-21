@@ -1,4 +1,3 @@
-import logger from '@logger';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -6,41 +5,50 @@ import { fileURLToPath } from 'url';
 import { insertCodeDividers } from '@src/api';
 
 import DefaultConfig from '@common/constants/DefaultConfig';
+import UserError from '@common/utils/classes/UserError';
+
+import logger from '@logger';
 
 import cmdLineParser from './_internal/cmdLineParser';
 import initDir from './_internal/initDir';
 import printHelpText from './_internal/printHelpText';
 
 // ========================================================================= //
-//                                   INIT                                    //
+//                                 CONSTANTS                                 //
+// ========================================================================= //
+
+// Injected by esbuild at build time (see scripts/build.ts), so the bundled
+// CLI answers `--version` without touching the filesystem. Absent when the
+// source runs directly under tsx, where `loadVersionFromPkgJson` takes over.
+declare const __CODE_DIVIDER_VERSION__: string | undefined;
+
+const PACKAGE_NAME = 'code-divider';
+
+// ========================================================================= //
+//                                 FUNCTIONS                                 //
 // ========================================================================= //
 
 /**
  * Run the `code-divider` CLI: parse `args`, then either print help/version,
- * write a config file (`--init`), or insert code-dividers.
+ * write a config file (`--init`), or insert code-dividers. Relative paths
+ * are resolved against `cwd`.
  */
 async function cli(args: string[], cwd: string): Promise<unknown> {
   // ---- parse the command-line-arguments
-  const pArgs = await cmdLineParser(args);
+  const pArgs = cmdLineParser(args, cwd);
 
   // ---- `help/version/init`
   if (pArgs.help || pArgs.version || pArgs.init) {
     if (args.length === 1) {
-      const thisFilePath = fileURLToPath(import.meta.url);
-      const thisFileDir = path.dirname(thisFilePath);
-      if (pArgs.help) {
-        return printHelpText();
-      } else if (pArgs.version) {
-        const version = await readVersion(thisFileDir);
-        return process.stdout.write(`${version}\n`);
-      }
+      if (pArgs.help) return printHelpText();
+      else if (pArgs.version) return printVersion();
     }
     // `cmdLineParser` guarantees `init` is alone (apart from its directory)
     if (pArgs.init) {
-      const filePath = await initDir(pArgs.init, DefaultConfig);
+      const filePath = await initDir(pArgs.init, DefaultConfig, cwd);
       return logger.info(`code-divider: created ${filePath}\n`);
     }
-    throw new Error(
+    throw new UserError(
       'Invalid command-line arguments. Please use the "-h" flag for assistance',
     );
   }
@@ -81,27 +89,41 @@ async function cli(args: string[], cwd: string): Promise<unknown> {
   return logger.line();
 }
 
-// ========================================================================= //
-//                                 FUNCTIONS                                 //
-// ========================================================================= //
-
 /**
- * Look at the package.json and return the version. Walks up from the
- * directory this file lives in, so it works both from the bundled `lib/cli.js`
- * (one level down) and from `src/cli/cli.ts` (two levels down).
+ * Print the version inlined by the build. If it's absent (the source is
+ * running unbundled) read it from package.json instead.
  *
  * Used by: {@link cli}
  *
  * @private
  */
-async function readVersion(startDir: string): Promise<string> {
+async function printVersion(): Promise<boolean> {
+  let version;
+  if (typeof __CODE_DIVIDER_VERSION__ === 'string') {
+    version = __CODE_DIVIDER_VERSION__;
+  } else {
+    const thisFileDir = path.dirname(fileURLToPath(import.meta.url));
+    version = await loadVersionFromPkgJson(thisFileDir);
+  }
+  return process.stdout.write(`${version}\n`);
+}
+
+/**
+ * Walk up from `startDir` to the package.json of this package and return its
+ * version.
+ *
+ * Used by: {@link printVersion}
+ *
+ * @private
+ */
+async function loadVersionFromPkgJson(startDir: string): Promise<string> {
   let dir = startDir;
   while (true) {
     const filePath = path.join(dir, 'package.json');
     try {
       const content = await fs.readFile(filePath, 'utf8');
       const packageJson = JSON.parse(content);
-      if (packageJson.name === 'code-divider') return packageJson.version;
+      if (packageJson.name === PACKAGE_NAME) return packageJson.version;
     } catch {
       // Not here, keep walking up
     }
@@ -112,7 +134,7 @@ async function readVersion(startDir: string): Promise<string> {
 }
 
 // ========================================================================= //
-//                                   EXPORT                                  //
+//                                  EXPORT                                   //
 // ========================================================================= //
 
 export default cli;
