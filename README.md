@@ -234,6 +234,8 @@ To create it somewhere else:
 npx code-divider --init ./packages/app
 ```
 
+---
+
 ### How config files are found
 
 Unless you pass `--config <file>`, `code-divider` checks locations in this order:
@@ -244,6 +246,8 @@ Unless you pass `--config <file>`, `code-divider` checks locations in this order
 The first config file found wins. These config files are **not merged together**.
 
 Settings in the selected config file override the built-in defaults. Anything you leave out keeps its default value. If no config is found, the built-in defaults are used.
+
+---
 
 ### Shared settings
 
@@ -266,6 +270,8 @@ Both label-format settings accept:
 | `"none"` | Leave the label exactly as written. |
 
 Words that start or end with a non-alphanumeric character are left unchanged under every format. That keeps labels containing things like `@decorator` or `.foo` intact.
+
+---
 
 ### Language-specific settings
 
@@ -327,6 +333,8 @@ print('Hello code-divider')
 
 </details>
 
+---
+
 ### Default Settings
 
 These are the language keys, file extensions, and comment styles available by default.
@@ -352,6 +360,8 @@ Extensions are matched case-insensitively, so `Main.TS` is treated like `main.ts
 | `Sql` | `.sql` | `-- @reg Label` | `"-- "` … `" --"` |
 
 </details>
+
+---
 
 ### Filtering files
 
