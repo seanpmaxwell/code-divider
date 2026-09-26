@@ -156,7 +156,7 @@ For VS Code, install the [Run on Save](https://github.com/emeraldwalk/vscode-run
 ## 🤔 Why not snippets?
 
 <details>
-<summary>Snippets can't measure the label. Here's the difference.</summary>
+<summary>Here's the difference.</summary>
 
 Editor snippets can insert a header template, and if they work for you, great! What they can't do is measure the label. Snippet transforms can change case, but they can't count characters, so the filler stays the same length and the line grows with the label:
 
