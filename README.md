@@ -1,4 +1,4 @@
-# code-divider
+# 📟÷ &nbsp; code-divider
 
 [![NPM Version](https://img.shields.io/npm/v/code-divider.svg?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/code-divider)
 [![NPM Downloads](https://img.shields.io/npm/dm/code-divider.svg?style=for-the-badge)](https://www.npmjs.com/package/code-divider)
