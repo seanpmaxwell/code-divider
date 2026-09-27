@@ -1,6 +1,6 @@
 {
   "name": "code-divider",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Turn region/section labels into centered, fixed-width comment headers. Any language, any editor.",
   "type": "module",
   "repository": {
@@ -35,8 +35,6 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepublishOnly": "npm run build && tsc && npm run lint && npm run format:check && npm test",
-    "prepack": "mv README.md ./assets/README.tmp.md && mv ./assets/README-npm.md README.md",
-    "postpack": "mv README.md ./assets/README-npm.md && mv ./assets/README.tmp.md README.md",
     "start": "node lib/cli.js",
     "start:build": "npm run build && npm run start --",
     "test": "vitest run",
