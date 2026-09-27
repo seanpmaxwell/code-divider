@@ -17,7 +17,6 @@ Use it from the command line, run it automatically when you save, or call it fro
 
 ## 🧭 Table of contents
 
-- [👀 Preview](#-preview)
 - [🚀 Quick start](#-quick-start)
 - [📌 Markers](#-markers)
 - [💻 Command-line options](#-command-line-options)
