@@ -398,6 +398,8 @@ const updatedFiles = await insertCodeDividers(targetPath?, options?)
 
 `targetPath` can be a file or directory. Relative paths are resolved against `options.cwd`, and an empty or omitted path means `options.cwd` itself.
 
+---
+
 All options are optional:
 
 | Option | What it does | Default |
@@ -408,6 +410,8 @@ All options are optional:
 | `isDryRun` | Return the files that would change without writing them. | `false` |
 | `logger` | Handle messages with an object exposing `info` and `warn` methods, such as `console`. | Console output |
 | `silent` | Suppress all messages. Takes priority over `logger`. | `false` |
+
+---
 
 The logger receives:
 
